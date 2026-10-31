@@ -28,4 +28,5 @@
     <string name="discovered_servers">Добавлено серверов: %1$d</string>
     <string name="load_more">Загрузить ещё</string>
     <string name="loading_more">Загрузка…</string>
+    <string name="select_server">Сервер поиска</string>
 </resources>

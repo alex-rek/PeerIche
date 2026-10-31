@@ -8,13 +8,14 @@ PeerIche is a continuation of PeerTubeTV by the same author. It is a standalone 
 
 - Kotlin, Jetpack Compose, Material 3, Retrofit/Gson, Coil and Media3.
 - Public home feed from the selected PeerTube server.
-- Search through Sepia Search and up to five user configured PeerTube instances.
+- Search through Sepia Search, PeerSeek, and up to five user configured PeerTube instances, with paging and de-duplication.
+- Manual server entry and discovery through the public JoinPeerTube instance directory.
 - Adaptive video grid and Home, Search, Subscriptions and Library navigation.
-- Local favorite and watch history lists.
+- Room-backed favorite and watch history lists; DataStore-backed server settings.
 - Full screen destination with Media3 playback when a playable URL is provided.
 - Dark theme and an original PeerIche vector launcher mark.
 
-This is an early implementation. Subscriptions are currently a navigation placeholder; account sign-in, channel pages, persistent playlists, advanced search filters, robust pagination, background playback, Picture-in-Picture, and tablet/DeX validation remain to be implemented. Favorite and history records currently use app-private preferences pending migration to the planned Room database. Preferences are not shared with PeerTubeTV.
+This is an early implementation. Subscriptions are currently a navigation placeholder; account sign-in, channel pages, persistent playlists, advanced search filters, background playback, Picture-in-Picture, and tablet/DeX validation remain to be implemented. Room and DataStore files are app-private and not shared with PeerTubeTV.
 
 ## Build
 

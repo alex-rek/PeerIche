@@ -47,9 +47,13 @@ abstract class PeerIcheDatabase : RoomDatabase() {
 
 val Context.peerIcheDataStore by preferencesDataStore(name = "peeriche_settings")
 private val serverListKey = stringPreferencesKey("servers")
+private val activeServerKey = stringPreferencesKey("activeServer")
 
-suspend fun saveServerList(context: Context, value: String) {
-    context.peerIcheDataStore.edit { it[serverListKey] = value }
+suspend fun saveServerList(context: Context, value: String, active: String) {
+    context.peerIcheDataStore.edit {
+        it[serverListKey] = value
+        it[activeServerKey] = active
+    }
 }
 
 fun SavedVideo.toVideo(): Video = Video(

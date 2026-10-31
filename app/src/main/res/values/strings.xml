@@ -28,4 +28,5 @@
     <string name="discovered_servers">Added %1$d servers</string>
     <string name="load_more">Load more</string>
     <string name="loading_more">Loading…</string>
+    <string name="select_server">Search server</string>
 </resources>

@@ -61,8 +61,10 @@ class MainActivity : ComponentActivity() {
     val database = remember { PeerIcheDatabase.get(context) }
     val scope = rememberCoroutineScope()
     val serverList by context.peerIcheDataStore.data.catch { emit(emptyPreferences()) }.map { it[stringPreferencesKey("servers")] ?: "https://peertube.tv" }.collectAsState(initial = "https://peertube.tv")
+    val activeServerSetting by context.peerIcheDataStore.data.catch { emit(emptyPreferences()) }.map { it[stringPreferencesKey("activeServer")].orEmpty() }.collectAsState(initial = "")
     var page by remember { mutableStateOf("Home") }
-    val server = remember(serverList) { serverList.lines().firstOrNull()?.let { runCatching { normalizeServer(it) }.getOrNull() } ?: "https://peertube.tv" }
+    val availableServers = remember(serverList) { serverList.lines().mapNotNull { runCatching { normalizeServer(it) }.getOrNull() }.distinct() }
+    val server = remember(serverList, activeServerSetting) { activeServerSetting.takeIf { it in availableServers } ?: availableServers.firstOrNull() ?: "https://peertube.tv" }
     var videos by remember { mutableStateOf(emptyList<Video>()) }
     var query by remember { mutableStateOf("") }
     var resultPage by remember { mutableIntStateOf(0) }
@@ -72,6 +74,7 @@ class MainActivity : ComponentActivity() {
     var selectedVideo by remember { mutableStateOf<Video?>(null) }
     var settingsOpen by remember { mutableStateOf(false) }
     var discoveringServers by remember { mutableStateOf(false) }
+    var chooseServerOpen by remember { mutableStateOf(false) }
     var serverDraft by remember { mutableStateOf(serverList) }
     var libraryTab by remember { mutableStateOf("Favorites") }
     val favoriteRows by database.library().observe("favorite").collectAsState(initial = emptyList())
@@ -126,6 +129,16 @@ class MainActivity : ComponentActivity() {
                 if (selectedVideo == null) {
                     Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 14.dp), verticalAlignment = Alignment.CenterVertically) {
                         Text(stringResource(R.string.app_name), fontWeight = FontWeight.Bold, fontSize = 25.sp, color = Orange, modifier = Modifier.weight(1f))
+                        Box {
+                            TextButton(onClick = { chooseServerOpen = true }) { Text(server.removePrefix("https://"), color = Color.White, maxLines = 1) }
+                            DropdownMenu(expanded = chooseServerOpen, onDismissRequest = { chooseServerOpen = false }) {
+                                availableServers.forEach { host -> DropdownMenuItem(text = { Text(host.removePrefix("https://")) }, onClick = {
+                                    scope.launch { saveServerList(context, serverList, host) }
+                                    chooseServerOpen = false
+                                }) }
+                                DropdownMenuItem(text = { Text(stringResource(R.string.settings)) }, onClick = { chooseServerOpen = false; serverDraft = serverList; settingsOpen = true })
+                            }
+                        }
                         IconButton(onClick = { serverDraft = serverList; settingsOpen = true }) { Icon(Icons.Default.Tune, stringResource(R.string.settings)) }
                     }
                     if (page == "Search") {
@@ -197,7 +210,8 @@ class MainActivity : ComponentActivity() {
             confirmButton = { TextButton(onClick = {
                 val normalized = serverDraft.lines().mapNotNull { runCatching { normalizeServer(it) }.getOrNull() }.distinct()
                 if (normalized.isNotEmpty()) {
-                    scope.launch { saveServerList(context, normalized.joinToString("\n")) }
+                    val active = server.takeIf { it in normalized } ?: normalized.first()
+                    scope.launch { saveServerList(context, normalized.joinToString("\n"), active) }
                 }
                 settingsOpen = false
             }) { Text(stringResource(R.string.save)) } },
