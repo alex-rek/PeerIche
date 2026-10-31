@@ -1,0 +1,31 @@
+<resources>
+    <string name="app_name">PeerIche</string>
+    <string name="search_hint">Поиск по сети PeerTube</string>
+    <string name="home">Главная</string>
+    <string name="search">Поиск</string>
+    <string name="subscriptions">Подписки</string>
+    <string name="library">Библиотека</string>
+    <string name="server">Сервер PeerTube</string>
+    <string name="about_independent">PeerIche — независимый клиент, не связанный с Framasoft.</string>
+    <string name="no_results">Видео не найдены. Попробуйте другой запрос или сервер.</string>
+    <string name="search_failed">Не удалось связаться с выбранными источниками поиска.</string>
+    <string name="go">Найти</string>
+    <string name="discover_videos">Открывайте видео</string>
+    <string name="followed_channels">Каналы в подписках</string>
+    <string name="favorites">Избранное</string>
+    <string name="history">История</string>
+    <string name="back">Назад</string>
+    <string name="no_playable_stream">Сервер не предоставил доступный видеопоток.</string>
+    <string name="video_meta">%1$d просмотров · %2$s</string>
+    <string name="servers">Серверы</string>
+    <string name="servers_help">Укажите HTTPS-адрес PeerTube на каждой строке. Поиск проверяет Sepia Search и до пяти серверов.</string>
+    <string name="server_list">Серверы PeerTube</string>
+    <string name="save">Сохранить</string>
+    <string name="cancel">Отмена</string>
+    <string name="settings">Настройки</string>
+    <string name="discover_servers">Найти серверы</string>
+    <string name="discovering_servers">Загрузка каталога…</string>
+    <string name="discovered_servers">Добавлено серверов: %1$d</string>
+    <string name="load_more">Загрузить ещё</string>
+    <string name="loading_more">Загрузка…</string>
+</resources>
