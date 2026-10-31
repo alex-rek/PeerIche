@@ -32,4 +32,14 @@
     <string name="dark_theme">Dark theme</string>
     <string name="subscribe_channel">Subscribe to channel</string>
     <string name="unsubscribe_channel">Unsubscribe from channel</string>
+    <string name="from_subscriptions">New from channels you follow</string>
+    <string name="recommended_for_you">Recommended from your watch history</string>
+    <string name="latest_videos">Latest videos</string>
+    <string name="loading_video">Loading video from its PeerTube server…</string>
+    <string name="video_unavailable">Could not load a playable stream. Try again or choose another server.</string>
+    <string name="retry">Retry</string>
+    <string name="manual_server_address">Enter a server address</string>
+    <string name="invalid_server_address">Enter a valid HTTPS PeerTube address.</string>
+    <string name="add_server">Add</string>
+    <string name="popular_now">Popular on this server</string>
 </resources>

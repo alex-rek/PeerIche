@@ -32,4 +32,14 @@
     <string name="dark_theme">Тёмная тема</string>
     <string name="subscribe_channel">Подписаться на канал</string>
     <string name="unsubscribe_channel">Отписаться от канала</string>
+    <string name="from_subscriptions">Новые видео из подписок</string>
+    <string name="recommended_for_you">Рекомендации по истории просмотров</string>
+    <string name="latest_videos">Последние видео</string>
+    <string name="loading_video">Загружаем видео с исходного PeerTube-сервера…</string>
+    <string name="video_unavailable">Не удалось получить видеопоток. Попробуйте ещё раз или выберите другой сервер.</string>
+    <string name="retry">Повторить</string>
+    <string name="manual_server_address">Введите адрес сервера</string>
+    <string name="invalid_server_address">Введите корректный HTTPS-адрес PeerTube.</string>
+    <string name="add_server">Добавить</string>
+    <string name="popular_now">Популярное на этом сервере</string>
 </resources>

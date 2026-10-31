@@ -38,25 +38,52 @@ data class PeerSeekVideo(
 }
 data class Video(
     val uuid: String = "", val name: String = "", val description: String? = null,
-    val thumbnailPath: String? = null, val thumbnailUrl: String? = null,
+    val thumbnailPath: String? = null, val thumbnailUrl: String? = null, val previewPath: String? = null,
     val views: Long = 0, val duration: Long = 0, val host: String? = null,
     val url: String? = null, val files: List<VideoFile>? = null,
     val streamingPlaylists: List<StreamingPlaylist>? = null,
+    val directStreamUrl: String? = null,
     val channel: Channel? = null, val account: Account? = null
 ) {
     fun sourceServer(fallback: String): String {
-        val urlHost = runCatching { java.net.URI(url).takeIf { it.scheme == "https" }?.host }.getOrNull()
+        val urlHost = runCatching { java.net.URI(url).takeIf { it.scheme == "https" || it.scheme == "http" }?.host }.getOrNull()
         val sourceHost = urlHost ?: host ?: account?.host ?: channel?.host
-        return sourceHost?.let { "https://$it" } ?: fallback
+        val normalizedHost = sourceHost?.removePrefix("https://")?.removePrefix("http://")?.trimEnd('/')
+        return normalizedHost?.takeIf(String::isNotBlank)?.let { "https://$it" } ?: fallback
     }
-    fun playableUrl(): String? = streamingPlaylists.orEmpty().firstNotNullOfOrNull { it.playlistUrl?.takeIf(String::isNotBlank) }
-        ?: files.orEmpty().maxByOrNull { it.resolution?.id ?: 0 }?.fileUrl
+    fun apiId(): String = uuid.takeIf(String::isNotBlank)
+        ?: runCatching { java.net.URI(url).path.substringAfterLast('/') }.getOrDefault("")
+
+    fun playableUrl(): String? {
+        fun secure(value: String?): String? {
+            val raw = value?.trim()?.takeIf(String::isNotBlank) ?: return null
+            val uri = runCatching { java.net.URI(raw) }.getOrNull() ?: return null
+            if (uri.userInfo != null || uri.host.isNullOrBlank() || uri.scheme !in setOf("https", "http")) return null
+            return if (uri.scheme == "https") raw else raw.replaceFirst("http://", "https://")
+        }
+        return streamingPlaylists.orEmpty().firstNotNullOfOrNull { secure(it.playlistUrl) }
+            ?: (files.orEmpty() + streamingPlaylists.orEmpty().flatMap { it.files.orEmpty() })
+                .maxByOrNull { it.resolution?.id ?: 0 }?.fileUrl?.let(::secure)
+            ?: secure(directStreamUrl)
+    }
+
+    fun thumbnailCandidates(fallback: String): List<String> {
+        val base = runCatching { java.net.URI(sourceServer(fallback).trimEnd('/') + "/") }.getOrNull() ?: return emptyList()
+        return listOfNotNull(thumbnailUrl, thumbnailPath, previewPath).mapNotNull { value ->
+            runCatching {
+                val candidate = java.net.URI(value.trim()).let { if (it.isAbsolute) it else base.resolve(it) }
+                if (candidate.host.isNullOrBlank() || candidate.userInfo != null || candidate.scheme !in setOf("http", "https")) null
+                else if (candidate.scheme == "http") candidate.toString().replaceFirst("http://", "https://") else candidate.toString()
+            }.getOrNull()
+        }.distinct()
+    }
 }
 data class VideoFile(val fileUrl: String? = null, val resolution: Resolution? = null)
 data class Resolution(val id: Int = 0, val label: String? = null)
 data class StreamingPlaylist(val playlistUrl: String? = null, val files: List<VideoFile>? = null)
 data class Channel(val displayName: String? = null, val name: String? = null, val host: String? = null)
 data class Account(val displayName: String? = null, val name: String? = null, val host: String? = null)
+
 
 interface PeerTubeApi {
     @GET("api/v1/videos") suspend fun videos(
@@ -137,6 +164,8 @@ object PeerTubeClients {
     }
     suspend fun discoverInstances() = directory.instances().data.filter { it.host.isNotBlank() }
     suspend fun home(server: String) = server(server).videos(sort = "-publishedAt", count = 30).data
+    suspend fun popular(server: String) = server(server).videos(sort = "-views", count = 30).data
+    suspend fun video(server: String, id: String): Video = server(server).video(id)
 }
 
 internal fun deduplicateVideos(videos: List<Video>, fallbackServer: String): List<Video> {

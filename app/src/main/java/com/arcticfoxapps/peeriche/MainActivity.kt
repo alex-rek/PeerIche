@@ -3,12 +3,16 @@ package com.arcticfoxapps.peeriche
 import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -25,6 +29,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
@@ -41,6 +46,10 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import coil.compose.AsyncImage
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.Deferred
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.common.MediaItem
 import androidx.media3.ui.PlayerView
@@ -48,6 +57,18 @@ import androidx.media3.ui.PlayerView
 private val Ink = Color(0xFF101113)
 private val Panel = Color(0xFF1B1C20)
 private val Orange = Color(0xFFFF7139)
+
+private suspend fun fetchSubscribedVideos(rows: List<SavedVideo>): List<Video> = coroutineScope {
+    val requests: List<Deferred<List<Video>>> = rows.take(20).mapNotNull { subscription ->
+        val handle = subscription.channelName?.takeIf(String::isNotBlank) ?: return@mapNotNull null
+        async<List<Video>> {
+            try { PeerTubeClients.server(subscription.server).channelVideos(handle).data }
+            catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled }
+            catch (_: Exception) { emptyList() }
+        }
+    }
+    requests.awaitAll().flatten()
+}
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -70,14 +91,23 @@ class MainActivity : ComponentActivity() {
     val availableServers = remember(serverList) { serverList.lines().mapNotNull { runCatching { normalizeServer(it) }.getOrNull() }.distinct() }
     val server = remember(serverList, activeServerSetting) { activeServerSetting.takeIf { it in availableServers } ?: availableServers.firstOrNull() ?: "https://peertube.tv" }
     var videos by remember { mutableStateOf(emptyList<Video>()) }
+    var recommendedVideos by remember { mutableStateOf(emptyList<Video>()) }
+    var recommendationsUseHistory by remember { mutableStateOf(false) }
+    var subscriptionFeed by remember { mutableStateOf(emptyList<Video>()) }
     var query by remember { mutableStateOf("") }
     var resultPage by remember { mutableIntStateOf(0) }
     var hasMoreResults by remember { mutableStateOf(false) }
     var busy by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     var selectedVideo by remember { mutableStateOf<Video?>(null) }
+    var loadingVideo by remember { mutableStateOf(false) }
+    var playerError by remember { mutableStateOf<String?>(null) }
+    var videoLoadGeneration by remember { mutableIntStateOf(0) }
     var settingsOpen by remember { mutableStateOf(false) }
     var discoveringServers by remember { mutableStateOf(false) }
+    var discoveredServers by remember { mutableStateOf(emptyList<PeerTubeInstance>()) }
+    var manualServerInput by remember { mutableStateOf("") }
+    var serverInputError by remember { mutableStateOf(false) }
     var chooseServerOpen by remember { mutableStateOf(false) }
     var serverDraft by remember { mutableStateOf(serverList) }
     var libraryTab by remember { mutableStateOf("Favorites") }
@@ -86,13 +116,51 @@ class MainActivity : ComponentActivity() {
     val subscriptionRows by database.library().observe("subscription").collectAsState(initial = emptyList())
     val favorites = remember(favoriteRows) { favoriteRows.map { it.identity }.toSet() }
 
+    fun appendServer(raw: String) {
+        val normalized = runCatching { normalizeServer(raw) }.getOrNull()
+        if (normalized == null) { serverInputError = true; return }
+        val current = serverDraft.lines().mapNotNull { runCatching { normalizeServer(it) }.getOrNull() }.toMutableList()
+        if (normalized !in current) current += normalized
+        serverDraft = current.joinToString("\n")
+        manualServerInput = ""
+        serverInputError = false
+    }
+
     fun loadHome() {
         busy = true; error = null
-        (context as? ComponentActivity)?.lifecycleScope?.launch {
-            runCatching { PeerTubeClients.home(server) }
-                .onSuccess { videos = it }
-                .onFailure { error = it.message ?: context.getString(R.string.search_failed) }
+        scope.launch {
+            val history = database.library().getAll("history")
+            val savedSubscriptions = database.library().getAll("subscription")
+            val searchServers = availableServers.ifEmpty { listOf(server) }
+            val latestRequest = async { runCatching { PeerTubeClients.home(server) } }
+            val popularRequest = async { runCatching { PeerTubeClients.popular(server) } }
+            val subscriptionRequest = async { fetchSubscribedVideos(savedSubscriptions) }
+            val terms = history.take(3).map { it.title.trim() }.filter(String::isNotBlank).distinct()
+            val recommendationRequest = async {
+                coroutineScope {
+                    terms.map { term -> async {
+                        try { PeerTubeClients.searchPage(term, searchServers, 0).videos }
+                        catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled }
+                        catch (_: Exception) { emptyList() }
+                    } }.awaitAll().flatten()
+                }
+            }
+            val latest = latestRequest.await()
+            videos = latest.getOrDefault(emptyList())
             busy = false
+            val following = deduplicateVideos(subscriptionRequest.await(), server).take(30)
+            subscriptionFeed = following
+            val historyIds = history.map { it.identity.substringBefore("|") }.toSet()
+            val followingIds = following.map { it.apiId() }.toSet()
+            val fromHistory = deduplicateVideos(recommendationRequest.await(), server)
+                .filterNot { it.apiId() in historyIds || it.apiId() in followingIds }
+            recommendationsUseHistory = fromHistory.isNotEmpty()
+            recommendedVideos = fromHistory.ifEmpty {
+                popularRequest.await().getOrDefault(emptyList()).filterNot { it.apiId() in historyIds || it.apiId() in followingIds }
+            }.take(30)
+            if (latest.isFailure && recommendedVideos.isEmpty() && subscriptionFeed.isEmpty()) {
+                error = latest.exceptionOrNull()?.message ?: context.getString(R.string.search_failed)
+            }
         }
     }
     fun searchNow(pageToLoad: Int = 0) {
@@ -114,15 +182,36 @@ class MainActivity : ComponentActivity() {
     fun loadSubscriptions(rows: List<SavedVideo> = subscriptionRows) {
         busy = true; error = null
         scope.launch {
-            val collected = rows.mapNotNull { subscription ->
-                val handle = subscription.channelName?.takeIf(String::isNotBlank) ?: return@mapNotNull null
-                runCatching { PeerTubeClients.server(subscription.server).channelVideos(handle).data }.getOrNull()
-            }.flatten()
+            val collected = fetchSubscribedVideos(rows)
             videos = deduplicateVideos(collected, server)
             busy = false
         }
     }
+    fun closePlayer() {
+        videoLoadGeneration++
+        selectedVideo = null
+        loadingVideo = false
+        playerError = null
+    }
+    fun openVideo(video: Video) {
+        val generation = ++videoLoadGeneration
+        selectedVideo = video
+        loadingVideo = true
+        playerError = null
+        scope.launch {
+            val id = video.apiId()
+            val details = if (id.isNotBlank()) runCatching { PeerTubeClients.video(video.sourceServer(server), id) }.getOrNull() else null
+            val ready = details?.takeIf { it.playableUrl() != null } ?: video
+            if (generation == videoLoadGeneration) {
+                selectedVideo = ready
+                loadingVideo = false
+                if (ready.playableUrl() == null) playerError = context.getString(R.string.video_unavailable)
+                database.library().put(ready.toSavedVideo(server, "history"))
+            }
+        }
+    }
     LaunchedEffect(Unit) { loadHome() }
+    BackHandler(enabled = selectedVideo != null) { closePlayer() }
 
     MaterialTheme(colorScheme = if (darkTheme) darkColorScheme(primary = Orange, secondary = Orange, background = Ink, surface = Panel, onSurface = Color(0xFFF1F1F3)) else lightColorScheme(primary = Orange, secondary = Color(0xFFB64720), background = Color(0xFFF7F6F4), surface = Color.White)) {
         Scaffold(containerColor = Ink, bottomBar = {
@@ -184,24 +273,20 @@ class MainActivity : ComponentActivity() {
                     if (busy) LinearProgressIndicator(Modifier.fillMaxWidth().padding(horizontal = 16.dp), color = Orange)
                     error?.let { Text(it, Modifier.padding(18.dp), color = Color(0xFFFFB49B)) }
                     LazyVerticalGrid(columns = GridCells.Adaptive(minSize = 230.dp), contentPadding = PaddingValues(12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                        items(visibleVideos, key = { it.uuid.ifBlank { it.url ?: it.name } }) { video ->
-                            val subscriptionIdentity = video.subscriptionIdentity(server)
-                            VideoCard(video, server, video.uuid in favorites, subscriptionRows.any { it.identity == subscriptionIdentity }, onOpen = {
-                                selectedVideo = video
-                                scope.launch { database.library().put(video.toSavedVideo(server, "history")) }
-                            }, onFavorite = {
-                                scope.launch {
-                                    if (video.uuid in favorites) database.library().delete(video.uuid, "favorite")
-                                    else database.library().put(video.toSavedVideo(server, "favorite"))
-                                }
-                            }, onSubscribe = {
-                                val row = video.toSubscription(server) ?: return@VideoCard
-                                scope.launch {
-                                    if (subscriptionRows.any { it.identity == row.identity }) database.library().delete(row.identity, "subscription")
-                                    else database.library().put(row)
-                                    loadSubscriptions(database.library().getAll("subscription"))
-                                }
-                            })
+                        if (page == "Home") {
+                            if (subscriptionFeed.isNotEmpty()) videoSection(R.string.from_subscriptions, subscriptionFeed, "following", server, favorites, subscriptionRows.map { it.identity }.toSet(), ::openVideo,
+                                { video -> scope.launch { val id = video.uuid; if (id in favorites) database.library().delete(id, "favorite") else database.library().put(video.toSavedVideo(server, "favorite")) } },
+                                { video -> toggleSubscription(video, server, database, subscriptionRows, scope, ::loadSubscriptions) })
+                            if (recommendedVideos.isNotEmpty()) videoSection(if (recommendationsUseHistory) R.string.recommended_for_you else R.string.popular_now, recommendedVideos, "recommended", server, favorites, subscriptionRows.map { it.identity }.toSet(), ::openVideo,
+                                { video -> scope.launch { val id = video.uuid; if (id in favorites) database.library().delete(id, "favorite") else database.library().put(video.toSavedVideo(server, "favorite")) } },
+                                { video -> toggleSubscription(video, server, database, subscriptionRows, scope, ::loadSubscriptions) })
+                            videoSection(R.string.latest_videos, videos, "latest", server, favorites, subscriptionRows.map { it.identity }.toSet(), ::openVideo,
+                                { video -> scope.launch { val id = video.uuid; if (id in favorites) database.library().delete(id, "favorite") else database.library().put(video.toSavedVideo(server, "favorite")) } },
+                                { video -> toggleSubscription(video, server, database, subscriptionRows, scope, ::loadSubscriptions) })
+                        } else {
+                            videoSection(null, visibleVideos, page.lowercase(), server, favorites, subscriptionRows.map { it.identity }.toSet(), ::openVideo,
+                                { video -> scope.launch { val id = video.uuid; if (id in favorites) database.library().delete(id, "favorite") else database.library().put(video.toSavedVideo(server, "favorite")) } },
+                                { video -> toggleSubscription(video, server, database, subscriptionRows, scope, ::loadSubscriptions) })
                         }
                         if (page == "Search" && hasMoreResults) item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
                             TextButton(onClick = { searchNow(resultPage + 1) }, enabled = !busy, modifier = Modifier.fillMaxWidth()) {
@@ -212,11 +297,21 @@ class MainActivity : ComponentActivity() {
                 } else {
                     val video = selectedVideo!!
                     Row(Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                        TextButton(onClick = { selectedVideo = null }) { Text("← ${stringResource(R.string.back)}") }
+                        TextButton(onClick = ::closePlayer) { Text("← ${stringResource(R.string.back)}") }
                         Text(video.name, color = Color.White, maxLines = 2, modifier = Modifier.padding(start = 12.dp))
                     }
                     val playUrl = video.playableUrl()
-                    if (playUrl != null) VideoPlayer(playUrl) else Text(stringResource(R.string.no_playable_stream), Modifier.padding(20.dp), color = Color.White)
+                    when {
+                        loadingVideo -> Row(Modifier.fillMaxWidth().padding(32.dp), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+                            CircularProgressIndicator(color = Orange, modifier = Modifier.size(26.dp))
+                            Text(stringResource(R.string.loading_video), Modifier.padding(start = 12.dp), color = Color.White)
+                        }
+                        playUrl != null -> VideoPlayer(playUrl)
+                        else -> Column(Modifier.fillMaxWidth().padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(playerError ?: stringResource(R.string.video_unavailable), color = Color.White)
+                            TextButton(onClick = { openVideo(video) }) { Text(stringResource(R.string.retry)) }
+                        }
+                    }
                     Text(video.name, Modifier.padding(16.dp), color = Color.White, fontSize = 21.sp, fontWeight = FontWeight.Bold)
                     Text(video.description.orEmpty(), Modifier.padding(horizontal = 16.dp), color = Color.LightGray)
                     Text(stringResource(R.string.video_meta, video.views, video.channel?.displayName ?: video.account?.displayName.orEmpty()), Modifier.padding(16.dp), color = Color.Gray)
@@ -227,24 +322,36 @@ class MainActivity : ComponentActivity() {
         if (settingsOpen) AlertDialog(
             onDismissRequest = { settingsOpen = false },
             title = { Text(stringResource(R.string.servers)) },
-            text = { Column {
+            text = { Column(Modifier.heightIn(max = 500.dp).verticalScroll(rememberScrollState())) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Text(stringResource(R.string.dark_theme), Modifier.weight(1f))
                     Switch(checked = darkTheme, onCheckedChange = { enabled -> scope.launch { saveDarkTheme(context, enabled) } })
                 }
                 Text(stringResource(R.string.servers_help), style = MaterialTheme.typography.bodySmall)
                 Spacer(Modifier.height(10.dp))
+                OutlinedTextField(
+                    value = manualServerInput,
+                    onValueChange = { manualServerInput = it; serverInputError = false },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    isError = serverInputError,
+                    label = { Text(stringResource(R.string.manual_server_address)) },
+                    supportingText = if (serverInputError) ({ Text(stringResource(R.string.invalid_server_address)) }) else null,
+                    trailingIcon = { TextButton(onClick = { appendServer(manualServerInput) }, enabled = manualServerInput.isNotBlank()) { Text(stringResource(R.string.add_server)) } }
+                )
                 OutlinedTextField(serverDraft, { serverDraft = it }, label = { Text(stringResource(R.string.server_list)) }, minLines = 3, maxLines = 8)
                 TextButton(enabled = !discoveringServers, onClick = {
                     discoveringServers = true
                     scope.launch {
-                        val discovered = runCatching { PeerTubeClients.discoverInstances() }.getOrDefault(emptyList())
-                        val current = serverDraft.lines().mapNotNull { runCatching { normalizeServer(it) }.getOrNull() }.toMutableList()
-                        discovered.map { "https://${it.host}" }.filter { runCatching { normalizeServer(it) }.isSuccess }.forEach { if (it !in current) current += it }
-                        serverDraft = current.joinToString("\n")
+                        discoveredServers = runCatching { PeerTubeClients.discoverInstances() }.getOrDefault(emptyList())
                         discoveringServers = false
                     }
                 }) { Text(stringResource(if (discoveringServers) R.string.discovering_servers else R.string.discover_servers)) }
+                discoveredServers.take(20).forEach { instance ->
+                    TextButton(onClick = { appendServer("https://${instance.host}") }, modifier = Modifier.fillMaxWidth()) {
+                        Text("＋ ${instance.name?.takeIf(String::isNotBlank) ?: instance.host} · ${instance.host}", maxLines = 1)
+                    }
+                }
                 Spacer(Modifier.height(10.dp))
                 Text(stringResource(R.string.about_independent), style = MaterialTheme.typography.bodySmall, color = Color.Gray)
             } },
@@ -262,9 +369,9 @@ class MainActivity : ComponentActivity() {
 }
 
 private fun Video.toSavedVideo(fallbackServer: String, kind: String) = SavedVideo(
-    identity = uuid.ifBlank { url ?: name }, kind = kind, title = name,
-    videoUrl = playableUrl() ?: url, server = sourceServer(fallbackServer),
-    thumbnailUrl = thumbnailUrl ?: thumbnailPath?.let { runCatching { java.net.URI(sourceServer(fallbackServer).trimEnd('/') + "/").resolve(it).toString() }.getOrNull() },
+    identity = apiId().ifBlank { url ?: name }, kind = kind, title = name,
+    videoUrl = playableUrl(), server = sourceServer(fallbackServer),
+    thumbnailUrl = thumbnailCandidates(fallbackServer).firstOrNull(),
     channelName = channel?.displayName ?: account?.displayName, views = views, updatedAt = System.currentTimeMillis()
 )
 
@@ -277,12 +384,50 @@ private fun Video.toSubscription(fallbackServer: String): SavedVideo? {
         videoUrl = null, server = origin, thumbnailUrl = null, channelName = handle, views = 0, updatedAt = System.currentTimeMillis())
 }
 
+private fun LazyGridScope.videoSection(
+    title: Int?, videos: List<Video>, keyPrefix: String, server: String,
+    favorites: Set<String>, subscriptionIds: Set<String>,
+    onOpen: (Video) -> Unit, onFavorite: (Video) -> Unit, onSubscribe: (Video) -> Unit
+) {
+    if (title != null && videos.isNotEmpty()) item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
+        Text(stringResource(title), Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 6.dp), color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+    }
+    items(videos, key = { "$keyPrefix:${it.sourceServer(server)}:${it.apiId().ifBlank { it.name }}" }) { video ->
+        VideoCard(
+            video = video,
+            fallbackServer = server,
+            favorite = video.uuid in favorites,
+            subscribed = video.subscriptionIdentity(server) in subscriptionIds,
+            onOpen = { onOpen(video) },
+            onFavorite = { onFavorite(video) },
+            onSubscribe = { onSubscribe(video) }
+        )
+    }
+}
+
+private fun toggleSubscription(
+    video: Video, server: String, database: PeerIcheDatabase, rows: List<SavedVideo>,
+    scope: kotlinx.coroutines.CoroutineScope, reload: (List<SavedVideo>) -> Unit
+) {
+    val row = video.toSubscription(server) ?: return
+    scope.launch {
+        if (rows.any { it.identity == row.identity }) database.library().delete(row.identity, "subscription")
+        else database.library().put(row)
+        reload(database.library().getAll("subscription"))
+    }
+}
+
 @Composable private fun VideoCard(video: Video, fallbackServer: String, favorite: Boolean, subscribed: Boolean, onOpen: () -> Unit, onFavorite: () -> Unit, onSubscribe: () -> Unit) {
     Column(Modifier.clip(RoundedCornerShape(14.dp)).background(Panel).clickable(onClick = onOpen)) {
-        val imageServer = video.sourceServer(fallbackServer)
-        val imageUrl = video.thumbnailUrl?.takeIf { it.startsWith("https://") }
-            ?: video.thumbnailPath?.let { path -> runCatching { java.net.URI(imageServer.trimEnd('/') + "/").resolve(path).toString() }.getOrNull() }
-        AsyncImage(model = imageUrl, contentDescription = video.name, modifier = Modifier.fillMaxWidth().aspectRatio(16f / 9f).background(Color.DarkGray))
+        val candidates = remember(video.apiId(), video.thumbnailUrl, video.thumbnailPath, video.previewPath, fallbackServer) { video.thumbnailCandidates(fallbackServer) }
+        var imageIndex by remember(video.apiId(), candidates) { mutableIntStateOf(0) }
+        AsyncImage(
+            model = candidates.getOrNull(imageIndex),
+            contentDescription = video.name,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxWidth().aspectRatio(16f / 9f).background(Color.DarkGray),
+            onError = { if (imageIndex < candidates.lastIndex) imageIndex++ }
+        )
         Row(Modifier.fillMaxWidth().padding(start = 12.dp, top = 10.dp, end = 4.dp), verticalAlignment = Alignment.CenterVertically) {
             Text(video.name, Modifier.weight(1f), color = Color.White, maxLines = 2, fontWeight = FontWeight.Medium)
             if (video.channel?.name != null) IconButton(onClick = onSubscribe) { Icon(Icons.Default.Notifications, if (subscribed) stringResource(R.string.unsubscribe_channel) else stringResource(R.string.subscribe_channel), tint = if (subscribed) Orange else Color.Gray) }
@@ -294,7 +439,18 @@ private fun Video.toSubscription(fallbackServer: String): SavedVideo? {
 
 @Composable private fun VideoPlayer(url: String) {
     val context = LocalContext.current
+    var playbackFailed by remember(url) { mutableStateOf(false) }
     val player = remember(url) { ExoPlayer.Builder(context).build().apply { setMediaItem(MediaItem.fromUri(Uri.parse(url))); prepare(); playWhenReady = true } }
-    DisposableEffect(player) { onDispose { player.release() } }
+    DisposableEffect(player) {
+        val listener = object : androidx.media3.common.Player.Listener {
+            override fun onPlayerError(error: androidx.media3.common.PlaybackException) { playbackFailed = true }
+        }
+        player.addListener(listener)
+        onDispose { player.removeListener(listener); player.release() }
+    }
     AndroidView(factory = { PlayerView(it).apply { this.player = player; useController = true } }, modifier = Modifier.fillMaxWidth().aspectRatio(16f / 9f))
+    if (playbackFailed) Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
+        Text(stringResource(R.string.video_unavailable), Modifier.weight(1f), color = Color(0xFFFFB49B))
+        TextButton(onClick = { playbackFailed = false; player.seekTo(0); player.prepare(); player.playWhenReady = true }) { Text(stringResource(R.string.retry)) }
+    }
 }

@@ -73,6 +73,11 @@ suspend fun saveDarkTheme(context: Context, enabled: Boolean) {
 }
 
 fun SavedVideo.toVideo(): Video = Video(
-    uuid = identity, name = title, url = videoUrl, thumbnailUrl = thumbnailUrl,
+    uuid = identity, name = title, directStreamUrl = videoUrl?.takeIf(::looksLikeMediaStream), thumbnailUrl = thumbnailUrl,
     views = views, channel = Channel(displayName = channelName), host = runCatching { java.net.URI(server).host }.getOrNull()
 )
+
+private fun looksLikeMediaStream(value: String): Boolean {
+    val path = runCatching { java.net.URI(value).path.lowercase() }.getOrDefault("")
+    return path.endsWith(".m3u8") || path.endsWith(".mpd") || listOf(".mp4", ".webm", ".m4v", ".ogv", ".mp3", ".m4a", ".ogg").any(path::endsWith)
+}
