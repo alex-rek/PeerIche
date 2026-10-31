@@ -68,6 +68,7 @@ interface PeerTubeApi {
         @Query("count") count: Int = 30, @Query("sort") sort: String = "-match"
     ): VideoPage
     @GET("api/v1/videos/{id}") suspend fun video(@Path("id") id: String): Video
+    @GET("api/v1/video-channels/{handle}/videos") suspend fun channelVideos(@Path(value = "handle", encoded = true) handle: String, @Query("count") count: Int = 30): VideoPage
 }
 
 interface SepiaApi {

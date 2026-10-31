@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.LibraryBooks
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Subscriptions
 import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -64,6 +65,7 @@ class MainActivity : ComponentActivity() {
     val scope = rememberCoroutineScope()
     val serverList by context.peerIcheDataStore.data.catch { emit(emptyPreferences()) }.map { it[stringPreferencesKey("servers")] ?: "https://peertube.tv" }.collectAsState(initial = "https://peertube.tv")
     val activeServerSetting by context.peerIcheDataStore.data.catch { emit(emptyPreferences()) }.map { it[stringPreferencesKey("activeServer")].orEmpty() }.collectAsState(initial = "")
+    val darkTheme by context.peerIcheDataStore.data.catch { emit(emptyPreferences()) }.map { it[darkThemeKey] ?: true }.collectAsState(initial = true)
     var page by remember { mutableStateOf("Home") }
     val availableServers = remember(serverList) { serverList.lines().mapNotNull { runCatching { normalizeServer(it) }.getOrNull() }.distinct() }
     val server = remember(serverList, activeServerSetting) { activeServerSetting.takeIf { it in availableServers } ?: availableServers.firstOrNull() ?: "https://peertube.tv" }
@@ -81,6 +83,7 @@ class MainActivity : ComponentActivity() {
     var libraryTab by remember { mutableStateOf("Favorites") }
     val favoriteRows by database.library().observe("favorite").collectAsState(initial = emptyList())
     val historyRows by database.library().observe("history").collectAsState(initial = emptyList())
+    val subscriptionRows by database.library().observe("subscription").collectAsState(initial = emptyList())
     val favorites = remember(favoriteRows) { favoriteRows.map { it.identity }.toSet() }
 
     fun loadHome() {
@@ -108,9 +111,20 @@ class MainActivity : ComponentActivity() {
             busy = false
         }
     }
+    fun loadSubscriptions(rows: List<SavedVideo> = subscriptionRows) {
+        busy = true; error = null
+        scope.launch {
+            val collected = rows.mapNotNull { subscription ->
+                val handle = subscription.channelName?.takeIf(String::isNotBlank) ?: return@mapNotNull null
+                runCatching { PeerTubeClients.server(subscription.server).channelVideos(handle).data }.getOrNull()
+            }.flatten()
+            videos = deduplicateVideos(collected, server)
+            busy = false
+        }
+    }
     LaunchedEffect(Unit) { loadHome() }
 
-    MaterialTheme(colorScheme = darkColorScheme(primary = Orange, secondary = Orange, background = Ink, surface = Panel, onSurface = Color(0xFFF1F1F3))) {
+    MaterialTheme(colorScheme = if (darkTheme) darkColorScheme(primary = Orange, secondary = Orange, background = Ink, surface = Panel, onSurface = Color(0xFFF1F1F3)) else lightColorScheme(primary = Orange, secondary = Color(0xFFB64720), background = Color(0xFFF7F6F4), surface = Color.White)) {
         Scaffold(containerColor = Ink, bottomBar = {
             if (selectedVideo == null && !wideLayout) NavigationBar(containerColor = Panel) {
                 listOf("Home", "Search", "Subscriptions", "Library").forEach { destination ->
@@ -123,6 +137,7 @@ class MainActivity : ComponentActivity() {
                     NavigationBarItem(selected = page == destination, onClick = {
                         page = destination
                         if (destination == "Home") loadHome()
+                        if (destination == "Subscriptions") loadSubscriptions()
                     }, icon = { Icon(icon, null) }, label = { Text(stringResource(labelId)) })
                 }
             }
@@ -134,6 +149,7 @@ class MainActivity : ComponentActivity() {
                         NavigationRailItem(selected = page == destination, onClick = {
                             page = destination
                             if (destination == "Home") loadHome()
+                            if (destination == "Subscriptions") loadSubscriptions()
                         }, icon = { Icon(icon, null) }, label = { Text(stringResource(labelId)) }, alwaysShowLabel = true)
                     }
                 }
@@ -169,13 +185,21 @@ class MainActivity : ComponentActivity() {
                     error?.let { Text(it, Modifier.padding(18.dp), color = Color(0xFFFFB49B)) }
                     LazyVerticalGrid(columns = GridCells.Adaptive(minSize = 230.dp), contentPadding = PaddingValues(12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
                         items(visibleVideos, key = { it.uuid.ifBlank { it.url ?: it.name } }) { video ->
-                            VideoCard(video, server, video.uuid in favorites, onOpen = {
+                            val subscriptionIdentity = video.subscriptionIdentity(server)
+                            VideoCard(video, server, video.uuid in favorites, subscriptionRows.any { it.identity == subscriptionIdentity }, onOpen = {
                                 selectedVideo = video
                                 scope.launch { database.library().put(video.toSavedVideo(server, "history")) }
                             }, onFavorite = {
                                 scope.launch {
                                     if (video.uuid in favorites) database.library().delete(video.uuid, "favorite")
                                     else database.library().put(video.toSavedVideo(server, "favorite"))
+                                }
+                            }, onSubscribe = {
+                                val row = video.toSubscription(server) ?: return@VideoCard
+                                scope.launch {
+                                    if (subscriptionRows.any { it.identity == row.identity }) database.library().delete(row.identity, "subscription")
+                                    else database.library().put(row)
+                                    loadSubscriptions(database.library().getAll("subscription"))
                                 }
                             })
                         }
@@ -204,6 +228,10 @@ class MainActivity : ComponentActivity() {
             onDismissRequest = { settingsOpen = false },
             title = { Text(stringResource(R.string.servers)) },
             text = { Column {
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Text(stringResource(R.string.dark_theme), Modifier.weight(1f))
+                    Switch(checked = darkTheme, onCheckedChange = { enabled -> scope.launch { saveDarkTheme(context, enabled) } })
+                }
                 Text(stringResource(R.string.servers_help), style = MaterialTheme.typography.bodySmall)
                 Spacer(Modifier.height(10.dp))
                 OutlinedTextField(serverDraft, { serverDraft = it }, label = { Text(stringResource(R.string.server_list)) }, minLines = 3, maxLines = 8)
@@ -240,7 +268,16 @@ private fun Video.toSavedVideo(fallbackServer: String, kind: String) = SavedVide
     channelName = channel?.displayName ?: account?.displayName, views = views, updatedAt = System.currentTimeMillis()
 )
 
-@Composable private fun VideoCard(video: Video, fallbackServer: String, favorite: Boolean, onOpen: () -> Unit, onFavorite: () -> Unit) {
+private fun Video.subscriptionIdentity(fallbackServer: String): String = "${sourceServer(fallbackServer).lowercase()}|${channel?.name.orEmpty().lowercase()}"
+
+private fun Video.toSubscription(fallbackServer: String): SavedVideo? {
+    val handle = channel?.name?.takeIf(String::isNotBlank) ?: return null
+    val origin = sourceServer(fallbackServer)
+    return SavedVideo(identity = subscriptionIdentity(fallbackServer), kind = "subscription", title = channel.displayName ?: handle,
+        videoUrl = null, server = origin, thumbnailUrl = null, channelName = handle, views = 0, updatedAt = System.currentTimeMillis())
+}
+
+@Composable private fun VideoCard(video: Video, fallbackServer: String, favorite: Boolean, subscribed: Boolean, onOpen: () -> Unit, onFavorite: () -> Unit, onSubscribe: () -> Unit) {
     Column(Modifier.clip(RoundedCornerShape(14.dp)).background(Panel).clickable(onClick = onOpen)) {
         val imageServer = video.sourceServer(fallbackServer)
         val imageUrl = video.thumbnailUrl?.takeIf { it.startsWith("https://") }
@@ -248,6 +285,7 @@ private fun Video.toSavedVideo(fallbackServer: String, kind: String) = SavedVide
         AsyncImage(model = imageUrl, contentDescription = video.name, modifier = Modifier.fillMaxWidth().aspectRatio(16f / 9f).background(Color.DarkGray))
         Row(Modifier.fillMaxWidth().padding(start = 12.dp, top = 10.dp, end = 4.dp), verticalAlignment = Alignment.CenterVertically) {
             Text(video.name, Modifier.weight(1f), color = Color.White, maxLines = 2, fontWeight = FontWeight.Medium)
+            if (video.channel?.name != null) IconButton(onClick = onSubscribe) { Icon(Icons.Default.Notifications, if (subscribed) stringResource(R.string.unsubscribe_channel) else stringResource(R.string.subscribe_channel), tint = if (subscribed) Orange else Color.Gray) }
             IconButton(onClick = onFavorite) { Icon(Icons.Default.Favorite, "Favorite", tint = if (favorite) Orange else Color.Gray) }
         }
         Text(video.channel?.displayName ?: video.account?.displayName.orEmpty(), Modifier.padding(start = 12.dp, bottom = 12.dp), color = Color.Gray, style = MaterialTheme.typography.bodySmall)

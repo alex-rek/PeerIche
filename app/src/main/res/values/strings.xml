@@ -29,4 +29,7 @@
     <string name="load_more">Load more</string>
     <string name="loading_more">Loading…</string>
     <string name="select_server">Search server</string>
+    <string name="dark_theme">Dark theme</string>
+    <string name="subscribe_channel">Subscribe to channel</string>
+    <string name="unsubscribe_channel">Unsubscribe from channel</string>
 </resources>

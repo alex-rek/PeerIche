@@ -29,4 +29,7 @@
     <string name="load_more">Загрузить ещё</string>
     <string name="loading_more">Загрузка…</string>
     <string name="select_server">Сервер поиска</string>
+    <string name="dark_theme">Тёмная тема</string>
+    <string name="subscribe_channel">Подписаться на канал</string>
+    <string name="unsubscribe_channel">Отписаться от канала</string>
 </resources>
