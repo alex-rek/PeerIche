@@ -22,10 +22,12 @@ This is an early implementation. Subscriptions are currently a navigation placeh
 Requirements: Android Studio, JDK 17, Android SDK Platform 35.
 
 ```powershell
-./gradlew.bat assembleDebug
+.\gradlew.bat assembleDebug
 ```
 
 The debug APK is written to `app/build/outputs/apk/debug/app-debug.apk`. Release builds are unsigned by default; configure a signing key locally in Android Studio. Never commit signing keys or local SDK configuration.
+
+Build the unsigned release variant with `.\gradlew.bat assembleRelease`; the APK is written to `app/build/outputs/apk/release/app-release-unsigned.apk`.
 
 ## Licenses
 

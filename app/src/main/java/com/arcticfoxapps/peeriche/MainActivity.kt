@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -58,6 +59,7 @@ class MainActivity : ComponentActivity() {
 
 @Composable private fun PeerIcheApp() {
     val context = LocalContext.current
+    val wideLayout = LocalConfiguration.current.screenWidthDp >= 600
     val database = remember { PeerIcheDatabase.get(context) }
     val scope = rememberCoroutineScope()
     val serverList by context.peerIcheDataStore.data.catch { emit(emptyPreferences()) }.map { it[stringPreferencesKey("servers")] ?: "https://peertube.tv" }.collectAsState(initial = "https://peertube.tv")
@@ -110,7 +112,7 @@ class MainActivity : ComponentActivity() {
 
     MaterialTheme(colorScheme = darkColorScheme(primary = Orange, secondary = Orange, background = Ink, surface = Panel, onSurface = Color(0xFFF1F1F3))) {
         Scaffold(containerColor = Ink, bottomBar = {
-            if (selectedVideo == null) NavigationBar(containerColor = Panel) {
+            if (selectedVideo == null && !wideLayout) NavigationBar(containerColor = Panel) {
                 listOf("Home", "Search", "Subscriptions", "Library").forEach { destination ->
                     val (icon, labelId) = when (destination) {
                         "Home" -> Icons.Default.Home to R.string.home
@@ -125,7 +127,17 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }) { insets ->
-            Column(Modifier.fillMaxSize().padding(insets)) {
+            Row(Modifier.fillMaxSize().padding(insets)) {
+                if (wideLayout && selectedVideo == null) NavigationRail(containerColor = Panel) {
+                    listOf("Home" to R.string.home, "Search" to R.string.search, "Subscriptions" to R.string.subscriptions, "Library" to R.string.library).forEach { (destination, labelId) ->
+                        val icon = when (destination) { "Home" -> Icons.Default.Home; "Search" -> Icons.Default.Search; "Subscriptions" -> Icons.Default.Subscriptions; else -> Icons.Default.LibraryBooks }
+                        NavigationRailItem(selected = page == destination, onClick = {
+                            page = destination
+                            if (destination == "Home") loadHome()
+                        }, icon = { Icon(icon, null) }, label = { Text(stringResource(labelId)) }, alwaysShowLabel = true)
+                    }
+                }
+                Column(Modifier.weight(1f).fillMaxHeight()) {
                 if (selectedVideo == null) {
                     Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 14.dp), verticalAlignment = Alignment.CenterVertically) {
                         Text(stringResource(R.string.app_name), fontWeight = FontWeight.Bold, fontSize = 25.sp, color = Orange, modifier = Modifier.weight(1f))
@@ -184,6 +196,7 @@ class MainActivity : ComponentActivity() {
                     Text(video.name, Modifier.padding(16.dp), color = Color.White, fontSize = 21.sp, fontWeight = FontWeight.Bold)
                     Text(video.description.orEmpty(), Modifier.padding(horizontal = 16.dp), color = Color.LightGray)
                     Text(stringResource(R.string.video_meta, video.views, video.channel?.displayName ?: video.account?.displayName.orEmpty()), Modifier.padding(16.dp), color = Color.Gray)
+                }
                 }
             }
         }
