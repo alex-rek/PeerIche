@@ -2,9 +2,9 @@
     <style name="Theme.PeerIche" parent="android:style/Theme.Material.NoActionBar">
         <item name="android:fontFamily">sans</item>
         <item name="android:windowLightStatusBar">false</item>
-        <item name="android:statusBarColor">#101113</item>
-        <item name="android:navigationBarColor">#101113</item>
+        <item name="android:statusBarColor">#0C1116</item>
+        <item name="android:navigationBarColor">#101820</item>
         <item name="android:windowLightNavigationBar">false</item>
-        <item name="android:colorAccent">#FF7139</item>
+        <item name="android:colorAccent">#FF744D</item>
     </style>
 </resources>

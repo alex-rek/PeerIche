@@ -24,6 +24,7 @@
     <string name="unsubscribe_button">Отписаться</string>
     <string name="add_favorite">В избранное</string>
     <string name="remove_favorite">Убрать из избранного</string>
+    <string name="clear_search">Очистить поиск</string>
     <string name="favorites">Избранное</string>
     <string name="history">История</string>
     <string name="back">Назад</string>
@@ -54,4 +55,9 @@
     <string name="invalid_server_address">Введите корректный HTTPS-адрес PeerTube.</string>
     <string name="add_server">Добавить</string>
     <string name="popular_now">Популярное на этом сервере</string>
+    <string name="app_theme">Оформление</string>
+    <string name="theme_system">Как в Android</string>
+    <string name="theme_graphite">Графит</string>
+    <string name="theme_light">Светлая</string>
+    <string name="theme_aurora">Аврора · синяя</string>
 </resources>

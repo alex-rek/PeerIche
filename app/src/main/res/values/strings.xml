@@ -24,6 +24,7 @@
     <string name="unsubscribe_button">Unsubscribe</string>
     <string name="add_favorite">Add to favorites</string>
     <string name="remove_favorite">Remove favorite</string>
+    <string name="clear_search">Clear search</string>
     <string name="favorites">Favorites</string>
     <string name="history">History</string>
     <string name="back">Back</string>
@@ -54,4 +55,9 @@
     <string name="invalid_server_address">Enter a valid HTTPS PeerTube address.</string>
     <string name="add_server">Add</string>
     <string name="popular_now">Popular on this server</string>
+    <string name="app_theme">Appearance</string>
+    <string name="theme_system">Follow Android</string>
+    <string name="theme_graphite">Graphite</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_aurora">Aurora · blue</string>
 </resources>

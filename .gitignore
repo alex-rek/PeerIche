@@ -7,3 +7,7 @@ app/build/
 local.properties
 *.jks
 *.keystore
+signing.properties
+*.p12
+*.pfx
+release-local/

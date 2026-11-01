@@ -8,8 +8,13 @@ import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.ui.graphics.toArgb
+import androidx.core.view.WindowCompat
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
@@ -20,6 +25,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LibraryBooks
 import androidx.compose.material.icons.filled.Search
@@ -36,6 +42,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -58,9 +65,11 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.common.MediaItem
 import androidx.media3.ui.PlayerView
 
-private val Ink = Color(0xFF101113)
-private val Panel = Color(0xFF1B1C20)
-private val Orange = Color(0xFFFF7139)
+private val Ink = Color(0xFF0C1116)
+private val Panel = Color(0xFF151D25)
+private val CardSurface = Color(0xFF19232D)
+private val Orange = Color(0xFFFF744D)
+private val Mint = Color(0xFF65D8C4)
 
 private suspend fun fetchSubscribedVideos(rows: List<SavedVideo>): List<Video> = coroutineScope {
     val requests: List<Deferred<List<Video>>> = rows.take(20).mapNotNull { subscription ->
@@ -77,8 +86,8 @@ private suspend fun fetchSubscribedVideos(rows: List<SavedVideo>): List<Video> =
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        window.statusBarColor = android.graphics.Color.rgb(16, 17, 19)
-        window.navigationBarColor = android.graphics.Color.rgb(16, 17, 19)
+        window.statusBarColor = android.graphics.Color.rgb(12, 17, 22)
+        window.navigationBarColor = android.graphics.Color.rgb(16, 24, 32)
         setContent { PeerIcheApp() }
     }
     override fun onConfigurationChanged(newConfig: Configuration) {
@@ -94,7 +103,8 @@ class MainActivity : ComponentActivity() {
     val scope = rememberCoroutineScope()
     val serverList by context.peerIcheDataStore.data.catch { emit(emptyPreferences()) }.map { it[stringPreferencesKey("servers")] ?: "https://peertube.tv" }.collectAsState(initial = "https://peertube.tv")
     val activeServerSetting by context.peerIcheDataStore.data.catch { emit(emptyPreferences()) }.map { it[stringPreferencesKey("activeServer")].orEmpty() }.collectAsState(initial = "")
-    val darkTheme by context.peerIcheDataStore.data.catch { emit(emptyPreferences()) }.map { it[darkThemeKey] ?: true }.collectAsState(initial = true)
+    val themeMode by context.peerIcheDataStore.data.catch { emit(emptyPreferences()) }.map { it[themeModeKey] ?: "system" }.collectAsState(initial = "system")
+    val darkTheme = themeMode != "light" && (themeMode != "system" || isSystemInDarkTheme())
     var page by remember { mutableStateOf("Home") }
     val availableServers = remember(serverList) { serverList.lines().mapNotNull { runCatching { normalizeServer(it) }.getOrNull() }.distinct() }
     val server = remember(serverList, activeServerSetting) { activeServerSetting.takeIf { it in availableServers } ?: availableServers.firstOrNull() ?: "https://peertube.tv" }
@@ -302,41 +312,74 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    MaterialTheme(colorScheme = if (darkTheme) darkColorScheme(primary = Orange, secondary = Orange, background = Ink, surface = Panel, onSurface = Color(0xFFF1F1F3)) else lightColorScheme(primary = Orange, secondary = Color(0xFFB64720), background = Color(0xFFF7F6F4), surface = Color.White)) {
-        Scaffold(containerColor = Ink, bottomBar = {
-            if (selectedVideo == null && !wideLayout) NavigationBar(containerColor = Panel) {
+    val scheme = when {
+        themeMode == "aurora" -> darkColorScheme(
+            primary = Color(0xFF8DADFF), secondary = Color(0xFF63D8EF),
+            background = Color(0xFF071225), surface = Color(0xFF101F36),
+            surfaceVariant = Color(0xFF1C2D48), onSurface = Color(0xFFEDF3FF),
+            onBackground = Color(0xFFEDF3FF), onPrimary = Color(0xFF10264D),
+            secondaryContainer = Color(0xFF233F68), onSecondaryContainer = Color(0xFFD6E7FF))
+        darkTheme -> darkColorScheme(
+            primary = Orange, secondary = Mint, background = Ink, surface = Panel,
+            surfaceVariant = CardSurface, onSurface = Color(0xFFF1F4F6),
+            onBackground = Color(0xFFF1F4F6), onPrimary = Color(0xFF33130B),
+            secondaryContainer = Color(0xFF49332C), onSecondaryContainer = Orange)
+        else -> lightColorScheme(
+            primary = Color(0xFF125BD5), secondary = Color(0xFF176B87),
+            background = Color(0xFFF7F9FD), surface = Color.White,
+            surfaceVariant = Color(0xFFE7EDF7), onSurface = Color(0xFF14213D),
+            onBackground = Color(0xFF14213D), onPrimary = Color.White,
+            secondaryContainer = Color(0xFFDCE8FF), onSecondaryContainer = Color(0xFF124799))
+    }
+    SideEffect {
+        (context as? ComponentActivity)?.window?.let { window ->
+            window.statusBarColor = scheme.background.toArgb()
+            window.navigationBarColor = scheme.surface.toArgb()
+            WindowCompat.getInsetsController(window, window.decorView).apply {
+                isAppearanceLightStatusBars = !darkTheme
+                isAppearanceLightNavigationBars = !darkTheme
+            }
+        }
+    }
+    MaterialTheme(colorScheme = scheme) {
+        val colors = MaterialTheme.colorScheme
+        Scaffold(containerColor = colors.background, bottomBar = {
+            if (selectedVideo == null && !wideLayout) NavigationBar(containerColor = colors.surface, tonalElevation = 8.dp) {
                 listOf("Home", "Search", "Subscriptions", "Library").forEach { destination ->
-                    val (icon, labelId) = when (destination) {
-                        "Home" -> Icons.Default.Home to R.string.home
-                        "Search" -> Icons.Default.Search to R.string.search
-                        "Subscriptions" -> Icons.Default.Subscriptions to R.string.subscriptions
-                        else -> Icons.Default.LibraryBooks to R.string.library
+                    val (iconId, labelId) = when (destination) {
+                        "Home" -> R.drawable.ic_nav_home to R.string.home
+                        "Search" -> R.drawable.ic_nav_search to R.string.search
+                        "Subscriptions" -> R.drawable.ic_nav_subscriptions to R.string.subscriptions
+                        else -> R.drawable.ic_nav_library to R.string.library
                     }
                     NavigationBarItem(selected = page == destination, onClick = {
                         page = destination
                         if (destination == "Home") loadHome()
                         if (destination == "Subscriptions") loadSubscriptions()
-                    }, icon = { Icon(icon, null) }, label = { Text(stringResource(labelId)) })
+                    }, icon = { Icon(painterResource(iconId), stringResource(labelId)) }, label = { Text(stringResource(labelId), fontWeight = if (page == destination) FontWeight.SemiBold else FontWeight.Normal) })
                 }
             }
         }) { insets ->
             Row(Modifier.fillMaxSize().padding(insets)) {
-                if (wideLayout && selectedVideo == null) NavigationRail(containerColor = Panel) {
+                if (wideLayout && selectedVideo == null) NavigationRail(containerColor = colors.surface) {
                     listOf("Home" to R.string.home, "Search" to R.string.search, "Subscriptions" to R.string.subscriptions, "Library" to R.string.library).forEach { (destination, labelId) ->
-                        val icon = when (destination) { "Home" -> Icons.Default.Home; "Search" -> Icons.Default.Search; "Subscriptions" -> Icons.Default.Subscriptions; else -> Icons.Default.LibraryBooks }
+                        val iconId = when (destination) { "Home" -> R.drawable.ic_nav_home; "Search" -> R.drawable.ic_nav_search; "Subscriptions" -> R.drawable.ic_nav_subscriptions; else -> R.drawable.ic_nav_library }
                         NavigationRailItem(selected = page == destination, onClick = {
                             page = destination
                             if (destination == "Home") loadHome()
                             if (destination == "Subscriptions") loadSubscriptions()
-                        }, icon = { Icon(icon, null) }, label = { Text(stringResource(labelId)) }, alwaysShowLabel = true)
+                        }, icon = { Icon(painterResource(iconId), stringResource(labelId)) }, label = { Text(stringResource(labelId)) }, alwaysShowLabel = true)
                     }
                 }
                 Column(Modifier.weight(1f).fillMaxHeight()) {
                 if (selectedVideo == null) {
-                    Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 14.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Text(stringResource(R.string.app_name), fontWeight = FontWeight.Bold, fontSize = 25.sp, color = Orange, modifier = Modifier.weight(1f))
+                    Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Image(painterResource(R.drawable.ic_peeriche_mark), contentDescription = null, modifier = Modifier.size(28.dp))
+                        Text(stringResource(R.string.app_name), fontWeight = FontWeight.ExtraBold, fontSize = 20.sp, letterSpacing = (-0.6).sp, color = colors.onBackground, modifier = Modifier.weight(1f).padding(start = 8.dp))
                         Box {
-                            TextButton(onClick = { chooseServerOpen = true }) { Text(server.removePrefix("https://"), color = Color.White, maxLines = 1) }
+                            Surface(onClick = { chooseServerOpen = true }, shape = RoundedCornerShape(18.dp), color = colors.surface) {
+                                Text(server.removePrefix("https://"), Modifier.widthIn(max = 160.dp).padding(horizontal = 12.dp, vertical = 9.dp), color = colors.onSurface, maxLines = 1, style = MaterialTheme.typography.labelMedium)
+                            }
                             DropdownMenu(expanded = chooseServerOpen, onDismissRequest = { chooseServerOpen = false }) {
                                 availableServers.forEach { host -> DropdownMenuItem(text = { Text(host.removePrefix("https://")) }, onClick = {
                                     scope.launch { saveServerList(context, serverList, host) }
@@ -348,11 +391,15 @@ class MainActivity : ComponentActivity() {
                         IconButton(onClick = { serverDraft = serverList; settingsOpen = true }) { Icon(Icons.Default.Tune, stringResource(R.string.settings)) }
                     }
                     if (page == "Search") {
-                        OutlinedTextField(query, { query = it }, Modifier.fillMaxWidth().padding(horizontal = 16.dp), singleLine = true,
-                            label = { Text(stringResource(R.string.search_hint)) })
+                        OutlinedTextField(
+                            query, { query = it }, Modifier.fillMaxWidth().padding(horizontal = 16.dp), singleLine = true,
+                            shape = RoundedCornerShape(18.dp), leadingIcon = { Icon(Icons.Default.Search, null, tint = MaterialTheme.colorScheme.secondary) },
+                            trailingIcon = if (query.isNotEmpty()) ({ IconButton(onClick = { query = "" }) { Icon(Icons.Default.Clear, stringResource(R.string.clear_search)) } }) else null,
+                            label = { Text(stringResource(R.string.search_hint)) },
+                            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = colors.primary, unfocusedBorderColor = colors.outlineVariant, focusedLabelColor = colors.primary)
+                        )
                     }
                     when (page) {
-                        "Home" -> Text(stringResource(R.string.discover_videos), Modifier.padding(horizontal = 20.dp, vertical = 4.dp), color = Color.White, fontSize = 19.sp, fontWeight = FontWeight.SemiBold)
                         "Subscriptions" -> {
                             Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
                             listOf("Subscriptions" to R.string.subscriptions, "Channels" to R.string.channels).forEach { (tab, res) ->
@@ -361,7 +408,7 @@ class MainActivity : ComponentActivity() {
                             }
                             if (channelVideosMode || channelDirectoryServer != null) Text(
                                 stringResource(if (channelVideosMode) R.string.channel_videos else R.string.channels_on_server),
-                                Modifier.padding(start = 20.dp, top = 2.dp, bottom = 4.dp), color = Color.White, fontSize = 19.sp, fontWeight = FontWeight.SemiBold
+                                Modifier.padding(start = 20.dp, top = 4.dp, bottom = 6.dp), color = colors.onBackground, fontSize = 21.sp, fontWeight = FontWeight.Bold
                             )
                         }
                         "Library" -> Row(Modifier.padding(horizontal = 12.dp)) {
@@ -369,8 +416,8 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                     val visibleVideos = if (page == "Library") (if (libraryTab == "Favorites") favoriteRows else historyRows).map(SavedVideo::toVideo) else videos
-                    if (busy) LinearProgressIndicator(Modifier.fillMaxWidth().padding(horizontal = 16.dp), color = Orange)
-                    error?.let { Text(it, Modifier.padding(18.dp), color = Color(0xFFFFB49B)) }
+                    if (busy) LinearProgressIndicator(Modifier.fillMaxWidth().padding(horizontal = 16.dp), color = colors.primary, trackColor = colors.surface)
+                    error?.let { Text(it, Modifier.padding(18.dp), color = if (darkTheme) Color(0xFFFFB49B) else Color(0xFF9C341F)) }
                     if (page == "Subscriptions" && subscriptionsTab == "Channels" && !channelVideosMode) {
                         Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp)) {
                             if (channelDirectoryServer == null) Row(Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
@@ -382,13 +429,13 @@ class MainActivity : ComponentActivity() {
                                     TextButton(onClick = { openChannelVideos(channel) }, modifier = Modifier.weight(1f)) { Text(channel.displayName.ifBlank { channel.name }, maxLines = 2) }
                                     Text("${channel.videosCount ?: 0}  ·  ${channel.host ?: channelDirectoryServer?.removePrefix("https://")}", color = Color.Gray, modifier = Modifier.clickable { openServerChannels(channel.host?.let { "https://$it" } ?: channelDirectoryServer.orEmpty()) }.padding(8.dp))
                                 }
-                                HorizontalDivider(color = Panel)
+                                HorizontalDivider(color = colors.outlineVariant)
                             } else subscriptionRows.forEach { row ->
                                 Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                                     TextButton(onClick = { openChannelVideos(PeerTubeChannel(row.title, row.channelName.orEmpty(), java.net.URI(row.server).host, 0)) }, modifier = Modifier.weight(1f)) { Text(row.title, maxLines = 2) }
                                     TextButton(onClick = { openServerChannels(row.server) }) { Text(java.net.URI(row.server).host.orEmpty(), color = Color.Gray, maxLines = 1) }
                                 }
-                                HorizontalDivider(color = Panel)
+                                HorizontalDivider(color = colors.outlineVariant)
                             }
                             if (channelDirectoryServer == null && subscriptionRows.isEmpty()) Text(stringResource(R.string.no_subscribed_channels), Modifier.padding(vertical = 16.dp), color = Color.Gray)
                         }
@@ -460,9 +507,14 @@ class MainActivity : ComponentActivity() {
             onDismissRequest = { settingsOpen = false },
             title = { Text(stringResource(R.string.servers)) },
             text = { Column(Modifier.heightIn(max = 500.dp).verticalScroll(rememberScrollState())) {
-                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    Text(stringResource(R.string.dark_theme), Modifier.weight(1f))
-                    Switch(checked = darkTheme, onCheckedChange = { enabled -> scope.launch { saveDarkTheme(context, enabled) } })
+                Text(stringResource(R.string.app_theme), style = MaterialTheme.typography.titleMedium)
+                listOf("system" to R.string.theme_system, "graphite" to R.string.theme_graphite,
+                    "light" to R.string.theme_light, "aurora" to R.string.theme_aurora).forEach { (mode, label) ->
+                    Row(Modifier.fillMaxWidth().clickable { scope.launch { saveThemeMode(context, mode) } },
+                        verticalAlignment = Alignment.CenterVertically) {
+                        RadioButton(selected = themeMode == mode, onClick = null)
+                        Text(stringResource(label), Modifier.padding(12.dp))
+                    }
                 }
                 Text(stringResource(R.string.servers_help), style = MaterialTheme.typography.bodySmall)
                 Spacer(Modifier.height(10.dp))
@@ -527,7 +579,7 @@ private fun LazyGridScope.videoSection(
     onOpen: (Video) -> Unit, onFavorite: (Video) -> Unit, onSubscribe: (Video) -> Unit
 ) {
     if (title != null && videos.isNotEmpty()) item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
-        Text(stringResource(title), Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 6.dp), color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+        Text(stringResource(title), Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 6.dp), color = MaterialTheme.colorScheme.onBackground, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
     }
     items(videos, key = { "$keyPrefix:${it.sourceServer(server)}:${it.apiId().ifBlank { it.name }}" }) { video ->
         VideoCard(
@@ -554,23 +606,30 @@ private fun toggleSubscription(
 }
 
 @Composable private fun VideoCard(video: Video, fallbackServer: String, favorite: Boolean, subscribed: Boolean, onOpen: () -> Unit, onFavorite: () -> Unit, onSubscribe: () -> Unit) {
-    Column(Modifier.clip(RoundedCornerShape(14.dp)).background(Panel).clickable(onClick = onOpen)) {
+    val cardShape = RoundedCornerShape(18.dp)
+    val cardSurface = MaterialTheme.colorScheme.surface
+    Column(Modifier.clip(cardShape).background(cardSurface).border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.32f), cardShape).clickable(onClick = onOpen)) {
         val candidates = remember(video.apiId(), video.thumbnailUrl, video.thumbnailPath, video.previewPath, fallbackServer) { video.thumbnailCandidates(fallbackServer) }
         var imageIndex by remember(video.apiId(), candidates) { mutableIntStateOf(0) }
-        AsyncImage(
-            model = candidates.getOrNull(imageIndex),
-            contentDescription = video.name,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxWidth().aspectRatio(16f / 9f).background(Color.DarkGray),
-            onError = { if (imageIndex < candidates.lastIndex) imageIndex++ }
-        )
-        Row(Modifier.fillMaxWidth().padding(start = 12.dp, top = 10.dp, end = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text(video.name, Modifier.weight(1f), color = Color.White, maxLines = 2, fontWeight = FontWeight.Medium)
-            if (video.channel?.name != null) IconButton(onClick = onSubscribe) { Icon(Icons.Default.Notifications, if (subscribed) stringResource(R.string.unsubscribe_channel) else stringResource(R.string.subscribe_channel), tint = if (subscribed) Orange else Color.Gray) }
-            IconButton(onClick = onFavorite) { Icon(Icons.Default.Favorite, "Favorite", tint = if (favorite) Orange else Color.Gray) }
+        Box {
+            AsyncImage(
+                model = candidates.getOrNull(imageIndex),
+                contentDescription = video.name,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxWidth().aspectRatio(16f / 9f).background(MaterialTheme.colorScheme.surfaceVariant),
+                onError = { if (imageIndex < candidates.lastIndex) imageIndex++ }
+            )
+            if (video.duration > 0) Text(formatDuration(video.duration), Modifier.align(Alignment.BottomEnd).padding(9.dp).clip(RoundedCornerShape(7.dp)).background(Color.Black.copy(alpha = 0.78f)).padding(horizontal = 7.dp, vertical = 4.dp), color = Color.White, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold)
         }
-        Text(video.channel?.displayName ?: video.account?.displayName.orEmpty(), Modifier.padding(start = 12.dp, bottom = 12.dp), color = Color.Gray, style = MaterialTheme.typography.bodySmall)
-        video.publishedAt?.let { Text(formatPublishedDate(it), Modifier.padding(start = 12.dp, bottom = 12.dp), color = Color.Gray, style = MaterialTheme.typography.labelSmall) }
+        Row(Modifier.fillMaxWidth().padding(start = 14.dp, top = 11.dp, end = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text(video.name, Modifier.weight(1f), color = MaterialTheme.colorScheme.onSurface, maxLines = 2, fontWeight = FontWeight.SemiBold, lineHeight = 20.sp)
+            if (video.channel?.name != null) IconButton(onClick = onSubscribe) { Icon(Icons.Default.Notifications, if (subscribed) stringResource(R.string.unsubscribe_channel) else stringResource(R.string.subscribe_channel), tint = if (subscribed) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurfaceVariant) }
+            IconButton(onClick = onFavorite) { Icon(Icons.Default.Favorite, stringResource(R.string.favorites), tint = if (favorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant) }
+        }
+        Row(Modifier.fillMaxWidth().padding(start = 14.dp, end = 14.dp, top = 2.dp, bottom = 13.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text(video.channel?.displayName ?: video.account?.displayName.orEmpty(), Modifier.weight(1f), color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall, maxLines = 1)
+            if (video.publishedAt != null) Text(formatPublishedDate(video.publishedAt), color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall)
+        }
     }
 }
 
@@ -578,6 +637,13 @@ private fun formatPublishedDate(value: String): String = runCatching {
     val date = java.time.OffsetDateTime.parse(value).toLocalDate()
     java.text.DateFormat.getDateInstance(java.text.DateFormat.MEDIUM).format(java.util.Date.from(date.atStartOfDay(java.time.ZoneId.systemDefault()).toInstant()))
 }.getOrElse { value.substringBefore('T') }
+
+private fun formatDuration(seconds: Long): String {
+    val h = seconds / 3600
+    val m = seconds % 3600 / 60
+    val s = seconds % 60
+    return if (h > 0) "%d:%02d:%02d".format(h, m, s) else "%d:%02d".format(m, s)
+}
 
 @Composable private fun VideoPlayer(url: String, modifier: Modifier = Modifier.fillMaxWidth().aspectRatio(16f / 9f)) {
     val context = LocalContext.current

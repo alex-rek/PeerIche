@@ -8,6 +8,24 @@ plugins {
 android {
     namespace = "com.arcticfoxapps.peeriche"
     compileSdk = 35
+    signingConfigs {
+        create("release") {
+            val signingPath = System.getenv("PEERICHE_KEYSTORE")
+            if (!signingPath.isNullOrBlank()) {
+                storeFile = file(signingPath)
+                storePassword = System.getenv("PEERICHE_STORE_PASSWORD")
+                keyAlias = "peeriche-release"
+                keyPassword = System.getenv("PEERICHE_KEY_PASSWORD")
+            }
+        }
+    }
+    buildTypes {
+        getByName("release") {
+            if (!System.getenv("PEERICHE_KEYSTORE").isNullOrBlank()) {
+                signingConfig = signingConfigs.getByName("release")
+            }
+        }
+    }
     defaultConfig {
         applicationId = "com.arcticfoxapps.peeriche"
         minSdk = 23

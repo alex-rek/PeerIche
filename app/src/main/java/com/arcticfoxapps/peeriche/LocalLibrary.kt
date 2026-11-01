@@ -81,3 +81,9 @@ private fun looksLikeMediaStream(value: String): Boolean {
     val path = runCatching { java.net.URI(value).path.lowercase() }.getOrDefault("")
     return path.endsWith(".m3u8") || path.endsWith(".mpd") || listOf(".mp4", ".webm", ".m4v", ".ogv", ".mp3", ".m4a", ".ogg").any(path::endsWith)
 }
+
+val themeModeKey = stringPreferencesKey("themeMode")
+
+suspend fun saveThemeMode(context: Context, mode: String) {
+    context.peerIcheDataStore.edit { it[themeModeKey] = mode }
+}
