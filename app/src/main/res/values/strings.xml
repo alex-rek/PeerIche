@@ -17,6 +17,9 @@
     <string name="channels_on_server">Channels on server</string>
     <string name="channel_column">Channel</string>
     <string name="server_column">Server</string>
+    <string name="no_channels">No channels were found on this server.</string>
+    <string name="channels_load_failed">Could not load channels from this server.</string>
+    <string name="no_subscribed_channels">No channels yet. Subscribe from a video card.</string>
     <string name="favorites">Favorites</string>
     <string name="history">History</string>
     <string name="back">Back</string>

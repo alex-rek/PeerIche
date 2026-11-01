@@ -17,6 +17,9 @@
     <string name="channels_on_server">Каналы сервера</string>
     <string name="channel_column">Канал</string>
     <string name="server_column">Сервер</string>
+    <string name="no_channels">На этом сервере не найдено каналов.</string>
+    <string name="channels_load_failed">Не удалось загрузить каналы с сервера.</string>
+    <string name="no_subscribed_channels">Список каналов пуст. Подпишитесь на канал в карточке видео.</string>
     <string name="favorites">Избранное</string>
     <string name="history">История</string>
     <string name="back">Назад</string>

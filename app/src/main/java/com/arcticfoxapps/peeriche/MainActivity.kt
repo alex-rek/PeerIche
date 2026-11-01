@@ -232,8 +232,12 @@ class MainActivity : ComponentActivity() {
         channelDirectoryServer = host
         channelVideosMode = false
         busy = true
+        error = null
+        serverChannelList = emptyList()
         scope.launch {
-            serverChannelList = runCatching { PeerTubeClients.allChannels(host) }.getOrDefault(emptyList())
+            runCatching { PeerTubeClients.allChannels(host) }
+                .onSuccess { serverChannelList = it; if (it.isEmpty()) error = context.getString(R.string.no_channels) }
+                .onFailure { error = it.message ?: context.getString(R.string.channels_load_failed) }
             busy = false
         }
     }
@@ -267,7 +271,17 @@ class MainActivity : ComponentActivity() {
             else { delay(450); searchNow(0) }
         }
     }
-    BackHandler(enabled = selectedVideo != null) { closePlayer() }
+    val canNavigateBack = selectedVideo != null || channelDirectoryServer != null || channelVideosMode ||
+        (page == "Subscriptions" && subscriptionsTab == "Channels") || page != "Home"
+    BackHandler(enabled = canNavigateBack) {
+        when {
+            selectedVideo != null -> closePlayer()
+            channelDirectoryServer != null -> { channelDirectoryServer = null; serverChannelList = emptyList(); error = null }
+            channelVideosMode -> { channelVideosMode = false; error = null }
+            page == "Subscriptions" && subscriptionsTab == "Channels" -> subscriptionsTab = "Subscriptions"
+            page != "Home" -> { page = "Home"; loadHome() }
+        }
+    }
 
     MaterialTheme(colorScheme = if (darkTheme) darkColorScheme(primary = Orange, secondary = Orange, background = Ink, surface = Panel, onSurface = Color(0xFFF1F1F3)) else lightColorScheme(primary = Orange, secondary = Color(0xFFB64720), background = Color(0xFFF7F6F4), surface = Color.White)) {
         Scaffold(containerColor = Ink, bottomBar = {
@@ -354,6 +368,7 @@ class MainActivity : ComponentActivity() {
                                 }
                                 HorizontalDivider(color = Panel)
                             }
+                            if (channelDirectoryServer == null && subscriptionRows.isEmpty()) Text(stringResource(R.string.no_subscribed_channels), Modifier.padding(vertical = 16.dp), color = Color.Gray)
                         }
                     } else if (selectedVideo == null) LazyVerticalGrid(columns = GridCells.Adaptive(minSize = 230.dp), contentPadding = PaddingValues(12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
                         if (page == "Home") {
