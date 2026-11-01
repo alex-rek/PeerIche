@@ -10,6 +10,7 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.ui.graphics.toArgb
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowCompat
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -101,9 +102,9 @@ class MainActivity : ComponentActivity() {
     val landscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
     val database = remember { PeerIcheDatabase.get(context) }
     val scope = rememberCoroutineScope()
-    val serverList by context.peerIcheDataStore.data.catch { emit(emptyPreferences()) }.map { it[stringPreferencesKey("servers")] ?: "https://peertube.tv" }.collectAsState(initial = "https://peertube.tv")
-    val activeServerSetting by context.peerIcheDataStore.data.catch { emit(emptyPreferences()) }.map { it[stringPreferencesKey("activeServer")].orEmpty() }.collectAsState(initial = "")
-    val themeMode by context.peerIcheDataStore.data.catch { emit(emptyPreferences()) }.map { it[themeModeKey] ?: "system" }.collectAsState(initial = "system")
+    val serverList by remember(context) { context.peerIcheDataStore.data.catch { emit(emptyPreferences()) }.map { it[stringPreferencesKey("servers")] ?: "https://peertube.tv" } }.collectAsState(initial = "https://peertube.tv")
+    val activeServerSetting by remember(context) { context.peerIcheDataStore.data.catch { emit(emptyPreferences()) }.map { it[stringPreferencesKey("activeServer")].orEmpty() } }.collectAsState(initial = "")
+    val themeMode by remember(context) { context.peerIcheDataStore.data.catch { emit(emptyPreferences()) }.map { it[themeModeKey] ?: "system" } }.collectAsState(initial = "system")
     val darkTheme = themeMode != "light" && (themeMode != "system" || isSystemInDarkTheme())
     var page by remember { mutableStateOf("Home") }
     val availableServers = remember(serverList) { serverList.lines().mapNotNull { runCatching { normalizeServer(it) }.getOrNull() }.distinct() }
@@ -143,13 +144,13 @@ class MainActivity : ComponentActivity() {
         if (selectedVideo != null) window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         else window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         if (selectedVideo != null && landscape) {
-            window?.decorView?.windowInsetsController?.hide(android.view.WindowInsets.Type.statusBars() or android.view.WindowInsets.Type.navigationBars())
+            window?.let { WindowCompat.getInsetsController(it, it.decorView).hide(WindowInsetsCompat.Type.systemBars()) }
         } else {
-            window?.decorView?.windowInsetsController?.show(android.view.WindowInsets.Type.statusBars() or android.view.WindowInsets.Type.navigationBars())
+            window?.let { WindowCompat.getInsetsController(it, it.decorView).show(WindowInsetsCompat.Type.systemBars()) }
         }
         onDispose {
             window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-            window?.decorView?.windowInsetsController?.show(android.view.WindowInsets.Type.statusBars() or android.view.WindowInsets.Type.navigationBars())
+            window?.let { WindowCompat.getInsetsController(it, it.decorView).show(WindowInsetsCompat.Type.systemBars()) }
         }
     }
 
@@ -634,8 +635,9 @@ private fun toggleSubscription(
 }
 
 private fun formatPublishedDate(value: String): String = runCatching {
-    val date = java.time.OffsetDateTime.parse(value).toLocalDate()
-    java.text.DateFormat.getDateInstance(java.text.DateFormat.MEDIUM).format(java.util.Date.from(date.atStartOfDay(java.time.ZoneId.systemDefault()).toInstant()))
+    val parser = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.ROOT).apply { isLenient = false }
+    val date = requireNotNull(parser.parse(value.substringBefore('T')))
+    java.text.DateFormat.getDateInstance(java.text.DateFormat.MEDIUM).format(date)
 }.getOrElse { value.substringBefore('T') }
 
 private fun formatDuration(seconds: Long): String {
