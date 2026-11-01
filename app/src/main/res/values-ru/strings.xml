@@ -20,6 +20,10 @@
     <string name="no_channels">На этом сервере не найдено каналов.</string>
     <string name="channels_load_failed">Не удалось загрузить каналы с сервера.</string>
     <string name="no_subscribed_channels">Список каналов пуст. Подпишитесь на канал в карточке видео.</string>
+    <string name="subscribe_button">Подписаться</string>
+    <string name="unsubscribe_button">Отписаться</string>
+    <string name="add_favorite">В избранное</string>
+    <string name="remove_favorite">Убрать из избранного</string>
     <string name="favorites">Избранное</string>
     <string name="history">История</string>
     <string name="back">Назад</string>

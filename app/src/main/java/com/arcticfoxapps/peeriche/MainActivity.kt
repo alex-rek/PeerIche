@@ -219,12 +219,17 @@ class MainActivity : ComponentActivity() {
     }
     fun openChannelVideos(channel: PeerTubeChannel) {
         channelDirectoryServer = null
+        subscriptionsTab = "Channels"
+        page = "Subscriptions"
         channelVideosMode = true
         busy = true
+        error = null
         scope.launch {
             val handle = channel.name
             val host = channel.host?.let { "https://$it" } ?: server
-            videos = runCatching { PeerTubeClients.server(host).channelVideos(handle).data }.getOrDefault(emptyList())
+            runCatching { PeerTubeClients.server(host).channelVideos(handle).data }
+                .onSuccess { videos = it; if (it.isEmpty()) error = context.getString(R.string.no_results) }
+                .onFailure { error = it.message ?: context.getString(R.string.search_failed) }
             busy = false
         }
     }
@@ -262,6 +267,20 @@ class MainActivity : ComponentActivity() {
                 if (ready.playableUrl() == null) playerError = context.getString(R.string.video_unavailable)
                 database.library().put(ready.toSavedVideo(server, "history"))
             }
+        }
+    }
+    fun toggleCurrentVideoSubscription(video: Video) {
+        val row = video.toSubscription(server) ?: return
+        scope.launch {
+            if (subscriptionRows.any { it.identity == row.identity }) database.library().delete(row.identity, "subscription")
+            else database.library().put(row)
+        }
+    }
+    fun toggleCurrentVideoFavorite(video: Video) {
+        val id = video.apiId()
+        scope.launch {
+            if (id in favorites) database.library().delete(id, "favorite")
+            else database.library().put(video.toSavedVideo(server, "favorite"))
         }
     }
     LaunchedEffect(Unit) { loadHome() }
@@ -334,13 +353,16 @@ class MainActivity : ComponentActivity() {
                     }
                     when (page) {
                         "Home" -> Text(stringResource(R.string.discover_videos), Modifier.padding(horizontal = 20.dp, vertical = 4.dp), color = Color.White, fontSize = 19.sp, fontWeight = FontWeight.SemiBold)
-                        "Subscriptions" -> if (channelVideosMode || channelDirectoryServer != null) {
-                            TextButton(onClick = { channelVideosMode = false; channelDirectoryServer = null }) { Text("← ${stringResource(R.string.subscriptions)}") }
-                            Text(if (channelVideosMode) stringResource(R.string.channel_videos) else stringResource(R.string.channels_on_server), Modifier.padding(horizontal = 20.dp, vertical = 4.dp), color = Color.White, fontSize = 19.sp, fontWeight = FontWeight.SemiBold)
-                        } else Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+                        "Subscriptions" -> {
+                            Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
                             listOf("Subscriptions" to R.string.subscriptions, "Channels" to R.string.channels).forEach { (tab, res) ->
                                 FilterChip(selected = subscriptionsTab == tab, onClick = { subscriptionsTab = tab; channelVideosMode = false; channelDirectoryServer = null; if (tab == "Subscriptions") loadSubscriptions() }, label = { Text(stringResource(res)) }, modifier = Modifier.padding(end = 8.dp))
                             }
+                            }
+                            if (channelVideosMode || channelDirectoryServer != null) Text(
+                                stringResource(if (channelVideosMode) R.string.channel_videos else R.string.channels_on_server),
+                                Modifier.padding(start = 20.dp, top = 2.dp, bottom = 4.dp), color = Color.White, fontSize = 19.sp, fontWeight = FontWeight.SemiBold
+                            )
                         }
                         "Library" -> Row(Modifier.padding(horizontal = 12.dp)) {
                             listOf("Favorites" to R.string.favorites, "History" to R.string.history).forEach { (label, res) -> FilterChip(selected = libraryTab == label, onClick = { libraryTab = label }, label = { Text(stringResource(res)) }, modifier = Modifier.padding(end = 8.dp)) }
@@ -374,17 +396,17 @@ class MainActivity : ComponentActivity() {
                         if (page == "Home") {
                             if (subscriptionFeed.isNotEmpty()) videoSection(R.string.from_subscriptions, subscriptionFeed, "following", server, favorites, subscriptionRows.map { it.identity }.toSet(), ::openVideo,
                                 { video -> scope.launch { val id = video.uuid; if (id in favorites) database.library().delete(id, "favorite") else database.library().put(video.toSavedVideo(server, "favorite")) } },
-                                { video -> toggleSubscription(video, server, database, subscriptionRows, scope, ::loadSubscriptions) })
+                                { video -> toggleSubscription(video, server, database, subscriptionRows, scope) })
                             if (recommendedVideos.isNotEmpty()) videoSection(if (recommendationsUseHistory) R.string.recommended_for_you else R.string.popular_now, recommendedVideos, "recommended", server, favorites, subscriptionRows.map { it.identity }.toSet(), ::openVideo,
                                 { video -> scope.launch { val id = video.uuid; if (id in favorites) database.library().delete(id, "favorite") else database.library().put(video.toSavedVideo(server, "favorite")) } },
-                                { video -> toggleSubscription(video, server, database, subscriptionRows, scope, ::loadSubscriptions) })
+                                { video -> toggleSubscription(video, server, database, subscriptionRows, scope) })
                             videoSection(R.string.latest_videos, videos, "latest", server, favorites, subscriptionRows.map { it.identity }.toSet(), ::openVideo,
                                 { video -> scope.launch { val id = video.uuid; if (id in favorites) database.library().delete(id, "favorite") else database.library().put(video.toSavedVideo(server, "favorite")) } },
-                                { video -> toggleSubscription(video, server, database, subscriptionRows, scope, ::loadSubscriptions) })
+                                { video -> toggleSubscription(video, server, database, subscriptionRows, scope) })
                         } else {
                             videoSection(null, visibleVideos, page.lowercase(), server, favorites, subscriptionRows.map { it.identity }.toSet(), ::openVideo,
                                 { video -> scope.launch { val id = video.uuid; if (id in favorites) database.library().delete(id, "favorite") else database.library().put(video.toSavedVideo(server, "favorite")) } },
-                                { video -> toggleSubscription(video, server, database, subscriptionRows, scope, ::loadSubscriptions) })
+                                { video -> toggleSubscription(video, server, database, subscriptionRows, scope) })
                         }
                         if (page == "Search" && hasMoreResults) item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
                             TextButton(onClick = { searchNow(resultPage + 1) }, enabled = !busy, modifier = Modifier.fillMaxWidth()) {
@@ -411,16 +433,24 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                     if (!landscape) Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState())) {
+                        Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
+                            val channel = video.channel?.name?.let { PeerTubeChannel(video.channel.displayName ?: it, it, video.sourceServer(server).removePrefix("https://"), 0) }
+                            TextButton(onClick = { toggleCurrentVideoSubscription(video) }, enabled = channel != null, modifier = Modifier.weight(1f)) {
+                                Text(stringResource(if (channel != null && subscriptionRows.any { it.identity == video.subscriptionIdentity(server) }) R.string.unsubscribe_button else R.string.subscribe_button), maxLines = 2)
+                            }
+                            TextButton(onClick = { toggleCurrentVideoFavorite(video) }, modifier = Modifier.weight(1f)) {
+                                Text(stringResource(if (video.apiId() in favorites) R.string.remove_favorite else R.string.add_favorite), maxLines = 2)
+                            }
+                            TextButton(onClick = {
+                                video.channel?.name?.let { handle ->
+                                    openChannelVideos(PeerTubeChannel(video.channel.displayName ?: handle, handle, video.sourceServer(server).removePrefix("https://")))
+                                    closePlayer()
+                                }
+                            }, enabled = video.channel?.name != null, modifier = Modifier.weight(1f)) { Text(stringResource(R.string.channel_videos), maxLines = 2) }
+                        }
                         Text(video.name, Modifier.padding(16.dp), color = Color.White, fontSize = 21.sp, fontWeight = FontWeight.Bold)
                         Text(stringResource(R.string.video_meta, video.views, video.channel?.displayName ?: video.account?.displayName.orEmpty()), Modifier.padding(horizontal = 16.dp), color = Color.Gray)
                         Text(video.description.orEmpty(), Modifier.padding(16.dp), color = Color.LightGray)
-                        TextButton(onClick = {
-                            val handle = video.channel?.name ?: return@TextButton
-                            channelVideosMode = true
-                            page = "Subscriptions"
-                            scope.launch { videos = runCatching { PeerTubeClients.server(video.sourceServer(server)).channelVideos(handle).data }.getOrDefault(emptyList()) }
-                            closePlayer()
-                        }) { Text(stringResource(R.string.channel_videos)) }
                     }
                 }
                 }
@@ -514,13 +544,12 @@ private fun LazyGridScope.videoSection(
 
 private fun toggleSubscription(
     video: Video, server: String, database: PeerIcheDatabase, rows: List<SavedVideo>,
-    scope: kotlinx.coroutines.CoroutineScope, reload: (List<SavedVideo>) -> Unit
+    scope: kotlinx.coroutines.CoroutineScope
 ) {
     val row = video.toSubscription(server) ?: return
     scope.launch {
         if (rows.any { it.identity == row.identity }) database.library().delete(row.identity, "subscription")
         else database.library().put(row)
-        reload(database.library().getAll("subscription"))
     }
 }
 
