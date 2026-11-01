@@ -13,6 +13,8 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 
 data class VideoPage(val data: List<Video> = emptyList(), val total: Int = 0)
+data class ChannelPage(val data: List<PeerTubeChannel> = emptyList(), val total: Int = 0)
+data class PeerTubeChannel(val displayName: String = "", val name: String = "", val host: String? = null, val videosCount: Int = 0)
 data class SearchPage(val videos: List<Video>, val hasMore: Boolean)
 data class InstancePage(val data: List<PeerTubeInstance> = emptyList())
 data class PeerTubeInstance(val host: String = "", val name: String? = null, val totalVideos: Long? = null, val country: String? = null)
@@ -38,6 +40,7 @@ data class PeerSeekVideo(
 }
 data class Video(
     val uuid: String = "", val name: String = "", val description: String? = null,
+    val publishedAt: String? = null,
     val thumbnailPath: String? = null, val thumbnailUrl: String? = null, val previewPath: String? = null,
     val views: Long = 0, val duration: Long = 0, val host: String? = null,
     val url: String? = null, val files: List<VideoFile>? = null,
@@ -96,6 +99,7 @@ interface PeerTubeApi {
     ): VideoPage
     @GET("api/v1/videos/{id}") suspend fun video(@Path("id") id: String): Video
     @GET("api/v1/video-channels/{handle}/videos") suspend fun channelVideos(@Path(value = "handle", encoded = true) handle: String, @Query("count") count: Int = 30): VideoPage
+    @GET("api/v1/video-channels") suspend fun channels(@Query("count") count: Int = 100, @Query("start") start: Int = 0, @Query("sort") sort: String = "-videosCount"): ChannelPage
 }
 
 interface SepiaApi {
@@ -166,6 +170,20 @@ object PeerTubeClients {
     suspend fun home(server: String) = server(server).videos(sort = "-publishedAt", count = 30).data
     suspend fun popular(server: String) = server(server).videos(sort = "-views", count = 30).data
     suspend fun video(server: String, id: String): Video = server(server).video(id)
+    suspend fun allChannels(server: String): List<PeerTubeChannel> {
+        val api = server(server)
+        val channels = mutableListOf<PeerTubeChannel>()
+        var start = 0
+        var total = Int.MAX_VALUE
+        while (start < total && start < 10000) {
+            val page = api.channels(count = 100, start = start)
+            channels += page.data
+            total = page.total.takeIf { it > 0 } ?: (start + page.data.size + if (page.data.size == 100) 1 else 0)
+            if (page.data.isEmpty()) break
+            start += page.data.size
+        }
+        return channels.sortedByDescending(PeerTubeChannel::videosCount)
+    }
 }
 
 internal fun deduplicateVideos(videos: List<Video>, fallbackServer: String): List<Video> {

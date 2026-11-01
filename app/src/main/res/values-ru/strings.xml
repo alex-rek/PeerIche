@@ -11,7 +11,12 @@
     <string name="search_failed">Не удалось связаться с выбранными источниками поиска.</string>
     <string name="go">Найти</string>
     <string name="discover_videos">Открывайте видео</string>
-    <string name="followed_channels">Каналы в подписках</string>
+    <string name="followed_channels">Подписки</string>
+    <string name="channels">Каналы</string>
+    <string name="channel_videos">Видео канала</string>
+    <string name="channels_on_server">Каналы сервера</string>
+    <string name="channel_column">Канал</string>
+    <string name="server_column">Сервер</string>
     <string name="favorites">Избранное</string>
     <string name="history">История</string>
     <string name="back">Назад</string>

@@ -12,6 +12,11 @@
     <string name="go">Go</string>
     <string name="discover_videos">Discover videos</string>
     <string name="followed_channels">Followed channels</string>
+    <string name="channels">Channels</string>
+    <string name="channel_videos">Channel videos</string>
+    <string name="channels_on_server">Channels on server</string>
+    <string name="channel_column">Channel</string>
+    <string name="server_column">Server</string>
     <string name="favorites">Favorites</string>
     <string name="history">History</string>
     <string name="back">Back</string>
