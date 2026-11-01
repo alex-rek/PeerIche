@@ -14,7 +14,7 @@ import retrofit2.http.Query
 
 data class VideoPage(val data: List<Video> = emptyList(), val total: Int = 0)
 data class ChannelPage(val data: List<PeerTubeChannel> = emptyList(), val total: Int = 0)
-data class PeerTubeChannel(val displayName: String = "", val name: String = "", val host: String? = null, val videosCount: Int = 0)
+data class PeerTubeChannel(val displayName: String = "", val name: String = "", val host: String? = null, val videosCount: Int? = null)
 data class SearchPage(val videos: List<Video>, val hasMore: Boolean)
 data class InstancePage(val data: List<PeerTubeInstance> = emptyList())
 data class PeerTubeInstance(val host: String = "", val name: String? = null, val totalVideos: Long? = null, val country: String? = null)
@@ -183,6 +183,18 @@ object PeerTubeClients {
             start += page.data.size
         }
         return channels.sortedByDescending(PeerTubeChannel::videosCount)
+    }
+    suspend fun allChannelsWithVideoCounts(server: String): List<PeerTubeChannel> = coroutineScope {
+        val api = server(server)
+        val channels = allChannels(server)
+        val semaphore = Semaphore(5)
+        channels.map { channel -> async {
+            val actualCount = semaphore.withPermit {
+                runCatching { api.channelVideos(channel.name, count = 1).total }
+                    .getOrDefault(channel.videosCount ?: 0)
+            }
+            channel.copy(videosCount = actualCount)
+        } }.awaitAll().sortedByDescending { it.videosCount ?: 0 }
     }
 }
 

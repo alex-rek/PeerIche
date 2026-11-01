@@ -235,7 +235,7 @@ class MainActivity : ComponentActivity() {
         error = null
         serverChannelList = emptyList()
         scope.launch {
-            runCatching { PeerTubeClients.allChannels(host) }
+            runCatching { PeerTubeClients.allChannelsWithVideoCounts(host) }
                 .onSuccess { serverChannelList = it; if (it.isEmpty()) error = context.getString(R.string.no_channels) }
                 .onFailure { error = it.message ?: context.getString(R.string.channels_load_failed) }
             busy = false
@@ -358,7 +358,7 @@ class MainActivity : ComponentActivity() {
                             if (channelDirectoryServer != null) serverChannelList.forEach { channel ->
                                 Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                                     TextButton(onClick = { openChannelVideos(channel) }, modifier = Modifier.weight(1f)) { Text(channel.displayName.ifBlank { channel.name }, maxLines = 2) }
-                                    Text("${channel.videosCount}  ·  ${channel.host ?: channelDirectoryServer?.removePrefix("https://")}", color = Color.Gray, modifier = Modifier.clickable { openServerChannels(channel.host?.let { "https://$it" } ?: channelDirectoryServer.orEmpty()) }.padding(8.dp))
+                                    Text("${channel.videosCount ?: 0}  ·  ${channel.host ?: channelDirectoryServer?.removePrefix("https://")}", color = Color.Gray, modifier = Modifier.clickable { openServerChannels(channel.host?.let { "https://$it" } ?: channelDirectoryServer.orEmpty()) }.padding(8.dp))
                                 }
                                 HorizontalDivider(color = Panel)
                             } else subscriptionRows.forEach { row ->
