@@ -60,4 +60,15 @@
     <string name="theme_graphite">Graphite</string>
     <string name="theme_light">Light</string>
     <string name="theme_aurora">Aurora · blue</string>
+    <string name="app_updates">Check for updates</string>
+    <string name="update_available">PeerIche %1$s is available</string>
+    <string name="update_current">You have the latest version.</string>
+    <string name="update_check_failed">Could not check GitHub. Please try again later.</string>
+    <string name="update_download_failed">Download or APK verification failed. Please retry.</string>
+    <string name="update_install_failed">Could not open the Android installer.</string>
+    <string name="update_description">Download the update from GitHub? Android will ask you to confirm installation.</string>
+    <string name="update_ready">The APK has been verified. Tap Install. If Android asks, allow updates from PeerIche, return here and tap Install again.</string>
+    <string name="update_install">Install</string>
+    <string name="update_download">Download</string>
+    <string name="update_later">Later</string>
 </resources>

@@ -60,4 +60,15 @@
     <string name="theme_graphite">Графит</string>
     <string name="theme_light">Светлая</string>
     <string name="theme_aurora">Аврора · синяя</string>
+    <string name="app_updates">Проверить обновления</string>
+    <string name="update_available">Доступна PeerIche %1$s</string>
+    <string name="update_current">Установлена последняя версия.</string>
+    <string name="update_check_failed">Не удалось проверить GitHub. Повторите позже.</string>
+    <string name="update_download_failed">Не удалось загрузить или проверить APK. Повторите загрузку.</string>
+    <string name="update_install_failed">Не удалось открыть установщик Android.</string>
+    <string name="update_description">Скачать обновление с GitHub? Android попросит подтвердить установку.</string>
+    <string name="update_ready">APK проверен. Нажмите «Установить». Если Android запросит разрешение, разрешите установку из PeerIche, вернитесь сюда и снова нажмите «Установить».</string>
+    <string name="update_install">Установить</string>
+    <string name="update_download">Скачать</string>
+    <string name="update_later">Позже</string>
 </resources>

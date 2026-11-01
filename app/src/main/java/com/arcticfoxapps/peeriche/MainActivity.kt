@@ -122,6 +122,7 @@ class MainActivity : ComponentActivity() {
     var loadingVideo by remember { mutableStateOf(false) }
     var playerError by remember { mutableStateOf<String?>(null) }
     var videoLoadGeneration by remember { mutableIntStateOf(0) }
+    var updateRequest by remember { mutableIntStateOf(0) }
     var settingsOpen by remember { mutableStateOf(false) }
     var discoveringServers by remember { mutableStateOf(false) }
     var discoveredServers by remember { mutableStateOf(emptyList<PeerTubeInstance>()) }
@@ -343,6 +344,7 @@ class MainActivity : ComponentActivity() {
         }
     }
     MaterialTheme(colorScheme = scheme) {
+        AppUpdateFeature(updateRequest)
         val colors = MaterialTheme.colorScheme
         Scaffold(containerColor = colors.background, bottomBar = {
             if (selectedVideo == null && !wideLayout) NavigationBar(containerColor = colors.surface, tonalElevation = 8.dp) {
@@ -508,6 +510,7 @@ class MainActivity : ComponentActivity() {
             onDismissRequest = { settingsOpen = false },
             title = { Text(stringResource(R.string.servers)) },
             text = { Column(Modifier.heightIn(max = 500.dp).verticalScroll(rememberScrollState())) {
+                TextButton(onClick = { settingsOpen = false; updateRequest++ }) { Text(stringResource(R.string.app_updates)) }
                 Text(stringResource(R.string.app_theme), style = MaterialTheme.typography.titleMedium)
                 listOf("system" to R.string.theme_system, "graphite" to R.string.theme_graphite,
                     "light" to R.string.theme_light, "aurora" to R.string.theme_aurora).forEach { (mode, label) ->
