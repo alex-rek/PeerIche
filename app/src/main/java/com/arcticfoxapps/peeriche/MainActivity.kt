@@ -35,6 +35,7 @@ import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -85,18 +86,32 @@ private suspend fun fetchSubscribedVideos(rows: List<SavedVideo>): List<Video> =
 }
 
 class MainActivity : ComponentActivity() {
+    private var requestedPlayback by mutableStateOf<Video?>(null)
+    private fun restorePlayback(intent: android.content.Intent) {
+        val id = intent.getStringExtra("playing_id") ?: return
+        val url = intent.getStringExtra("playing_url") ?: return
+        requestedPlayback = Video(uuid = id.substringAfter('|'),
+            host = id.substringBefore('|').removePrefix("https://"),
+            name = intent.getStringExtra("playing_title").orEmpty(), directStreamUrl = url)
+    }
+    override fun onNewIntent(intent: android.content.Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        restorePlayback(intent)
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.statusBarColor = android.graphics.Color.rgb(12, 17, 22)
         window.navigationBarColor = android.graphics.Color.rgb(16, 24, 32)
-        setContent { PeerIcheApp() }
+        restorePlayback(intent)
+        setContent { PeerIcheApp(requestedPlayback) }
     }
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
     }
 }
 
-@Composable private fun PeerIcheApp() {
+@Composable private fun PeerIcheApp(requestedPlayback: Video?) {
     val context = LocalContext.current
     val wideLayout = LocalConfiguration.current.screenWidthDp >= 600
     val landscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
@@ -118,8 +133,12 @@ class MainActivity : ComponentActivity() {
     var hasMoreResults by remember { mutableStateOf(false) }
     var busy by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
-    var selectedVideo by remember { mutableStateOf<Video?>(null) }
+    var selectedVideo by rememberSaveable(stateSaver = androidx.compose.runtime.saveable.Saver<Video?, String>(
+        save = { com.google.gson.Gson().toJson(it) },
+        restore = { com.google.gson.Gson().fromJson(it, Video::class.java) }
+    )) { mutableStateOf<Video?>(null) }
     var loadingVideo by remember { mutableStateOf(false) }
+    LaunchedEffect(requestedPlayback) { requestedPlayback?.let { selectedVideo = it } }
     var playerError by remember { mutableStateOf<String?>(null) }
     var videoLoadGeneration by remember { mutableIntStateOf(0) }
     var updateRequest by remember { mutableIntStateOf(0) }
@@ -259,6 +278,7 @@ class MainActivity : ComponentActivity() {
         }
     }
     fun closePlayer() {
+        context.stopService(android.content.Intent(context, PlaybackService::class.java))
         videoLoadGeneration++
         selectedVideo = null
         loadingVideo = false
@@ -476,7 +496,7 @@ class MainActivity : ComponentActivity() {
                             CircularProgressIndicator(color = Orange, modifier = Modifier.size(26.dp))
                             Text(stringResource(R.string.loading_video), Modifier.padding(start = 12.dp), color = Color.White)
                         }
-                        playUrl != null -> VideoPlayer(playUrl, modifier = if (landscape) Modifier.fillMaxSize() else Modifier.fillMaxWidth().aspectRatio(16f / 9f))
+                        playUrl != null -> BackgroundVideoPlayer(video, server, modifier = if (landscape) Modifier.fillMaxSize() else Modifier.fillMaxWidth().aspectRatio(16f / 9f))
                         else -> Column(Modifier.fillMaxWidth().padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(playerError ?: stringResource(R.string.video_unavailable), color = Color.White)
                             TextButton(onClick = { openVideo(video) }) { Text(stringResource(R.string.retry)) }
@@ -650,20 +670,3 @@ private fun formatDuration(seconds: Long): String {
     return if (h > 0) "%d:%02d:%02d".format(h, m, s) else "%d:%02d".format(m, s)
 }
 
-@Composable private fun VideoPlayer(url: String, modifier: Modifier = Modifier.fillMaxWidth().aspectRatio(16f / 9f)) {
-    val context = LocalContext.current
-    var playbackFailed by remember(url) { mutableStateOf(false) }
-    val player = remember(url) { ExoPlayer.Builder(context).build().apply { setMediaItem(MediaItem.fromUri(Uri.parse(url))); prepare(); playWhenReady = true } }
-    DisposableEffect(player) {
-        val listener = object : androidx.media3.common.Player.Listener {
-            override fun onPlayerError(error: androidx.media3.common.PlaybackException) { playbackFailed = true }
-        }
-        player.addListener(listener)
-        onDispose { player.removeListener(listener); player.release() }
-    }
-    AndroidView(factory = { PlayerView(it).apply { this.player = player; useController = true } }, modifier = modifier)
-    if (playbackFailed) Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
-        Text(stringResource(R.string.video_unavailable), Modifier.weight(1f), color = Color(0xFFFFB49B))
-        TextButton(onClick = { playbackFailed = false; player.seekTo(0); player.prepare(); player.playWhenReady = true }) { Text(stringResource(R.string.retry)) }
-    }
-}

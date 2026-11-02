@@ -71,4 +71,5 @@
     <string name="update_install">Install</string>
     <string name="update_download">Download</string>
     <string name="update_later">Later</string>
+    <string name="retry_captions">Retry loading subtitles</string>
 </resources>

@@ -71,4 +71,5 @@
     <string name="update_install">Установить</string>
     <string name="update_download">Скачать</string>
     <string name="update_later">Позже</string>
+    <string name="retry_captions">Повторить загрузку субтитров</string>
 </resources>

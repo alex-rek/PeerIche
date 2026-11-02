@@ -98,6 +98,7 @@ interface PeerTubeApi {
         @Query("count") count: Int = 30, @Query("sort") sort: String = "-match"
     ): VideoPage
     @GET("api/v1/videos/{id}") suspend fun video(@Path("id") id: String): Video
+    @GET("api/v1/videos/{id}/captions") suspend fun captions(@Path("id") id: String): CaptionPage
     @GET("api/v1/video-channels/{handle}/videos") suspend fun channelVideos(@Path(value = "handle", encoded = true) handle: String, @Query("count") count: Int = 30): VideoPage
     @GET("api/v1/video-channels") suspend fun channels(@Query("count") count: Int = 100, @Query("start") start: Int = 0, @Query("sort") sort: String = "-createdAt"): ChannelPage
 }

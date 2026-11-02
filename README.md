@@ -16,7 +16,7 @@ PeerIche is a continuation of PeerTubeTV by the same author. It is a standalone 
 - Graphite, Light and blue Aurora themes, plus automatic Android theme switching.
 - Compact header and an original Graphite vector launcher mark.
 
-This is an early implementation. Local channel subscriptions load public channel videos; account sign-in, dedicated channel pages, persistent playlists, advanced search filters, background playback, Picture-in-Picture, and DeX validation remain to be implemented. Tablet layout has a responsive rail and grid but still needs broader device validation. Room and DataStore files are app-private and not shared with PeerTubeTV.
+This is an early implementation. Local channel subscriptions load public channel videos; account sign-in, dedicated channel pages, persistent playlists, advanced search filters, Picture-in-Picture, and DeX validation remain to be implemented. Tablet layout has a responsive rail and grid but still needs broader device validation. Room and DataStore files are app-private and not shared with PeerTubeTV.
 
 ## Build
 
@@ -41,3 +41,9 @@ Signed APKs are published on the [GitHub Releases page](https://github.com/alex-
 ## In-app updates
 
 Version 0.1.1 checks public GitHub Releases on launch, at most once every six hours after a successful check. Settings also has a manual check. Published numeric version tags (including preview releases) with a named PeerIche-VERSION.apk and SHA-256 digest or sidecar are supported. Beta/RC tags are ignored. Downloading requires confirmation. The app validates the checksum, package, higher version code and identical signing certificate before opening the Android installer. Android requires installation approval and may ask to allow installs from PeerIche. No GitHub token is stored in the app. Install 0.1.1 manually once to enable future checks.
+
+## Background playback and captions (0.1.2)
+
+Playback runs in a Media3 foreground service and continues when the display is switched off or another app is opened. The system media panel and Bluetooth headset buttons control play/pause; next/previous seek by ten seconds within the current video. Audio focus is handled by ExoPlayer; disconnecting headphones pauses playback. Closing the video with Back stops playback. Tapping the system media panel returns to the active video.
+
+The player CC button allows selecting supported embedded/HLS tracks and PeerTube WebVTT captions, or disabling subtitles. A failed caption request does not block playback and has a retry action. Captions are only available when supplied by the video/server. Device verification of Bluetooth and screen-off behavior is still pending.
