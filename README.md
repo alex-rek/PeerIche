@@ -47,3 +47,17 @@ Version 0.1.1 checks public GitHub Releases on launch, at most once every six ho
 Playback runs in a Media3 foreground service and continues when the display is switched off or another app is opened. The system media panel and Bluetooth headset buttons control play/pause; next/previous seek by ten seconds within the current video. Audio focus is handled by ExoPlayer; disconnecting headphones pauses playback. Closing the video with Back stops playback. Tapping the system media panel returns to the active video.
 
 The player CC button allows selecting supported embedded/HLS tracks and PeerTube WebVTT captions, or disabling subtitles. A failed caption request does not block playback and has a retry action. Captions are only available when supplied by the video/server. Device verification of Bluetooth and screen-off behavior is still pending.
+
+## Tablet layout (0.1.3)
+
+Tablet windows use a navigation sidebar and two or three video columns. The watch page places recommendations beside the player when sufficient width is available; narrower tablet windows stack recommendations below. Tablet fullscreen hides app chrome. Browsing while watching keeps playback in a bottom mini-player with play/pause, progress and close controls. Phone navigation and player layout remain unchanged. All three themes use the same adaptive structure.
+
+## Mobile feed navigation (0.1.4)
+
+Pull down from the top of the Home video grid to refresh the full selection. Home, Search and Subscriptions retain their own grid position and pixel offset while a video is open. New search text resets search scroll to the top; simply closing a video keeps the previous position. Refreshing is guarded against concurrent duplicate requests and its indicator stops when loading finishes or fails.
+
+## Player controls (0.1.5)
+
+The player exposes a fullscreen enter/exit icon in its lower-right controls on phone and tablet. Tablet watch pages no longer have top Back/Full screen links. Their action buttons below the video are ordered Back, Subscribe/Unsubscribe, Favorites, Subtitles, Full screen, wrapping when space is limited. Subtitles opens track selection (including Off); videos without text tracks show an availability message.
+
+On phones the fullscreen button enters landscape playback and returns to portrait on exit. Tablet classification also checks the smallest window dimension, so rotating a phone does not switch it into the tablet layout.

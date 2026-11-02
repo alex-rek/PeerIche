@@ -72,4 +72,14 @@
     <string name="update_download">Скачать</string>
     <string name="update_later">Позже</string>
     <string name="retry_captions">Повторить загрузку субтитров</string>
+    <string name="next_videos">Следующие видео</string>
+    <string name="enter_fullscreen">На весь экран</string>
+    <string name="exit_fullscreen">Выйти из полного экрана</string>
+    <string name="show_description">Показать описание</string>
+    <string name="hide_description">Скрыть описание</string>
+    <string name="pause_playback">Пауза</string>
+    <string name="resume_playback">Продолжить</string>
+    <string name="stop_playback">Закрыть</string>
+    <string name="subtitles">Субтитры</string>
+    <string name="no_subtitles">Для этого видео субтитры недоступны.</string>
 </resources>
