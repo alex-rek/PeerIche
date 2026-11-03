@@ -121,6 +121,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable private fun PeerIcheApp(requestedPlayback: Video?) {
     val context = LocalContext.current
     val options by AppPreferences.get(context).options.collectAsState()
@@ -638,10 +639,6 @@ class MainActivity : ComponentActivity() {
                         onRetry = { openVideo(current) })
                 } else {
                     val video = selectedVideo!!
-                    if (!phonePlayerFullscreen) Row(Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                        TextButton(onClick = ::closePlayer) { Text("← ${stringResource(R.string.back)}") }
-                        Text(translatedMetadata(video.name), color = colors.onBackground, maxLines = 2, modifier = Modifier.padding(start = 12.dp))
-                    }
                     val playUrl = video.playableUrl()
                     when {
                         loadingVideo -> Row(Modifier.fillMaxWidth().padding(32.dp), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
@@ -657,12 +654,13 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                     if (!phonePlayerFullscreen) Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState())) {
-                        Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
+                        FlowRow(Modifier.fillMaxWidth().padding(horizontal = 12.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                             val channel = video.channel?.name?.let { PeerTubeChannel(video.channel.displayName ?: it, it, video.sourceServer(server).removePrefix("https://"), 0) }
-                            TextButton(onClick = { toggleCurrentVideoSubscription(video) }, enabled = channel != null, modifier = Modifier.weight(1f)) {
+                            TextButton(onClick = ::closePlayer) { Text(stringResource(R.string.back)) }
+                            TextButton(onClick = { toggleCurrentVideoSubscription(video) }, enabled = channel != null) {
                                 Text(stringResource(if (channel != null && subscriptionRows.any { it.identity == video.subscriptionIdentity(server) }) R.string.unsubscribe_button else R.string.subscribe_button), maxLines = 2)
                             }
-                            TextButton(onClick = { toggleCurrentVideoFavorite(video) }, modifier = Modifier.weight(1f)) {
+                            TextButton(onClick = { toggleCurrentVideoFavorite(video) }) {
                                 Text(stringResource(if (video.apiId() in favorites) R.string.remove_favorite else R.string.add_favorite), maxLines = 2)
                             }
                             TextButton(onClick = {
@@ -670,9 +668,9 @@ class MainActivity : ComponentActivity() {
                                     openChannelVideos(PeerTubeChannel(video.channel.displayName ?: handle, handle, video.sourceServer(server).removePrefix("https://")))
                                     closePlayer()
                                 }
-                            }, enabled = video.channel?.name != null, modifier = Modifier.weight(1f)) { Text(stringResource(R.string.channel_videos), maxLines = 2) }
+                            }, enabled = video.channel?.name != null) { Text(stringResource(R.string.channel_videos), maxLines = 2) }
                         }
-                        Text(video.name, Modifier.padding(16.dp), color = colors.onBackground, fontSize = 21.sp, fontWeight = FontWeight.Bold)
+                        Text(translatedMetadata(video.name), Modifier.padding(16.dp), color = colors.onBackground, fontSize = 21.sp, fontWeight = FontWeight.Bold)
                         Text(stringResource(R.string.video_meta, video.views, video.channel?.displayName ?: video.account?.displayName.orEmpty()), Modifier.padding(horizontal = 16.dp), color = Color.Gray)
                         Text(translatedMetadata(video.description.orEmpty()), Modifier.padding(16.dp), color = colors.onSurfaceVariant)
                     }
@@ -755,7 +753,7 @@ private fun toggleSubscription(
             if (video.isLive || video.duration > 0) Text(if (video.isLive) stringResource(R.string.live_now) else formatDuration(video.duration), Modifier.align(Alignment.BottomEnd).padding(9.dp).clip(RoundedCornerShape(7.dp)).background(if (video.isLive) Color(0xFFC83232) else Color.Black.copy(alpha = 0.78f)).padding(horizontal = 7.dp, vertical = 4.dp), color = Color.White, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold)
         }
         Row(Modifier.fillMaxWidth().padding(start = 14.dp, top = 11.dp, end = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text(video.name, Modifier.weight(1f), color = MaterialTheme.colorScheme.onSurface, maxLines = 2, fontWeight = FontWeight.SemiBold, lineHeight = 20.sp)
+            Text(translatedMetadata(video.name), Modifier.weight(1f), color = MaterialTheme.colorScheme.onSurface, maxLines = 2, fontWeight = FontWeight.SemiBold, lineHeight = 20.sp)
             if (video.channel?.name != null) IconButton(onClick = onSubscribe) { Icon(Icons.Default.Notifications, if (subscribed) stringResource(R.string.unsubscribe_channel) else stringResource(R.string.subscribe_channel), tint = if (subscribed) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurfaceVariant) }
             IconButton(onClick = onFavorite) { Icon(Icons.Default.Favorite, stringResource(R.string.favorites), tint = if (favorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant) }
         }
