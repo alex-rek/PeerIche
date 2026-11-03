@@ -61,3 +61,7 @@ Pull down from the top of the Home video grid to refresh the full selection. Hom
 The player exposes a fullscreen enter/exit icon in its lower-right controls on phone and tablet. Tablet watch pages no longer have top Back/Full screen links. Their action buttons below the video are ordered Back, Subscribe/Unsubscribe, Favorites, Subtitles, Full screen, wrapping when space is limited. Subtitles opens track selection (including Off); videos without text tracks show an availability message.
 
 On phones the fullscreen button enters landscape playback and returns to portrait on exit. Tablet classification also checks the smallest window dimension, so rotating a phone does not switch it into the tablet layout.
+
+## Scrolling feed panels (0.1.6)
+
+Mobile video grids hide the top controls upward and bottom navigation downward when scrolling into the feed. Reversing the scroll reveals both panels with a 240 ms transition. Small movements are filtered to prevent flicker. Returning from a video keeps the feed position and panel state; changing sections reveals navigation. The observer consumes no scroll distance, preserving Home pull-to-refresh. Tablet navigation stays fixed.

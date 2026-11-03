@@ -39,6 +39,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -364,6 +365,15 @@ class MainActivity : ComponentActivity() {
             else { delay(450); searchNow(0) }
         }
     }
+    var feedPanelsVisible by rememberSaveable { mutableStateOf(true) }
+    val activeFeedState = when (page) {
+        "Home" -> homeGridState
+        "Search" -> searchGridState
+        "Subscriptions" -> if (channelVideosMode) channelGridState else subscriptionsGridState
+        else -> if (libraryTab == "Favorites") favoritesGridState else historyGridState
+    }
+    val feedScrollConnection = rememberFeedScrollConnection(!wideLayout && !showVideo, activeFeedState) { feedPanelsVisible = it }
+    LaunchedEffect(page, query, libraryTab, subscriptionsTab, wideLayout) { feedPanelsVisible = true }
     val canNavigateBack = showVideo || channelDirectoryServer != null || channelVideosMode ||
         (page == "Subscriptions" && subscriptionsTab == "Channels") || page != "Home"
     BackHandler(enabled = canNavigateBack) {
@@ -414,7 +424,7 @@ class MainActivity : ComponentActivity() {
         Scaffold(containerColor = colors.background, bottomBar = {
             if (wideLayout && !showVideo && selectedVideo != null && !loadingVideo) BackgroundVideoPlayer(selectedVideo!!, server, Modifier.fillMaxWidth(), compact = true,
                 onExpand = { tabletBrowsing = false }, onClose = ::closePlayer)
-            if (!showVideo && !wideLayout) NavigationBar(containerColor = colors.surface, tonalElevation = 8.dp) {
+            if (!showVideo && !wideLayout) FeedPanel(feedPanelsVisible, top = false) { NavigationBar(containerColor = colors.surface, tonalElevation = 8.dp) {
                 listOf("Home", "Search", "Subscriptions", "Library").forEach { destination ->
                     val (iconId, labelId) = when (destination) {
                         "Home" -> R.drawable.ic_nav_home to R.string.home
@@ -429,6 +439,7 @@ class MainActivity : ComponentActivity() {
                     }, icon = { Icon(painterResource(iconId), stringResource(labelId)) }, label = { Text(stringResource(labelId), fontWeight = if (page == destination) FontWeight.SemiBold else FontWeight.Normal) })
                 }
             }
+            }
         }) { insets ->
             Row(Modifier.fillMaxSize().padding(insets)) {
                 if (wideLayout && !tabletFullscreen) TabletNavigation(page, collapsed = showVideo || LocalConfiguration.current.screenWidthDp < 840) { destination ->
@@ -438,6 +449,7 @@ class MainActivity : ComponentActivity() {
                     if (destination == "Subscriptions") loadSubscriptions()
                 }
                 Column(Modifier.weight(1f).fillMaxHeight()) {
+                FeedPanel(wideLayout || feedPanelsVisible, top = true) {
                 if ((!showVideo || wideLayout) && !tabletFullscreen) {
                     Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
                         Image(painterResource(R.drawable.ic_peeriche_mark), contentDescription = null, modifier = Modifier.size(28.dp))
@@ -457,7 +469,9 @@ class MainActivity : ComponentActivity() {
                         IconButton(onClick = { serverDraft = serverList; settingsOpen = true }) { Icon(Icons.Default.Tune, stringResource(R.string.settings)) }
                     }
                 }
+                }
                 if (!showVideo) {
+                    FeedPanel(wideLayout || feedPanelsVisible, top = true) { Column {
                     if (page == "Search") {
                         OutlinedTextField(
                             query, { query = it }, Modifier.fillMaxWidth().padding(horizontal = 16.dp), singleLine = true,
@@ -483,6 +497,7 @@ class MainActivity : ComponentActivity() {
                             listOf("Favorites" to R.string.favorites, "History" to R.string.history).forEach { (label, res) -> FilterChip(selected = libraryTab == label, onClick = { libraryTab = label }, label = { Text(stringResource(res)) }, modifier = Modifier.padding(end = 8.dp)) }
                         }
                     }
+                    } }
                     val visibleVideos = if (page == "Library") (if (libraryTab == "Favorites") favoriteRows else historyRows).map(SavedVideo::toVideo) else videos
                     if (busy) LinearProgressIndicator(Modifier.fillMaxWidth().padding(horizontal = 16.dp), color = colors.primary, trackColor = colors.surface)
                     error?.let { Text(it, Modifier.padding(18.dp), color = if (darkTheme) Color(0xFFFFB49B) else Color(0xFF9C341F)) }
@@ -512,13 +527,7 @@ class MainActivity : ComponentActivity() {
                         refreshing = homeRefreshing,
                         onRefresh = { if (!busy) loadHome() }
                     ) {
-                    val feedState = when (page) {
-                        "Home" -> homeGridState
-                        "Search" -> searchGridState
-                        "Subscriptions" -> if (channelVideosMode) channelGridState else subscriptionsGridState
-                        else -> if (libraryTab == "Favorites") favoritesGridState else historyGridState
-                    }
-                    LazyVerticalGrid(state = feedState, columns = if (wideLayout) GridCells.Fixed(tabletColumns(LocalConfiguration.current.screenWidthDp)) else GridCells.Adaptive(minSize = 230.dp), contentPadding = PaddingValues(12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                    LazyVerticalGrid(state = activeFeedState, modifier = Modifier.nestedScroll(feedScrollConnection), columns = if (wideLayout) GridCells.Fixed(tabletColumns(LocalConfiguration.current.screenWidthDp)) else GridCells.Adaptive(minSize = 230.dp), contentPadding = PaddingValues(12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
                         if (page == "Home") {
                             if (subscriptionFeed.isNotEmpty()) videoSection(R.string.from_subscriptions, subscriptionFeed, "following", server, favorites, subscriptionRows.map { it.identity }.toSet(), ::openVideo,
                                 { video -> scope.launch { val id = video.uuid; if (id in favorites) database.library().delete(id, "favorite") else database.library().put(video.toSavedVideo(server, "favorite")) } },
