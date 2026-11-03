@@ -35,8 +35,8 @@ internal fun tabletColumns(widthDp: Int): Int = if (widthDp >= 1100) 3 else 2
                     else -> R.drawable.ic_nav_library
                 }
                 Surface(onClick = { onNavigate(destination) }, shape = MaterialTheme.shapes.medium,
-                    color = if (page == destination) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface,
-                    contentColor = if (page == destination) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface) {
+                    color = if (page == destination || (destination == "Home" && page in listOf("Server", "Live"))) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface,
+                    contentColor = if (page == destination || (destination == "Home" && page in listOf("Server", "Live"))) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface) {
                     Row(Modifier.fillMaxWidth().heightIn(min = 52.dp).padding(12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         Icon(painterResource(icon), stringResource(label), Modifier.size(24.dp))
                         if (!collapsed) Text(stringResource(label), maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.labelLarge)
@@ -75,7 +75,7 @@ internal fun tabletColumns(widthDp: Int): Int = if (widthDp >= 1100) 3 else 2
                     TextButton(onClick = onRetry) { Text(stringResource(R.string.retry)) }
                 }
                 if (!fullscreen) Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text(video.name, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = colors.onBackground)
+                    Text(translatedMetadata(video.name), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = colors.onBackground)
                     Text(video.channel?.displayName ?: video.account?.displayName.orEmpty(), color = colors.onSurfaceVariant)
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         TextButton(onClick = onBrowse) { Text(stringResource(R.string.back)) }
@@ -94,7 +94,7 @@ internal fun tabletColumns(widthDp: Int): Int = if (widthDp >= 1100) 3 else 2
                     }
                     var descriptionExpanded by remember(video.apiId()) { mutableStateOf(false) }
                     TextButton(onClick = { descriptionExpanded = !descriptionExpanded }) { Text(stringResource(if (descriptionExpanded) R.string.hide_description else R.string.show_description)) }
-                    if (descriptionExpanded) Text(video.description.orEmpty(), color = colors.onSurfaceVariant)
+                    if (descriptionExpanded) Text(translatedMetadata(video.description.orEmpty()), color = colors.onSurfaceVariant)
                     if (!sideBySide) {
                         Text(stringResource(R.string.next_videos), style = MaterialTheme.typography.titleMedium)
                         recommendations.forEach { RecommendationRow(it, server) { onOpen(it) } }

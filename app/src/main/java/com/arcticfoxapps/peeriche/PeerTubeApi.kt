@@ -16,13 +16,14 @@ data class VideoPage(val data: List<Video> = emptyList(), val total: Int = 0)
 data class ChannelPage(val data: List<PeerTubeChannel> = emptyList(), val total: Int = 0)
 data class PeerTubeChannel(val displayName: String = "", val name: String = "", val host: String? = null, val videosCount: Int? = null)
 data class SearchPage(val videos: List<Video>, val hasMore: Boolean)
-data class InstancePage(val data: List<PeerTubeInstance> = emptyList())
-data class PeerTubeInstance(val host: String = "", val name: String? = null, val totalVideos: Long? = null, val country: String? = null)
+data class InstancePage(val data: List<PeerTubeInstance> = emptyList(), val total: Int = 0)
+data class InstanceStats(val totalVideos: Long? = null)
+data class PeerTubeInstance(val host: String = "", val name: String? = null, val totalVideos: Long? = null, val country: String? = null, val stats: InstanceStats? = null)
 data class PeerSeekPage(val videos: List<PeerSeekVideo> = emptyList(), val total: Int = 0)
 data class PeerSeekVideo(
     val id: String? = null, val uuid: String? = null, val title: String? = null, val name: String? = null,
     val thumbnailUrl: String? = null, val videoUrl: String? = null, val views: Long? = null,
-    val instance: JsonElement? = null, val channel: JsonElement? = null
+    val instance: JsonElement? = null, val channel: JsonElement? = null, val nsfw: Boolean = false
 ) {
     fun asVideo(): Video? {
         val identity = uuid?.takeIf(String::isNotBlank) ?: id?.takeIf(String::isNotBlank) ?: return null
@@ -35,7 +36,7 @@ data class PeerSeekVideo(
         val channelName = field(channel, "displayName") ?: field(channel, "name")
         val titleText = title?.takeIf(String::isNotBlank) ?: name?.takeIf(String::isNotBlank) ?: return null
         return Video(uuid = identity, name = titleText, thumbnailUrl = thumbnailUrl, url = videoUrl, views = views ?: 0L,
-            host = host, channel = channelName?.let { Channel(displayName = it, host = host) })
+            host = host, channel = channelName?.let { Channel(displayName = it, host = host) }, nsfw = nsfw)
     }
 }
 data class Video(
@@ -46,7 +47,8 @@ data class Video(
     val url: String? = null, val files: List<VideoFile>? = null,
     val streamingPlaylists: List<StreamingPlaylist>? = null,
     val directStreamUrl: String? = null,
-    val channel: Channel? = null, val account: Account? = null
+    val channel: Channel? = null, val account: Account? = null, val nsfw: Boolean = false,
+    val isLive: Boolean = false, val state: VideoState? = null
 ) {
     fun sourceServer(fallback: String): String {
         val urlHost = runCatching { java.net.URI(url).takeIf { it.scheme == "https" || it.scheme == "http" }?.host }.getOrNull()
@@ -57,16 +59,17 @@ data class Video(
     fun apiId(): String = uuid.takeIf(String::isNotBlank)
         ?: runCatching { java.net.URI(url).path.substringAfterLast('/') }.getOrDefault("")
 
-    fun playableUrl(): String? {
+    fun playableUrl(maxHeight: Int = 0): String? {
         fun secure(value: String?): String? {
             val raw = value?.trim()?.takeIf(String::isNotBlank) ?: return null
             val uri = runCatching { java.net.URI(raw) }.getOrNull() ?: return null
             if (uri.userInfo != null || uri.host.isNullOrBlank() || uri.scheme !in setOf("https", "http")) return null
             return if (uri.scheme == "https") raw else raw.replaceFirst("http://", "https://")
         }
+        val videoFiles = files.orEmpty() + streamingPlaylists.orEmpty().flatMap { it.files.orEmpty() }
+        val preferred = if (maxHeight > 0) videoFiles.filter { (it.resolution?.id ?: 0) <= maxHeight }.ifEmpty { videoFiles.sortedBy { it.resolution?.id ?: 0 }.take(1) } else videoFiles
         return streamingPlaylists.orEmpty().firstNotNullOfOrNull { secure(it.playlistUrl) }
-            ?: (files.orEmpty() + streamingPlaylists.orEmpty().flatMap { it.files.orEmpty() })
-                .maxByOrNull { it.resolution?.id ?: 0 }?.fileUrl?.let(::secure)
+            ?: preferred.maxByOrNull { it.resolution?.id ?: 0 }?.fileUrl?.let(::secure)
             ?: secure(directStreamUrl)
     }
 
@@ -82,6 +85,7 @@ data class Video(
     }
 }
 data class VideoFile(val fileUrl: String? = null, val resolution: Resolution? = null)
+data class VideoState(val id: Int = 0)
 data class Resolution(val id: Int = 0, val label: String? = null)
 data class StreamingPlaylist(val playlistUrl: String? = null, val files: List<VideoFile>? = null)
 data class Channel(val displayName: String? = null, val name: String? = null, val host: String? = null)
@@ -91,11 +95,13 @@ data class Account(val displayName: String? = null, val name: String? = null, va
 interface PeerTubeApi {
     @GET("api/v1/videos") suspend fun videos(
         @Query("sort") sort: String = "-publishedAt", @Query("count") count: Int = 30,
-        @Query("isLocal") isLocal: Boolean? = null, @Query("start") start: Int = 0
+        @Query("isLocal") isLocal: Boolean? = null, @Query("start") start: Int = 0,
+        @Query("isLive") isLive: Boolean? = null, @Query("includeScheduledLive") includeScheduledLive: Boolean? = null,
+        @Query("nsfw") nsfw: String = "false"
     ): VideoPage
     @GET("api/v1/search/videos") suspend fun search(
         @Query("search") query: String, @Query("start") start: Int = 0,
-        @Query("count") count: Int = 30, @Query("sort") sort: String = "-match"
+        @Query("count") count: Int = 30, @Query("sort") sort: String = "-match", @Query("nsfw") nsfw: String = "false"
     ): VideoPage
     @GET("api/v1/videos/{id}") suspend fun video(@Path("id") id: String): Video
     @GET("api/v1/videos/{id}/captions") suspend fun captions(@Path("id") id: String): CaptionPage
@@ -104,16 +110,21 @@ interface PeerTubeApi {
 }
 
 interface SepiaApi {
+    @GET("api/v1/search/videos") suspend fun live(
+        @Query("start") start: Int = 0, @Query("count") count: Int = 30,
+        @Query("sort") sort: String = "-publishedAt", @Query("isLive") isLive: Boolean = true,
+        @Query("includeScheduledLive") includeScheduledLive: Boolean = false, @Query("nsfw") nsfw: String = "false"
+    ): VideoPage
     @GET("api/v1/search/videos") suspend fun search(
         @Query("search") query: String, @Query("start") start: Int = 0,
-        @Query("count") count: Int = 30, @Query("sort") sort: String = "-match"
+        @Query("count") count: Int = 30, @Query("sort") sort: String = "-match", @Query("nsfw") nsfw: String = "false"
     ): VideoPage
 }
 interface PeerSeekApi {
     @GET("v1/search") suspend fun search(@Query("q") query: String, @Query("sort") sort: String = "relevance", @Query("page") page: Int = 1, @Query("size") size: Int = 30): PeerSeekPage
 }
 interface InstanceDirectoryApi {
-    @GET("api/v1/instances") suspend fun instances(@Query("start") start: Int = 0, @Query("count") count: Int = 50): InstancePage
+    @GET("api/v1/instances") suspend fun instances(@Query("start") start: Int = 0, @Query("count") count: Int = 50, @Query("search") search: String? = null): InstancePage
 }
 
 object PeerTubeClients {
@@ -168,8 +179,28 @@ object PeerTubeClients {
         return SearchPage(deduplicateVideos(allVideos, servers.firstOrNull().orEmpty()), successful.any { it.second })
     }
     suspend fun discoverInstances() = directory.instances().data.filter { it.host.isNotBlank() }
+    suspend fun discoverInstancePage(start: Int, search: String = "") = directory.instances(start = start, count = 100, search = search.trim().takeIf(String::isNotBlank))
     suspend fun home(server: String) = server(server).videos(sort = "-publishedAt", count = 30).data
     suspend fun popular(server: String) = server(server).videos(sort = "-views", count = 30).data
+    suspend fun serverPage(host: String, page: Int, sensitive: Boolean): SearchPage {
+        val start = page.coerceAtLeast(0) * 30
+        val response = server(host).videos(isLocal = true, start = start, nsfw = sensitive.toString())
+        return SearchPage(response.data, start + response.data.size < response.total)
+    }
+    suspend fun livePage(host: String, page: Int, sensitive: Boolean): SearchPage {
+        val start = page.coerceAtLeast(0) * 30
+        val response = try { kotlinx.coroutines.withTimeout(15_000) { sepia.live(start = start, nsfw = sensitive.toString()) } }
+        catch (timeout: kotlinx.coroutines.TimeoutCancellationException) {
+            server(host).videos(start = start, isLive = true, includeScheduledLive = false, nsfw = sensitive.toString())
+        } catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled }
+        catch (_: Exception) {
+            server(host).videos(start = start, isLive = true, includeScheduledLive = false, nsfw = sensitive.toString())
+        }
+        val active = resolveLiveVideos(response.data, host) { candidate ->
+            server(candidate.sourceServer(host)).video(candidate.apiId())
+        }
+        return SearchPage(active.filter { sensitive || !it.nsfw }, start + response.data.size < response.total)
+    }
     suspend fun video(server: String, id: String): Video = server(server).video(id)
     suspend fun allChannels(server: String): List<PeerTubeChannel> {
         val api = server(server)

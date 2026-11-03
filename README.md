@@ -65,3 +65,17 @@ On phones the fullscreen button enters landscape playback and returns to portrai
 ## Scrolling feed panels (0.1.6)
 
 Mobile video grids hide the top controls upward and bottom navigation downward when scrolling into the feed. Reversing the scroll reveals both panels with a 240 ms transition. Small movements are filtered to prevent flicker. Returning from a video keeps the feed position and panel state; changing sections reveals navigation. The observer consumes no scroll distance, preserving Home pull-to-refresh. Tablet navigation stays fixed.
+
+## Full-screen settings (0.2.0)
+
+The header gear opens six full-screen settings sections: General, Search, Servers, Language and Translations, Player, and About. General offers Android-following/Graphite/Light/Aurora themes, system/Russian/English interface language, and a country preference for server discovery.
+
+Search supports ordered sources, parallel/sequential/hybrid execution, custom Sepia-compatible indexes, result sorting, availability checks and sensitive-content preferences. Server settings validate manual connections and search the JoinPeerTube directory, with online and video-count sorting. Changing servers refreshes the feed without mixing stale results into search.
+
+Metadata and WebVTT subtitle translation use on-device ML Kit models. Models can be downloaded or deleted, with Wi-Fi-only downloads enabled by default. Initial downloads require network access; translated subtitles retain their original timing. Existing text remains available when translation fails. Videos without captions cannot gain captions through text translation.
+
+Player defaults include quality, speed, autoplay, background playback, control timeout, seek interval, resize mode and subtitle language. Subtitle appearance supports font size, color, horizontal position and bottom margin. About displays the installed version, build date, developer and a manual update check. Preferences survive process restarts and APK upgrades.
+
+## Home feed menu (0.2.1)
+
+A horizontally scrollable row under the header links Home, On server, Live and Subscriptions. Home and Subscriptions open the same destinations as bottom navigation. On server lists local videos from the currently connected instance and supports pagination. Live browses the global Sepia index without a title query, following the PeerTubeTV approach, and checks current video details at each origin to exclude waiting, ended and unavailable streams. If the index is unavailable, the active server's federated live list is used. Each feed has its own scroll position, and the menu follows the mobile panel hide/show behavior.

@@ -82,4 +82,8 @@
     <string name="stop_playback">Закрыть</string>
     <string name="subtitles">Субтитры</string>
     <string name="no_subtitles">Для этого видео субтитры недоступны.</string>
+    <string name="translated_track">Перевод</string>
+    <string name="on_server">На сервере</string>
+    <string name="live_now">В эфире</string>
+    <string name="no_live_videos">Активные трансляции не найдены. Попробуйте обновить позже.</string>
 </resources>

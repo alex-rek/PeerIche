@@ -82,4 +82,8 @@
     <string name="stop_playback">Close</string>
     <string name="subtitles">Subtitles</string>
     <string name="no_subtitles">No subtitles are available for this video.</string>
+    <string name="translated_track">Translated</string>
+    <string name="on_server">On server</string>
+    <string name="live_now">Live</string>
+    <string name="no_live_videos">No active live streams found. Try refreshing later.</string>
 </resources>
