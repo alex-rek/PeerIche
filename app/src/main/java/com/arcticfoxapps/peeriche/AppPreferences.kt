@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import java.util.Locale
 
 data class AppOptions(
-    val interfaceLanguage: String = "", val country: String = "",
+    val interfaceLanguage: String = "", val country: String = "", val homeSort: String = "newest",
     val searchSources: List<String> = listOf("sepia", "peerseek", "federated", "direct", "local"),
     val searchOrder: List<String> = listOf("sepia", "peerseek", "custom", "federated", "direct", "local"),
     val searchMode: String = "parallel", val searchEnough: Int = 30, val searchParallel: Int = 3,

@@ -79,3 +79,7 @@ Player defaults include quality, speed, autoplay, background playback, control t
 ## Home feed menu (0.2.1)
 
 A horizontally scrollable row under the header links Home, On server, Live and Subscriptions. Home and Subscriptions open the same destinations as bottom navigation. On server lists local videos from the currently connected instance and supports pagination. Live browses the global Sepia index without a title query, following the PeerTubeTV approach, and checks current video details at each origin to exclude waiting, ended and unavailable streams. If the index is unavailable, the active server's federated live list is used. Each feed has its own scroll position, and the menu follows the mobile panel hide/show behavior.
+
+## Home sorting (0.2.3)
+
+Home combines subscriptions, recommendations and recent videos into one deduplicated feed, newest publication first by default. Its sort menu offers newest, oldest, most viewed, and the previous collection sections. The choice persists across restarts. Missing/invalid dates sort last in date modes. Subscription videos are ordered by publication time before the 30-video limit is applied, preventing the first channel from filling the selection. Sorting changes the order of the loaded selection; it does not fetch the entire network catalog.

@@ -86,4 +86,9 @@
     <string name="on_server">На сервере</string>
     <string name="live_now">В эфире</string>
     <string name="no_live_videos">Активные трансляции не найдены. Попробуйте обновить позже.</string>
+    <string name="home_sort_label">Сортировка: %1$s</string>
+    <string name="home_sort_newest">Сначала новые</string>
+    <string name="home_sort_oldest">Сначала старые</string>
+    <string name="home_sort_views">По просмотрам</string>
+    <string name="home_sort_sections">По подборкам</string>
 </resources>

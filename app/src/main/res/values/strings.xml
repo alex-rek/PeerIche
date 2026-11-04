@@ -86,4 +86,9 @@
     <string name="on_server">On server</string>
     <string name="live_now">Live</string>
     <string name="no_live_videos">No active live streams found. Try refreshing later.</string>
+    <string name="home_sort_label">Sort: %1$s</string>
+    <string name="home_sort_newest">Newest first</string>
+    <string name="home_sort_oldest">Oldest first</string>
+    <string name="home_sort_views">Most viewed</string>
+    <string name="home_sort_sections">By collections</string>
 </resources>

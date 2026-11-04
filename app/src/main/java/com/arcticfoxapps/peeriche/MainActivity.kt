@@ -233,7 +233,7 @@ class MainActivity : ComponentActivity() {
                 }
                 val latest = latestRequest.await()
                 latest.onSuccess { homeVideos = it }
-                val following = deduplicateVideos(subscriptionRequest.await(), server).take(30)
+                val following = sortHomeVideos(subscriptionRequest.await(), "newest", server).take(30)
                 subscriptionFeed = following
                 val historyIds = history.map { it.identity.substringBefore("|") }.toSet()
                 val followingIds = following.map { it.apiId() }.toSet()
@@ -546,6 +546,25 @@ class MainActivity : ComponentActivity() {
                             colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = colors.primary, unfocusedBorderColor = colors.outlineVariant, focusedLabelColor = colors.primary)
                         )
                     }
+                    if (page == "Home") {
+                        var sortMenuOpen by remember { mutableStateOf(false) }
+                        val sorts = listOf("newest" to R.string.home_sort_newest, "oldest" to R.string.home_sort_oldest,
+                            "views" to R.string.home_sort_views, "sections" to R.string.home_sort_sections)
+                        Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp), horizontalArrangement = Arrangement.End) {
+                            Box {
+                                TextButton(onClick = { sortMenuOpen = true }) {
+                                    Text(stringResource(R.string.home_sort_label, stringResource(sorts.firstOrNull { it.first == options.homeSort }?.second ?: R.string.home_sort_newest)) + " ▾")
+                                }
+                                DropdownMenu(expanded = sortMenuOpen, onDismissRequest = { sortMenuOpen = false }) {
+                                    sorts.forEach { (value, label) -> DropdownMenuItem(text = { Text(stringResource(label)) }, onClick = {
+                                        AppPreferences.get(context).update { it.copy(homeSort = value) }
+                                        sortMenuOpen = false
+                                        scope.launch { homeGridState.scrollToItem(0) }
+                                    }) }
+                                }
+                            }
+                        }
+                    }
                     when (page) {
                         "Subscriptions" -> {
                             Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -600,7 +619,11 @@ class MainActivity : ComponentActivity() {
                         onRefresh = { if (!busy) loadHome() }
                     ) {
                     LazyVerticalGrid(state = activeFeedState, modifier = Modifier.nestedScroll(feedScrollConnection), columns = if (wideLayout) GridCells.Fixed(tabletColumns(LocalConfiguration.current.screenWidthDp)) else GridCells.Adaptive(minSize = 230.dp), contentPadding = PaddingValues(12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                        if (page == "Home") {
+                        if (page == "Home" && options.homeSort != "sections") {
+                            videoSection(null, sortHomeVideos(subscriptionFeed + recommendedVideos + homeVideos, options.homeSort, server), "home", server, favorites, subscriptionRows.map { it.identity }.toSet(), ::openVideo,
+                                { video -> toggleCurrentVideoFavorite(video) },
+                                { video -> toggleSubscription(video, server, database, subscriptionRows, scope) })
+                        } else if (page == "Home") {
                             if (subscriptionFeed.isNotEmpty()) videoSection(R.string.from_subscriptions, subscriptionFeed, "following", server, favorites, subscriptionRows.map { it.identity }.toSet(), ::openVideo,
                                 { video -> scope.launch { val id = video.uuid; if (id in favorites) database.library().delete(id, "favorite") else database.library().put(video.toSavedVideo(server, "favorite")) } },
                                 { video -> toggleSubscription(video, server, database, subscriptionRows, scope) })
