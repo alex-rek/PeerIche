@@ -60,7 +60,7 @@ Pull down from the top of the Home video grid to refresh the full selection. Hom
 
 The player exposes a fullscreen enter/exit icon in its lower-right controls on phone and tablet. Tablet watch pages no longer have top Back/Full screen links. Their action buttons below the video are ordered Back, Subscribe/Unsubscribe, Favorites, Subtitles, Full screen, wrapping when space is limited. Subtitles opens track selection (including Off); videos without text tracks show an availability message.
 
-On phones the fullscreen button enters landscape playback and returns to portrait on exit. Tablet classification also checks the smallest window dimension, so rotating a phone does not switch it into the tablet layout.
+On phones the fullscreen button expands playback in the current orientation; rotating the phone controls portrait/landscape. Tablet classification also checks the smallest window dimension, so rotating a phone does not switch it into the tablet layout.
 
 ## Scrolling feed panels (0.1.6)
 
@@ -83,3 +83,9 @@ A horizontally scrollable row under the header links Home, On server, Live and S
 ## Home sorting (0.2.3)
 
 Home combines subscriptions, recommendations and recent videos into one deduplicated feed, newest publication first by default. Its sort menu offers newest, oldest, most viewed, and the previous collection sections. The choice persists across restarts. Missing/invalid dates sort last in date modes. Subscription videos are ordered by publication time before the 30-video limit is applied, preventing the first channel from filling the selection. Sorting changes the order of the loaded selection; it does not fetch the entire network catalog.
+
+## Playback and thumbnails (0.2.4)
+
+The playback service records history after five seconds of actual playing time, including background playback. Pause/buffering time and seek jumps do not count. All Home modes react to history and hide watched videos. Existing history is retained. Ending a video returns to its browsing destination and scroll position.
+
+The player offers Original, 16:9, 4:3, 1:1 and 21:9 display formats independently of fit/zoom/stretch scaling. The selected format also appears in Player settings. Thumbnail loading tries the browsing server and origin for relative URLs, then preview images and origin metadata when needed; unavailable images show a placeholder rather than an unexplained blank surface.

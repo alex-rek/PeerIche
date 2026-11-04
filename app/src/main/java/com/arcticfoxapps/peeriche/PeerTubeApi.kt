@@ -74,13 +74,15 @@ data class Video(
     }
 
     fun thumbnailCandidates(fallback: String): List<String> {
-        val base = runCatching { java.net.URI(sourceServer(fallback).trimEnd('/') + "/") }.getOrNull() ?: return emptyList()
-        return listOfNotNull(thumbnailUrl, thumbnailPath, previewPath).mapNotNull { value ->
-            runCatching {
+        val bases = listOf(fallback, sourceServer(fallback)).distinct().mapNotNull {
+            runCatching { java.net.URI(it.trimEnd('/') + "/") }.getOrNull()
+        }
+        return listOfNotNull(thumbnailUrl, thumbnailPath, previewPath).flatMap { value ->
+            bases.mapNotNull { base -> runCatching {
                 val candidate = java.net.URI(value.trim()).let { if (it.isAbsolute) it else base.resolve(it) }
                 if (candidate.host.isNullOrBlank() || candidate.userInfo != null || candidate.scheme !in setOf("http", "https")) null
                 else if (candidate.scheme == "http") candidate.toString().replaceFirst("http://", "https://") else candidate.toString()
-            }.getOrNull()
+            }.getOrNull() }
         }.distinct()
     }
 }

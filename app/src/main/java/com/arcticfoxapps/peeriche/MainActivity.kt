@@ -341,8 +341,6 @@ class MainActivity : ComponentActivity() {
     fun setPhoneFullscreen(enabled: Boolean) {
         phoneFullscreen = enabled
         inlineLandscape = !enabled && landscape
-        (context as? ComponentActivity)?.requestedOrientation = if (enabled)
-            ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE else ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
     }
     fun closePlayer() {
         (context as? ComponentActivity)?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
@@ -373,7 +371,6 @@ class MainActivity : ComponentActivity() {
                 selectedVideo = ready
                 loadingVideo = false
                 if (ready.playableUrl() == null) playerError = context.getString(R.string.video_unavailable)
-                database.library().put(ready.toSavedVideo(server, "history"))
             }
         }
     }
@@ -390,6 +387,11 @@ class MainActivity : ComponentActivity() {
             if (id in favorites) database.library().delete(id, "favorite")
             else database.library().put(video.toSavedVideo(server, "favorite"))
         }
+    }
+    val endedVideo by PlaybackService.endedVideo.collectAsState()
+    LaunchedEffect(endedVideo, selectedVideo?.apiId()) {
+        val current = selectedVideo
+        if (current != null && endedVideo == current.sourceServer(server) + "|" + current.apiId()) closePlayer()
     }
     LaunchedEffect(server) { homeJob?.cancel(); homeJob?.join(); if (page == "Home") loadHome() else if (page == "Search") searchNow() else if (page == "Subscriptions") loadSubscriptions() }
     LaunchedEffect(page, server, options.includeSensitive) {
@@ -583,6 +585,10 @@ class MainActivity : ComponentActivity() {
                     }
                     } }
                     val browsingFeed = page == "Server" || page == "Live"
+                    val watchedIds = remember(historyRows) { historyRows.map { it.identity.substringBefore('|') }.toSet() }
+                    val homeFollowing = subscriptionFeed.filterNot { it.apiId() in watchedIds }
+                    val homeRecommended = recommendedVideos.filterNot { it.apiId() in watchedIds }
+                    val homeRecent = homeVideos.filterNot { it.apiId() in watchedIds }
                     val visibleVideos = when (page) {
                         "Server" -> serverVideos
                         "Live" -> liveVideos
@@ -620,17 +626,17 @@ class MainActivity : ComponentActivity() {
                     ) {
                     LazyVerticalGrid(state = activeFeedState, modifier = Modifier.nestedScroll(feedScrollConnection), columns = if (wideLayout) GridCells.Fixed(tabletColumns(LocalConfiguration.current.screenWidthDp)) else GridCells.Adaptive(minSize = 230.dp), contentPadding = PaddingValues(12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
                         if (page == "Home" && options.homeSort != "sections") {
-                            videoSection(null, sortHomeVideos(subscriptionFeed + recommendedVideos + homeVideos, options.homeSort, server), "home", server, favorites, subscriptionRows.map { it.identity }.toSet(), ::openVideo,
+                            videoSection(null, sortHomeVideos(homeFollowing + homeRecommended + homeRecent, options.homeSort, server), "home", server, favorites, subscriptionRows.map { it.identity }.toSet(), ::openVideo,
                                 { video -> toggleCurrentVideoFavorite(video) },
                                 { video -> toggleSubscription(video, server, database, subscriptionRows, scope) })
                         } else if (page == "Home") {
-                            if (subscriptionFeed.isNotEmpty()) videoSection(R.string.from_subscriptions, subscriptionFeed, "following", server, favorites, subscriptionRows.map { it.identity }.toSet(), ::openVideo,
+                            if (homeFollowing.isNotEmpty()) videoSection(R.string.from_subscriptions, homeFollowing, "following", server, favorites, subscriptionRows.map { it.identity }.toSet(), ::openVideo,
                                 { video -> scope.launch { val id = video.uuid; if (id in favorites) database.library().delete(id, "favorite") else database.library().put(video.toSavedVideo(server, "favorite")) } },
                                 { video -> toggleSubscription(video, server, database, subscriptionRows, scope) })
-                            if (recommendedVideos.isNotEmpty()) videoSection(if (recommendationsUseHistory) R.string.recommended_for_you else R.string.popular_now, recommendedVideos, "recommended", server, favorites, subscriptionRows.map { it.identity }.toSet(), ::openVideo,
+                            if (homeRecommended.isNotEmpty()) videoSection(if (recommendationsUseHistory) R.string.recommended_for_you else R.string.popular_now, homeRecommended, "recommended", server, favorites, subscriptionRows.map { it.identity }.toSet(), ::openVideo,
                                 { video -> scope.launch { val id = video.uuid; if (id in favorites) database.library().delete(id, "favorite") else database.library().put(video.toSavedVideo(server, "favorite")) } },
                                 { video -> toggleSubscription(video, server, database, subscriptionRows, scope) })
-                            videoSection(R.string.latest_videos, homeVideos, "latest", server, favorites, subscriptionRows.map { it.identity }.toSet(), ::openVideo,
+                            videoSection(R.string.latest_videos, homeRecent, "latest", server, favorites, subscriptionRows.map { it.identity }.toSet(), ::openVideo,
                                 { video -> scope.launch { val id = video.uuid; if (id in favorites) database.library().delete(id, "favorite") else database.library().put(video.toSavedVideo(server, "favorite")) } },
                                 { video -> toggleSubscription(video, server, database, subscriptionRows, scope) })
                         } else {
@@ -707,7 +713,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-private fun Video.toSavedVideo(fallbackServer: String, kind: String) = SavedVideo(
+internal fun Video.toSavedVideo(fallbackServer: String, kind: String) = SavedVideo(
     identity = apiId().ifBlank { url ?: name }, kind = kind, title = name,
     videoUrl = playableUrl(), server = sourceServer(fallbackServer),
     thumbnailUrl = thumbnailCandidates(fallbackServer).firstOrNull(),
@@ -761,17 +767,9 @@ private fun toggleSubscription(
     val cardShape = RoundedCornerShape(18.dp)
     val cardSurface = MaterialTheme.colorScheme.surface
     Column(Modifier.clip(cardShape).background(cardSurface).border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.32f), cardShape).clickable(onClick = onOpen)) {
-        val candidates = remember(video.apiId(), video.thumbnailUrl, video.thumbnailPath, video.previewPath, fallbackServer) { video.thumbnailCandidates(fallbackServer) }
-        var imageIndex by remember(video.apiId(), candidates) { mutableIntStateOf(0) }
         Box {
-            AsyncImage(
-                model = candidates.getOrNull(imageIndex),
-                contentDescription = video.name,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxWidth().aspectRatio(16f / 9f).background(MaterialTheme.colorScheme.surfaceVariant)
-                    .then(if (video.nsfw && cardOptions.sensitiveDisplay == "blur") Modifier.blur(24.dp) else Modifier),
-                onError = { if (imageIndex < candidates.lastIndex) imageIndex++ }
-            )
+            VideoThumbnail(video, fallbackServer, Modifier.fillMaxWidth().aspectRatio(16f / 9f)
+                .then(if (video.nsfw && cardOptions.sensitiveDisplay == "blur") Modifier.blur(24.dp) else Modifier))
             if (video.nsfw && cardOptions.sensitiveDisplay != "show") Box(Modifier.matchParentSize().background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = if (cardOptions.sensitiveDisplay == "warning" || android.os.Build.VERSION.SDK_INT < 31) 1f else .55f)), contentAlignment = Alignment.Center) { Text(uiText("Чувствительный контент", "Sensitive content"), Modifier.padding(16.dp)) }
             if (video.isLive || video.duration > 0) Text(if (video.isLive) stringResource(R.string.live_now) else formatDuration(video.duration), Modifier.align(Alignment.BottomEnd).padding(9.dp).clip(RoundedCornerShape(7.dp)).background(if (video.isLive) Color(0xFFC83232) else Color.Black.copy(alpha = 0.78f)).padding(horizontal = 7.dp, vertical = 4.dp), color = Color.White, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold)
         }

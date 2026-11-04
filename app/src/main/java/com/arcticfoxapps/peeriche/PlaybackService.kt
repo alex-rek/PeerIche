@@ -10,14 +10,20 @@ import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 class PlaybackService : MediaSessionService() {
     companion object {
         private var playbackPlayer: ExoPlayer? = null
         fun pausePlayback() { playbackPlayer?.pause() }
+        private val ended = MutableStateFlow<String?>(null)
+        val endedVideo = ended.asStateFlow()
     }
     private var session: MediaSession? = null
+    private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
     override fun onCreate() {
         super.onCreate()
@@ -30,6 +36,20 @@ class PlaybackService : MediaSessionService() {
                 setWakeMode(C.WAKE_MODE_NETWORK)
             }
         playbackPlayer = player
+        ended.value = null
+        val watchTime = WatchTimeTracker()
+        fun sampleWatchTime() {
+            val item = player.currentMediaItem
+            if (watchTime.sample(item?.mediaId, android.os.SystemClock.elapsedRealtime(), player.isPlaying)) {
+                val row = runCatching {
+                    com.google.gson.Gson().fromJson(item?.mediaMetadata?.extras?.getString("history"), SavedVideo::class.java)
+                }.getOrNull()?.takeIf { it.kind == "history" }
+                if (row != null) serviceScope.launch {
+                    PeerIcheDatabase.get(this@PlaybackService).library().put(row.copy(updatedAt = System.currentTimeMillis()))
+                }
+            }
+        }
+        serviceScope.launch { while (isActive) { sampleWatchTime(); delay(250) } }
         // Headset next/previous buttons seek within the current single-video session.
         val controls = object : ForwardingPlayer(player) {
             override fun getAvailableCommands(): Player.Commands = super.getAvailableCommands().buildUpon()
@@ -50,7 +70,13 @@ class PlaybackService : MediaSessionService() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         session = MediaSession.Builder(this, controls).setSessionActivity(activity).build()
         player.addListener(object : Player.Listener {
+            override fun onIsPlayingChanged(isPlaying: Boolean) { sampleWatchTime() }
+            override fun onPlaybackStateChanged(playbackState: Int) {
+                if (playbackState == Player.STATE_ENDED) ended.value = player.currentMediaItem?.mediaId
+            }
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+                ended.value = null
+                sampleWatchTime()
                 mediaItem ?: return
                 val openPlayer = Intent(this@PlaybackService, MainActivity::class.java)
                     .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
@@ -66,6 +92,7 @@ class PlaybackService : MediaSessionService() {
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? = session
 
     override fun onDestroy() {
+        serviceScope.cancel()
         playbackPlayer = null
         session?.run { player.release(); release() }
         session = null

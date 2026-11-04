@@ -17,7 +17,7 @@ data class AppOptions(
     val translateMetadata: Boolean = false, val translateSubtitles: Boolean = false, val translateTo: String = "ru",
     val modelsWifiOnly: Boolean = true, val quality: Int = 0, val playbackSpeed: Float = 1f,
     val autoplay: Boolean = true, val backgroundPlayback: Boolean = true, val controlsTimeout: Int = 5,
-    val seekSeconds: Int = 10, val resizeMode: String = "fit", val subtitlesEnabled: Boolean = true,
+    val seekSeconds: Int = 10, val resizeMode: String = "fit", val videoAspect: String = "auto", val subtitlesEnabled: Boolean = true,
     val subtitleLanguage: String = "", val subtitleSize: Int = 20, val subtitleColor: String = "white",
     val subtitleHorizontal: Int = 50, val subtitleBottom: Int = 8
 )

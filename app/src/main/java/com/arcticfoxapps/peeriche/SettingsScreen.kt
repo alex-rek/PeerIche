@@ -168,6 +168,8 @@ import java.util.Locale
         item { SettingsChoice(uiText("Скрывать управление через", "Hide controls after"), options.controlsTimeout.toString(), listOf("0" to uiText("Не скрывать", "Keep visible")) + listOf(3, 5, 10, 15).map { "$it" to "$it ${uiText("сек.", "sec")}" }) { value -> preferences.update { it.copy(controlsTimeout = value.toInt()) } } }
         item { SettingsChoice(uiText("Шаг перемотки", "Seek increment"), options.seekSeconds.toString(), listOf(5, 10, 15, 30).map { "$it" to "$it ${uiText("сек.", "sec")}" }) { value -> preferences.update { it.copy(seekSeconds = value.toInt()) } } }
         item { SettingsChoice(uiText("Масштаб видео", "Video scaling"), options.resizeMode, listOf("fit" to uiText("Вписать", "Fit"), "zoom" to uiText("Заполнить с обрезкой", "Zoom / crop"), "fill" to uiText("Растянуть", "Stretch"))) { value -> preferences.update { it.copy(resizeMode = value) } } }
+        item { SettingsChoice(uiText("Формат изображения", "Aspect ratio"), options.videoAspect,
+            listOf("auto" to uiText("Исходный", "Original")) + listOf("16:9", "4:3", "1:1", "21:9").map { it to it }) { value -> preferences.update { it.copy(videoAspect = value) } } }
         item { SettingsToggle(uiText("Субтитры по умолчанию", "Subtitles by default"), options.subtitlesEnabled) { value -> preferences.update { it.copy(subtitlesEnabled = value) } } }
         item { SettingsChoice(uiText("Предпочтительный язык субтитров", "Preferred subtitle language"), options.subtitleLanguage,
             listOf("" to uiText("Как на устройстве", "Follow Android")) + translationLanguages()) { value -> preferences.update { it.copy(subtitleLanguage = value) } } }

@@ -32,6 +32,13 @@ class SearchLogicTest {
 
     @Test fun thumbnailCandidatesUseOriginAndUpgradeHttp() {
         val video = Video(host = "origin.example", thumbnailPath = "/static/preview.jpg")
-        assertEquals(listOf("https://origin.example/static/preview.jpg"), video.thumbnailCandidates("https://fallback.example"))
+        assertEquals(listOf("https://fallback.example/static/preview.jpg", "https://origin.example/static/preview.jpg"), video.thumbnailCandidates("https://fallback.example"))
+    }
+
+    @Test fun absoluteThumbnailsAreNotRewrittenAndFallbacksAreUnique() {
+        val video = Video(host = "origin.example", thumbnailUrl = "https://images.example/thumbnail.jpg",
+            thumbnailPath = "/thumbnail.jpg", previewPath = "/preview.jpg")
+        assertEquals(listOf("https://images.example/thumbnail.jpg", "https://origin.example/thumbnail.jpg", "https://origin.example/preview.jpg"),
+            video.thumbnailCandidates("https://origin.example"))
     }
 }

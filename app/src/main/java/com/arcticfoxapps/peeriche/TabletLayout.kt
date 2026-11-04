@@ -113,7 +113,7 @@ internal fun tabletColumns(widthDp: Int): Int = if (widthDp >= 1100) 3 else 2
 
 @Composable private fun RecommendationRow(video: Video, server: String, onOpen: () -> Unit) {
     Row(Modifier.fillMaxWidth().clickable(onClick = onOpen).padding(vertical = 4.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-        AsyncImage(video.thumbnailCandidates(server).firstOrNull(), null, Modifier.width(112.dp).aspectRatio(16f / 9f), contentScale = ContentScale.Crop)
+        VideoThumbnail(video, server, Modifier.width(112.dp).aspectRatio(16f / 9f))
         Column(Modifier.weight(1f)) {
             Text(translatedMetadata(video.name), maxLines = 3, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.labelLarge)
             Text(video.channel?.displayName ?: video.account?.displayName.orEmpty(), maxLines = 1, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)

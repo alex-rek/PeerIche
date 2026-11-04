@@ -113,7 +113,11 @@ data class VideoCaption(val language: CaptionLanguage? = null, val captionPath: 
         val item = MediaItem.Builder().setMediaId(identity).setUri(video.playableUrl(options.quality))
             .setMediaMetadata(MediaMetadata.Builder().setTitle(video.name)
                 .setArtist(video.channel?.displayName ?: video.account?.displayName)
-                .setExtras(android.os.Bundle().apply { putInt("quality", options.quality); putString("translation", if (nativeTranslation) options.translateTo else "") }).build())
+                .setExtras(android.os.Bundle().apply {
+                    putInt("quality", options.quality)
+                    putString("translation", if (nativeTranslation) options.translateTo else "")
+                    putString("history", com.google.gson.Gson().toJson(video.toSavedVideo(server, "history")))
+                }).build())
             .setSubtitleConfigurations(tracks).build()
         player.setMediaItem(item, previousPosition)
         player.prepare()
@@ -159,8 +163,7 @@ data class VideoCaption(val language: CaptionLanguage? = null, val captionPath: 
     if (compact) Surface(color = MaterialTheme.colorScheme.surface, tonalElevation = 6.dp) {
         Column {
         Row(modifier.heightIn(min = 72.dp).padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
-            coil.compose.AsyncImage(video.thumbnailCandidates(server).firstOrNull(), null,
-                Modifier.width(80.dp).height(48.dp).clickable(onClick = onExpand), contentScale = androidx.compose.ui.layout.ContentScale.Crop)
+            VideoThumbnail(video, server, Modifier.width(80.dp).height(48.dp).clickable(onClick = onExpand))
             Column(Modifier.weight(1f).clickable(onClick = onExpand).padding(horizontal = 16.dp)) {
                 Text(translatedMetadata(video.name), maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                 Text(video.channel?.displayName ?: video.account?.displayName.orEmpty(), maxLines = 1, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -173,7 +176,7 @@ data class VideoCaption(val language: CaptionLanguage? = null, val captionPath: 
         LinearProgressIndicator(progress = { progress }, modifier = Modifier.fillMaxWidth().height(2.dp))
         }
     } else Box(modifier) {
-        AndroidView(factory = { PlayerView(it).apply {
+        AndroidView(factory = { AspectPlayerView(it).apply {
             setBackgroundColor(android.graphics.Color.BLACK)
             useController = true
             setShowSubtitleButton(true)
@@ -189,6 +192,7 @@ data class VideoCaption(val language: CaptionLanguage? = null, val captionPath: 
             }
         } }, update = {
             it.player = player
+            it.setDisplayFormat(options.videoAspect)
             it.subtitleView?.visibility = android.view.View.GONE
             it.findViewWithTag<SubtitleView>("peeriche-subtitles")?.let { subtitles ->
             subtitles.setApplyEmbeddedStyles(false)
@@ -203,6 +207,20 @@ data class VideoCaption(val language: CaptionLanguage? = null, val captionPath: 
             it.controllerShowTimeoutMs = options.controlsTimeout * 1000
             it.resizeMode = when (options.resizeMode) { "zoom" -> AspectRatioFrameLayout.RESIZE_MODE_ZOOM; "fill" -> AspectRatioFrameLayout.RESIZE_MODE_FILL; else -> AspectRatioFrameLayout.RESIZE_MODE_FIT }
         }, onRelease = { it.player = null }, modifier = Modifier.fillMaxSize())
+        var formatMenu by remember { mutableStateOf(false) }
+        Box(Modifier.align(Alignment.TopEnd).padding(4.dp)) {
+            TextButton(onClick = { formatMenu = true }, modifier = Modifier.background(Color.Black.copy(alpha = .55f), CircleShape)) {
+                Text((if (options.videoAspect == "auto") uiText("Авто", "Auto") else options.videoAspect) + " ▾", color = Color.White)
+            }
+            DropdownMenu(expanded = formatMenu, onDismissRequest = { formatMenu = false }) {
+                listOf("auto", "16:9", "4:3", "1:1", "21:9").forEach { format ->
+                    DropdownMenuItem(text = { Text(if (format == "auto") uiText("Исходный формат", "Original aspect ratio") else format) }, onClick = {
+                        AppPreferences.get(context).update { it.copy(videoAspect = format) }
+                        formatMenu = false
+                    })
+                }
+            }
+        }
         IconButton(onClick = onFullscreenToggle,
             modifier = Modifier.align(Alignment.BottomEnd).padding(4.dp).background(Color.Black.copy(alpha = .55f), CircleShape)) {
             Icon(if (fullscreen) Icons.Default.FullscreenExit else Icons.Default.Fullscreen,
