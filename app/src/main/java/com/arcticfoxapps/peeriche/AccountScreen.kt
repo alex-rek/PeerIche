@@ -33,6 +33,12 @@ internal fun accountErrorCode(error: Exception): String = when (error) {
 }
 
 @Composable internal fun accountErrorText(reason: String): String = when (reason) {
+    "account_changed" -> uiText("Аккаунт изменился. Повторите действие от имени нужного аккаунта.", "The account changed. Retry using the intended account.")
+    "account_video_unavailable" -> uiText("Сервер аккаунта не нашёл это видео. Проверьте доступность ролика на нём и повторите попытку.", "The account server could not find this video. Check its availability there and retry.")
+    "account_resource_missing" -> uiText("Видео, канал или комментарий не найдены на сервере аккаунта.", "The video, channel or comment was not found on the account server.")
+    "invalid_channel" -> uiText("Не удалось определить адрес канала.", "Could not determine the channel address.")
+    "invalid_comment" -> uiText("Комментарий должен содержать от 1 до 10 000 символов.", "A comment must contain 1 to 10,000 characters.")
+    "comment_delivery_unknown" -> uiText("Не удалось подтвердить отправку. Обновите комментарии перед повторной отправкой.", "Delivery could not be confirmed. Refresh comments before sending again.")
     "invalid_server" -> uiText("Укажите адрес HTTPS-сервера PeerTube без пути, параметров и данных входа в адресе.", "Enter a PeerTube HTTPS server address without a path, query or credentials.")
     "missing_credentials" -> uiText("Введите имя пользователя и пароль.", "Enter a username and password.")
     "missing_two_factor" -> uiText("Введите код двухфакторной защиты и повторите вход.", "Enter your two-factor code and sign in again.")
@@ -54,7 +60,7 @@ internal fun accountErrorCode(error: Exception): String = when (error) {
     "account_limit" -> uiText("Можно сохранить до 20 аккаунтов. Удалите ненужный вход.", "Up to 20 accounts can be saved. Remove an unused sign-in.")
     "local_logout" -> uiText("Вход удалён на этом устройстве. Завершить сессию на сервере не удалось; её можно отозвать на сайте PeerTube.", "Sign-in was removed from this device. The server session could not be revoked; you can revoke it on the PeerTube website.")
     "server_error" -> uiText("Ошибка сервера. Попробуйте позже.", "Server error. Try again later.")
-    "request_failed" -> uiText("Сервер отклонил запрос входа. Проверьте данные аккаунта.", "The server rejected the sign-in request. Check your account details.")
+    "request_failed" -> uiText("Сервер отклонил запрос. Проверьте данные и разрешения аккаунта.", "The server rejected the request. Check the data and account permissions.")
     else -> uiText("Сервер недоступен. Проверьте подключение к сети и повторите попытку.", "The server is unavailable. Check your network and retry.")
 }
 
@@ -160,8 +166,8 @@ internal fun accountErrorCode(error: Exception): String = when (error) {
                         }) { Text(uiText("Открыть сайт сервера", "Open server website")) }
                     }
                     error?.let { Text(accountErrorText(it), color = if (it == "local_logout") MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.error) }
-                    Text(uiText("Локальные подписки, избранное и история сохраняются отдельно. Синхронизация с аккаунтом будет добавлена следующим этапом.",
-                        "Local subscriptions, favorites and history remain separate. Account synchronization will be added in a later stage."), Modifier.padding(vertical = 12.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(uiText("Подписки аккаунта доступны с его сервера. Подписки на устройстве, избранное и история хранятся отдельно и не переносятся автоматически.",
+                        "Account subscriptions come from its server. Device subscriptions, favorites and history remain separate and are not automatically transferred."), Modifier.padding(vertical = 12.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }

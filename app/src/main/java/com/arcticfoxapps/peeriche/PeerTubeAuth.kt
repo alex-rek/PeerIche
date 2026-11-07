@@ -6,6 +6,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import okhttp3.*
+import okhttp3.HttpUrl.Companion.toHttpUrl
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.IOException
 import java.net.URI
 import java.util.Locale
@@ -50,6 +53,7 @@ internal interface AuthTransport {
     suspend fun refresh(server: String, client: AuthClient, token: String): AuthTokens
     suspend fun me(server: String, token: String): AuthProfile
     suspend fun revoke(server: String, token: String)
+    suspend fun accountRequest(server: String, token: String, operation: AccountOperation): JsonObject = throw AuthFailure("unsupported_account_operation")
 }
 
 internal fun authErrorReason(status: Int, json: JsonObject?): String {
@@ -68,7 +72,7 @@ internal fun authErrorReason(status: Int, json: JsonObject?): String {
 }
 
 internal class PeerTubeAuthTransport(client: OkHttpClient = OkHttpClient()) : AuthTransport {
-    private val http = client.newBuilder().followRedirects(false).followSslRedirects(false).callTimeout(30, TimeUnit.SECONDS).build()
+    private val http = client.newBuilder().followRedirects(false).followSslRedirects(false).retryOnConnectionFailure(false).callTimeout(30, TimeUnit.SECONDS).build()
     private val gson = Gson()
     private fun request(server: String, path: String, token: String? = null): Request.Builder {
         val origin = authServerOrigin(server)
@@ -146,5 +150,17 @@ internal class PeerTubeAuthTransport(client: OkHttpClient = OkHttpClient()) : Au
     }
     override suspend fun revoke(server: String, token: String) {
         execute(request(server, "/api/v1/users/revoke-token", token).post(FormBody.Builder().build()).build(), empty = true)
+    }
+    override suspend fun accountRequest(server: String, token: String, operation: AccountOperation): JsonObject {
+        val url = okhttp3.HttpUrl.Builder().scheme("https")
+        val origin = authServerOrigin(server).toHttpUrl()
+        url.host(origin.host).port(origin.port)
+        operation.segments.forEach { url.addPathSegment(it) }
+        operation.query.forEach { (key, value) -> url.addQueryParameter(key, value) }
+        val request = Request.Builder().url(url.build()).header("Accept", "application/json").header("Authorization", "Bearer $token")
+        val body = operation.body?.toString()?.toRequestBody("application/json; charset=utf-8".toMediaType())
+        request.method(operation.method, if (operation.method in listOf("POST", "PUT")) body ?: FormBody.Builder().build() else null)
+        return try { execute(request.build(), operation.empty) }
+        catch (failure: AuthFailure) { if (failure.status == 404) throw AuthFailure("account_resource_missing", 404) else throw failure }
     }
 }

@@ -16,7 +16,7 @@ data class VideoPage(val data: List<Video> = emptyList(), val total: Int = 0)
 data class ChannelPage(val data: List<PeerTubeChannel> = emptyList(), val total: Int = 0)
 data class CommentPage(val data: List<VideoComment> = emptyList(), val total: Int = 0)
 data class VideoComment(val id: Int = 0, val text: String? = null, val account: Account? = null,
-    val createdAt: String? = null, val totalReplies: Int = 0, val isDeleted: Boolean = false)
+    val createdAt: String? = null, val totalReplies: Int = 0, val isDeleted: Boolean = false, val heldForReview: Boolean = false)
 data class CommentTree(val comment: VideoComment? = null, val children: List<CommentTree> = emptyList())
 data class FullVideoDescription(val description: String = "")
 data class Avatar(val path: String? = null, val fileUrl: String? = null)
@@ -56,7 +56,7 @@ data class Video(
     val directStreamUrl: String? = null,
     val channel: Channel? = null, val account: Account? = null, val nsfw: Boolean = false,
     val isLive: Boolean = false, val state: VideoState? = null, val commentsEnabled: Boolean = true,
-    val comments: Int? = null
+    val comments: Int? = null, val likes: Long = 0, val dislikes: Long = 0
 ) {
     fun sourceServer(fallback: String): String {
         val urlHost = runCatching { java.net.URI(url).takeIf { it.scheme == "https" || it.scheme == "http" }?.host }.getOrNull()

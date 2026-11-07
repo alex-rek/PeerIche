@@ -17,6 +17,7 @@ PeerIche is a continuation of PeerTubeTV by the same author. It is a standalone 
 - Compact header and an original Graphite vector launcher mark.
 - Watch page with collapsible description, channel subscription, public comment threads and Android sharing.
 - You page with PeerTube OAuth account sign-in, two-factor codes, multiple accounts, followed channels, favorites, history and settings. Tokens use Android Keystore AES-GCM; passwords are not saved.
+- Server account subscriptions and their paginated feed, account channels, video ratings and comment/reply submission. The subscription source selector keeps account subscriptions separate from subscriptions saved on this device. Remote videos are resolved on the account server before authenticated actions.
 - Picture-in-Picture on Android 8+, including automatic entry while playing when leaving the app.
 - The player PiP button opens a draggable video window over the previous in-app page; leaving Android opens system PiP. Comments follow the existing metadata translation setting and language.
 

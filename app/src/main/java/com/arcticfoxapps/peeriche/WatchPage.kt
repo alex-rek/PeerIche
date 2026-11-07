@@ -42,6 +42,10 @@ internal fun Video.shareText(server: String): String = name + "\n" + publicWatch
     onFavorite: () -> Unit, onSubscribe: () -> Unit, onChannel: () -> Unit) {
     val context = LocalContext.current
     val colors = MaterialTheme.colorScheme
+    val manager = remember(context) { PeerTubeAccounts.get(context) }
+    val accountState by manager.state.collectAsState()
+    val scope = rememberCoroutineScope()
+    var login by remember { mutableStateOf(false) }
     var expanded by rememberSaveable(video.apiId()) { mutableStateOf(false) }
     var comments by rememberSaveable(video.apiId()) { mutableStateOf(false) }
     var speechSettings by remember { mutableStateOf(false) }
@@ -75,6 +79,7 @@ internal fun Video.shareText(server: String): String = name + "\n" + publicWatch
                 uiText("Описание видео", "Video description")) }
         }
         if (expanded) LinkedWatchDescription(translatedMetadata(fullDescription).ifBlank { uiText("Описание отсутствует", "No description") })
+        VideoAccountActions(video, server, onLogin = { login = true })
         Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             AssistChip(onClick = onFavorite, label = { Text(uiText(if (favorite) "В избранном" else "В избранное", if (favorite) "Saved" else "Save")) },
                 leadingIcon = { Icon(if (favorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder, null, Modifier.size(20.dp)) })
@@ -105,6 +110,10 @@ internal fun Video.shareText(server: String): String = name + "\n" + publicWatch
                 Text(uiText(if (subscribed) "Вы подписаны" else "Подписаться", if (subscribed) "Subscribed" else "Subscribe"), maxLines = 1)
             }
         }
+        Text(if (LocalServerSubscriptions.current && accountState.active != null)
+            uiText("Подписка аккаунта: ${accountState.active!!.username}@${java.net.URI(accountState.active!!.server).authority}", "Account subscription: ${accountState.active!!.username}@${java.net.URI(accountState.active!!.server).authority}")
+            else uiText("Подписка на этом устройстве", "Subscription on this device"), Modifier.padding(horizontal = 16.dp),
+            style = MaterialTheme.typography.bodySmall, color = colors.onSurfaceVariant)
         Surface(onClick = { comments = true }, shape = RoundedCornerShape(16.dp), color = colors.surfaceVariant,
             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp)) {
             Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -114,7 +123,8 @@ internal fun Video.shareText(server: String): String = name + "\n" + publicWatch
             }
         }
     }
-    if (comments) VideoCommentsSheet(video, server) { comments = false }
+    if (comments) VideoCommentsSheet(video, server, onLogin = { login = true }) { comments = false }
+    if (login) AccountScreen(server, manager, onUseServer = { host -> scope.launch { useAccountServer(context, host) } }) { login = false }
     if (speechSettings) SpeechSettingsDialog { speechSettings = false }
 }
 
@@ -141,67 +151,3 @@ internal fun flattenComments(tree: CommentTree): List<VideoComment> {
     return result.distinctBy { it.id }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable private fun VideoCommentsSheet(video: Video, server: String, onClose: () -> Unit) {
-    val scope = rememberCoroutineScope()
-    var rows by remember(video.apiId()) { mutableStateOf(emptyList<VideoComment>()) }
-    var rootRows by remember { mutableStateOf(emptyList<VideoComment>()) }
-    var thread by remember { mutableStateOf<Int?>(null) }
-    var total by remember { mutableIntStateOf(0) }
-    var start by remember { mutableIntStateOf(0) }
-    var busy by remember { mutableStateOf(false) }
-    var failed by remember { mutableStateOf(false) }
-    var job by remember { mutableStateOf<kotlinx.coroutines.Job?>(null) }
-    var generation by remember { mutableIntStateOf(0) }
-    fun load(replies: Int? = thread, append: Boolean = false) {
-        val token = ++generation
-        job?.cancel(); busy = true; failed = false
-        job = scope.launch {
-            try {
-                val api = PeerTubeClients.server(video.sourceServer(server))
-                if (replies != null) {
-                    val result = flattenComments(api.commentThread(video.apiId(), replies))
-                    if (token == generation) rows = result
-                }
-                else {
-                    val page = api.comments(video.apiId(), if (append) start else 0)
-                    if (token != generation) return@launch
-                    rows = if (append) (rows + page.data).distinctBy { it.id } else page.data
-                    start = if (page.data.isEmpty()) page.total else if (append) start + page.data.size else page.data.size
-                    total = page.total
-                    rootRows = rows
-                }
-            } catch (cancelled: CancellationException) { throw cancelled }
-            catch (_: Exception) { if (token == generation) failed = true }
-            finally { if (token == generation) busy = false }
-        }
-    }
-    LaunchedEffect(video.apiId()) { if (video.commentsEnabled) load() }
-    ModalBottomSheet(onDismissRequest = onClose, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
-        Column(Modifier.fillMaxWidth().fillMaxHeight(.85f)) {
-            Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-                if (thread != null) IconButton(onClick = { generation++; job?.cancel(); thread = null; rows = rootRows; busy = false; failed = false }) { Icon(Icons.Default.ArrowBack, uiText("Назад", "Back")) }
-                Text(uiText("Комментарии", "Comments") + if (thread == null && total > 0) " · $total" else "", Modifier.weight(1f), style = MaterialTheme.typography.titleLarge)
-                IconButton(onClick = onClose) { Icon(Icons.Default.Close, uiText("Закрыть", "Close")) }
-            }
-            if (busy) LinearProgressIndicator(Modifier.fillMaxWidth())
-            if (!video.commentsEnabled) Text(uiText("Автор отключил комментарии", "Comments are disabled by the author"), Modifier.padding(20.dp))
-            if (failed) TextButton(onClick = { load() }) { Text(uiText("Не удалось загрузить. Повторить", "Could not load. Retry")) }
-            if (!busy && !failed && rows.isEmpty() && video.commentsEnabled) Text(uiText("Комментариев пока нет", "No comments yet"), Modifier.padding(20.dp))
-            LazyColumn(Modifier.fillMaxWidth().weight(1f), contentPadding = PaddingValues(bottom = 24.dp)) {
-                items(rows, key = { it.id }) { comment ->
-                    Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 6.dp)) {
-                        Text(comment.account?.displayName ?: comment.account?.name.orEmpty(), fontWeight = FontWeight.SemiBold)
-                        val body = if (comment.isDeleted) uiText("Комментарий удалён", "Comment deleted") else
-                            HtmlCompat.fromHtml(comment.text.orEmpty(), HtmlCompat.FROM_HTML_MODE_LEGACY).toString().trim()
-                        SelectionContainer { Text(translatedMetadata(body), Modifier.padding(top = 4.dp)) }
-                        if (thread == null && comment.totalReplies > 0) TextButton(onClick = { thread = comment.id; load(comment.id) }) {
-                            Text(uiText("Ответы", "Replies") + " · ${comment.totalReplies}")
-                        }
-                    }
-                }
-                if (thread == null && start < total && !failed) item { TextButton(onClick = { load(append = true) }, enabled = !busy, modifier = Modifier.fillMaxWidth()) { Text(uiText("Загрузить ещё", "Load more")) } }
-            }
-        }
-    }
-}

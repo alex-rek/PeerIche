@@ -94,26 +94,35 @@ internal class AccountSessionManager(private val store: AccountSessionStore, pri
         replace(updated)
         return updated
     }
-    suspend fun refreshProfile(id: String): AccountSummary = mutex.withLock {
+    private suspend fun <T> authorizedLocked(id: String, block: suspend (AuthSession) -> T): T {
         loadLocked()
         var session = saved.sessions.firstOrNull { it.id == id } ?: throw AuthFailure("session_expired")
         if (session.needsLogin) throw AuthFailure("session_expired")
         var refreshed = false
         if (session.expiresAt <= now() + 60_000) { session = refresh(session); refreshed = true }
-        val profile = try { api.me(session.server, session.access) }
+        return try { block(session) }
         catch (error: AuthFailure) {
             if (error.status != 401 && error.reason != "invalid_token") throw error
             if (refreshed) expire(session)
             session = refresh(session)
-            try { api.me(session.server, session.access) }
+            try { block(session) }
             catch (retry: AuthFailure) {
                 if (retry.status == 401 || retry.reason == "invalid_token") expire(session)
                 throw retry
             }
         }
-        if (profile.userId != session.profile.userId) throw AuthFailure("invalid_response")
-        replace(session.copy(profile = profile))
+    }
+    suspend fun refreshProfile(id: String): AccountSummary = mutex.withLock {
+        val profile = authorizedLocked(id) { session -> api.me(session.server, session.access) }
+        val current = saved.sessions.first { it.id == id }
+        if (profile.userId != current.profile.userId) throw AuthFailure("invalid_response")
+        replace(current.copy(profile = profile))
         state.value.accounts.first { it.id == id }
+    }
+    suspend fun request(id: String, operation: AccountOperation): com.google.gson.JsonObject = mutex.withLock {
+        loadLocked()
+        if (operation.writes && saved.activeId != id) throw AuthFailure("account_changed")
+        authorizedLocked(id) { session -> api.accountRequest(session.server, session.access, operation) }
     }
     suspend fun logout(id: String): Boolean {
         val session = mutex.withLock {

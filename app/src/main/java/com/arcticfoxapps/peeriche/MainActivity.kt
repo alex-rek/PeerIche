@@ -161,6 +161,27 @@ class MainActivity : ComponentActivity() {
     val landscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
     val database = remember { PeerIcheDatabase.get(context) }
     val scope = rememberCoroutineScope()
+    val accountManager = remember(context) { PeerTubeAccounts.get(context) }
+    val accountState by accountManager.state.collectAsState()
+    val selectedAccount = accountState.active
+    val accountLibrary = remember(context) { AccountLibraries.get(context) }
+    val accountSnapshots by accountLibrary.snapshots.collectAsState()
+    val accountRevision by accountLibrary.revision.collectAsState()
+    val accountSnapshot = accountSnapshots[selectedAccount?.id]
+    var deviceSubscriptions by rememberSaveable(selectedAccount?.id) { mutableStateOf(false) }
+    val serverSubscriptions = selectedAccount != null && !deviceSubscriptions
+    var accountActionError by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(Unit) { try { accountManager.initialize() } catch (_: AuthFailure) { } }
+    LaunchedEffect(selectedAccount?.id, selectedAccount?.needsLogin, accountRevision) {
+        selectedAccount?.let { accountLibrary.refresh(it.id) }
+    }
+    var accountFeed by remember(selectedAccount?.id) { mutableStateOf(emptyList<Video>()) }
+    var accountFeedBusy by remember { mutableStateOf(false) }
+    var accountFeedError by remember(selectedAccount?.id) { mutableStateOf<String?>(null) }
+    var accountFeedStart by remember(selectedAccount?.id) { mutableIntStateOf(0) }
+    var accountFeedMore by remember(selectedAccount?.id) { mutableStateOf(false) }
+    var accountFeedJob by remember { mutableStateOf<kotlinx.coroutines.Job?>(null) }
+    var accountFeedGeneration by remember { mutableIntStateOf(0) }
     val serverList by remember(context) { context.peerIcheDataStore.data.catch { emit(emptyPreferences()) }.map { it[stringPreferencesKey("servers")] ?: "https://peertube.tv" } }.collectAsState(initial = "https://peertube.tv")
     val activeServerSetting by remember(context) { context.peerIcheDataStore.data.catch { emit(emptyPreferences()) }.map { it[stringPreferencesKey("activeServer")].orEmpty() } }.collectAsState(initial = "")
     val themeMode by remember(context) { context.peerIcheDataStore.data.catch { emit(emptyPreferences()) }.map { it[themeModeKey] ?: "system" } }.collectAsState(initial = "system")
@@ -197,6 +218,8 @@ class MainActivity : ComponentActivity() {
     var query by rememberSaveable { mutableStateOf("") }
     var resultPage by remember { mutableIntStateOf(0) }
     var hasMoreResults by remember { mutableStateOf(false) }
+    var collectionJob by remember { mutableStateOf<kotlinx.coroutines.Job?>(null) }
+    var collectionGeneration by remember { mutableIntStateOf(0) }
     var busy by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     var selectedVideo by rememberSaveable(stateSaver = androidx.compose.runtime.saveable.Saver<Video?, String>(
@@ -236,6 +259,7 @@ class MainActivity : ComponentActivity() {
     val favoriteRows by database.library().observe("favorite").collectAsState(initial = emptyList())
     val historyRows by database.library().observe("history").collectAsState(initial = emptyList())
     val subscriptionRows by database.library().observe("subscription").collectAsState(initial = emptyList())
+    val effectiveSubscriptions = if (serverSubscriptions) accountSnapshot?.subscriptions.orEmpty().map { it.subscriptionRow(selectedAccount!!.server) } else subscriptionRows
     val favorites = remember(favoriteRows) { favoriteRows.map { it.identity }.toSet() }
 
     DisposableEffect(showVideo, phonePlayerFullscreen, tabletFullscreen, floatingPlayer) {
@@ -351,56 +375,81 @@ class MainActivity : ComponentActivity() {
             finally { if (generation == searchGeneration) busy = false }
         }
     }
+    fun loadAccountFeed(append: Boolean = false) {
+        val owner = selectedAccount ?: return
+        val generation = ++accountFeedGeneration
+        accountFeedJob?.cancel(); accountFeedBusy = true; accountFeedError = null
+        val start = if (append) accountFeedStart else 0
+        accountFeedJob = scope.launch {
+            try {
+                val response = accountLibrary.feed(owner.id, start, options.includeSensitive)
+                if (generation == accountFeedGeneration && accountManager.state.value.activeId == owner.id) {
+                    accountFeed = if (append) deduplicateVideos(accountFeed + response.data, owner.server) else response.data
+                    accountFeedStart = start + response.data.size
+                    accountFeedMore = response.data.isNotEmpty() && accountFeedStart < response.total
+                }
+            } catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled }
+            catch (failure: Exception) { if (generation == accountFeedGeneration) accountFeedError = accountErrorCode(failure) }
+            finally { if (generation == accountFeedGeneration) accountFeedBusy = false }
+        }
+    }
+    fun cancelCollection() { collectionGeneration++; collectionJob?.cancel(); busy = false }
     fun loadSubscriptions(rows: List<SavedVideo> = subscriptionRows) {
+        cancelCollection()
+        val generation = collectionGeneration
         busy = true; error = null
-        scope.launch {
-            val collected = fetchSubscribedVideos(rows)
-            videos = deduplicateVideos(collected, server)
-            busy = false
+        collectionJob = scope.launch {
+            try {
+                val collected = fetchSubscribedVideos(rows)
+                if (generation == collectionGeneration) videos = deduplicateVideos(collected, server)
+            } finally { if (generation == collectionGeneration) busy = false }
         }
     }
     fun openChannelVideos(channel: PeerTubeChannel) {
+        cancelCollection()
+        val generation = collectionGeneration
         channelVideosParentServer = channelDirectoryServer
-        channelDirectoryServer = null
-        youSection = YouSection.Channels
-        page = "You"
-        channelVideosMode = true
-        busy = true
-        error = null
-        scope.launch {
-            val handle = channel.name
-            val host = channel.host?.let { "https://$it" } ?: server
-            runCatching { PeerTubeClients.server(host).channelVideos(handle).data }
-                .onSuccess { videos = it; if (it.isEmpty()) error = context.getString(R.string.no_results) }
-                .onFailure { error = it.message ?: context.getString(R.string.search_failed) }
-            busy = false
+        channelDirectoryServer = null; youSection = YouSection.Channels; page = "You"
+        channelVideosMode = true; busy = true; error = null
+        collectionJob = scope.launch {
+            try {
+                val host = channel.host?.let { "https://$it" } ?: server
+                val found = PeerTubeClients.server(host).channelVideos(channel.name).data
+                if (generation == collectionGeneration) { videos = found; if (found.isEmpty()) error = context.getString(R.string.no_results) }
+            } catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled }
+            catch (failure: Exception) { if (generation == collectionGeneration) error = failure.message ?: context.getString(R.string.search_failed) }
+            finally { if (generation == collectionGeneration) busy = false }
         }
     }
     fun openServerChannels(host: String) {
-        channelDirectoryServer = host
-        channelVideosMode = false
-        busy = true
-        error = null
-        serverChannelList = emptyList()
-        scope.launch {
-            runCatching { PeerTubeClients.allChannelsWithVideoCounts(host) }
-                .onSuccess { serverChannelList = it; if (it.isEmpty()) error = context.getString(R.string.no_channels) }
-                .onFailure { error = it.message ?: context.getString(R.string.channels_load_failed) }
-            busy = false
+        cancelCollection()
+        val generation = collectionGeneration
+        channelDirectoryServer = host; channelVideosMode = false; busy = true; error = null; serverChannelList = emptyList()
+        collectionJob = scope.launch {
+            try {
+                val found = PeerTubeClients.allChannelsWithVideoCounts(host)
+                if (generation == collectionGeneration) { serverChannelList = found; if (found.isEmpty()) error = context.getString(R.string.no_channels) }
+            } catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled }
+            catch (failure: Exception) { if (generation == collectionGeneration) error = failure.message ?: context.getString(R.string.channels_load_failed) }
+            finally { if (generation == collectionGeneration) busy = false }
         }
     }
     fun navigateTo(destination: String) {
+        val same = page == destination
+        cancelCollection()
         page = destination
         channelVideosMode = false; channelDirectoryServer = null; channelVideosParentServer = null; error = null
         if (destination == "You") youSection = YouSection.Menu
         if (destination == "Home") loadHome()
-        if (destination == "Subscriptions") loadSubscriptions()
+        if (same && destination == "Subscriptions") { if (serverSubscriptions) loadAccountFeed() else loadSubscriptions() }
     }
     fun openYouSection(section: YouSection) {
+        cancelCollection()
         youSection = section
         channelVideosMode = false; channelDirectoryServer = null; channelVideosParentServer = null; error = null
     }
     fun backFromYou() {
+        cancelCollection()
         when {
             channelDirectoryServer != null -> { channelDirectoryServer = null; serverChannelList = emptyList() }
             channelVideosMode -> {
@@ -460,9 +509,29 @@ class MainActivity : ComponentActivity() {
     }
     fun toggleCurrentVideoSubscription(video: Video) {
         val row = video.toSubscription(server) ?: return
+        val owner = selectedAccount
+        val wanted = effectiveSubscriptions.none { it.identity == row.identity }
         scope.launch {
-            if (subscriptionRows.any { it.identity == row.identity }) database.library().delete(row.identity, "subscription")
-            else database.library().put(row)
+            if (serverSubscriptions) {
+                try {
+                    val account = owner ?: throw AuthFailure("session_expired")
+                    val handle = video.accountChannelHandle(server)
+                    val channel = PeerTubeChannel(video.channel?.displayName.orEmpty(), handle.substringBeforeLast('@'), handle.substringAfterLast('@'))
+                    accountLibrary.setSubscribed(account.id, channel, wanted)
+                } catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled }
+                catch (failure: Exception) { accountActionError = accountErrorCode(failure) }
+            } else {
+                if (subscriptionRows.any { it.identity == row.identity }) database.library().delete(row.identity, "subscription")
+                else database.library().put(row)
+            }
+        }
+    }
+    fun unsubscribeAccountChannel(channel: PeerTubeChannel) {
+        val owner = selectedAccount ?: return
+        scope.launch {
+            try { accountLibrary.setSubscribed(owner.id, channel, false) }
+            catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled }
+            catch (failure: Exception) { accountActionError = accountErrorCode(failure) }
         }
     }
     fun toggleCurrentVideoFavorite(video: Video) {
@@ -477,7 +546,14 @@ class MainActivity : ComponentActivity() {
         val current = selectedVideo
         if (current != null && endedVideo == current.sourceServer(server) + "|" + current.apiId()) closePlayer()
     }
-    LaunchedEffect(server) { homeJob?.cancel(); homeJob?.join(); if (page == "Home") loadHome() else if (page == "Search") searchNow() else if (page == "Subscriptions") loadSubscriptions() }
+    LaunchedEffect(server) { homeJob?.cancel(); homeJob?.join(); if (page == "Home") loadHome() else if (page == "Search") searchNow()  }
+    LaunchedEffect(page, serverSubscriptions, selectedAccount?.id, selectedAccount?.needsLogin, accountRevision, options.includeSensitive, server) {
+        if (serverSubscriptions && page in listOf("Home", "Subscriptions")) loadAccountFeed()
+        else {
+            accountFeedGeneration++; accountFeedJob?.cancel(); accountFeedBusy = false
+            if (page == "Subscriptions") loadSubscriptions()
+        }
+    }
     LaunchedEffect(page, server, options.includeSensitive) {
         browseGeneration++
         browseJob?.cancel()
@@ -560,7 +636,7 @@ class MainActivity : ComponentActivity() {
         }
         AppUpdateFeature(updateRequest)
         val colors = MaterialTheme.colorScheme
-        CompositionLocalProvider(LocalMetadataTranslationPaused provides settingsOpen) {
+        CompositionLocalProvider(LocalMetadataTranslationPaused provides settingsOpen, LocalServerSubscriptions provides serverSubscriptions) {
         Box(Modifier.fillMaxSize()) {
         Scaffold(containerColor = colors.background, bottomBar = {
             if (wideLayout && !showVideo && !floatingPlayer && selectedVideo != null && !loadingVideo) BackgroundVideoPlayer(selectedVideo!!, server, Modifier.fillMaxWidth(), compact = true,
@@ -627,6 +703,11 @@ class MainActivity : ComponentActivity() {
                             colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = colors.primary, unfocusedBorderColor = colors.outlineVariant, focusedLabelColor = colors.primary)
                         )
                     }
+                    if (page == "Subscriptions") SubscriptionSourceMenu(selectedAccount, deviceSubscriptions,
+                        onDevice = { deviceSubscriptions = it }, onRefresh = {
+                            if (serverSubscriptions) { loadAccountFeed(); selectedAccount?.let { scope.launch { accountLibrary.refresh(it.id) } } }
+                            else loadSubscriptions()
+                        })
                     if (page == "Home") {
                         var sortMenuOpen by remember { mutableStateOf(false) }
                         val sorts = listOf("newest" to R.string.home_sort_newest, "oldest" to R.string.home_sort_oldest,
@@ -657,12 +738,13 @@ class MainActivity : ComponentActivity() {
                     } }
                     val browsingFeed = page == "Server" || page == "Live"
                     val watchedIds = remember(historyRows) { historyRows.map { it.identity.substringBefore('|') }.toSet() }
-                    val homeFollowing = subscriptionFeed.filterNot { it.apiId() in watchedIds }
+                    val homeFollowing = (if (serverSubscriptions) accountFeed else subscriptionFeed).filterNot { it.apiId() in watchedIds }
                     val homeRecommended = recommendedVideos.filterNot { it.apiId() in watchedIds }
                     val homeRecent = homeVideos.filterNot { it.apiId() in watchedIds }
                     val visibleVideos = when (page) {
                         "Server" -> serverVideos
                         "Live" -> liveVideos
+                        "Subscriptions" -> if (serverSubscriptions) accountFeed else videos
                         "You" -> when (youSection) {
                             YouSection.Favorites -> favoriteRows.map(SavedVideo::toVideo)
                             YouSection.History -> historyRows.map(SavedVideo::toVideo)
@@ -672,8 +754,14 @@ class MainActivity : ComponentActivity() {
                         else -> videos
                     }
                     val showFeedStatus = page != "You" || (youSection == YouSection.Channels && (channelVideosMode || channelDirectoryServer != null))
-                    if (showFeedStatus && (if (browsingFeed) browseBusy else busy)) LinearProgressIndicator(Modifier.fillMaxWidth().padding(horizontal = 16.dp), color = colors.primary, trackColor = colors.surface)
-                    (if (!showFeedStatus) null else if (browsingFeed) browseError else error)?.let { Text(it, Modifier.padding(18.dp), color = if (darkTheme) Color(0xFFFFB49B) else Color(0xFF9C341F)) }
+                    val serverSubscriptionFeed = page == "Subscriptions" && serverSubscriptions
+                    if (showFeedStatus && (if (serverSubscriptionFeed) accountFeedBusy else if (browsingFeed) browseBusy else busy)) LinearProgressIndicator(Modifier.fillMaxWidth().padding(horizontal = 16.dp), color = colors.primary, trackColor = colors.surface)
+                    if (serverSubscriptionFeed && accountFeedError != null) {
+                        Text(accountErrorText(accountFeedError!!), Modifier.padding(16.dp), color = colors.error)
+                        TextButton(onClick = { loadAccountFeed() }) { Text(stringResource(R.string.retry)) }
+                    }
+                    if (serverSubscriptionFeed && !accountFeedBusy && accountFeedError == null && accountFeed.isEmpty()) Text(uiText("В подписках аккаунта пока нет видео", "No videos in this account's subscriptions yet"), Modifier.padding(16.dp))
+                    (if (!showFeedStatus || serverSubscriptionFeed) null else if (browsingFeed) browseError else error)?.let { Text(it, Modifier.padding(18.dp), color = if (darkTheme) Color(0xFFFFB49B) else Color(0xFF9C341F)) }
                     if (browsingFeed && browseError != null && !browseBusy) Row {
                         if (!browseUnsupported) TextButton(onClick = { loadBrowse(if (browseHasMore) browsePage + 1 else 0) }) {
                             Text(stringResource(if (page == "Live" && browseHasMore) R.string.find_more_live else R.string.retry))
@@ -682,58 +770,50 @@ class MainActivity : ComponentActivity() {
                     }
                     if (page == "You" && youSection == YouSection.Menu) {
                         YouPage(server, onOpenSection = ::openYouSection, onSettings = { settingsSection = null; settingsOpen = true },
-                            onAccountServer = { host -> scope.launch { saveServerList(context, (availableServers + host).distinct().joinToString("\n"), host) } })
+                            onAccountServer = { host -> scope.launch { useAccountServer(context, host) } })
                     } else if (page == "You" && youSection == YouSection.Channels && !channelVideosMode) {
-                        Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp)) {
-                            if (channelDirectoryServer == null) TextButton(onClick = { openServerChannels(server) }) {
-                                Text(stringResource(R.string.channels_on_server) + " · " + server.removePrefix("https://"))
-                            }
-                            if (channelDirectoryServer == null) Row(Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
-                                Text(stringResource(R.string.channel_column), Modifier.weight(1f), color = Color.Gray)
-                                Text(stringResource(R.string.server_column), Modifier.padding(end = 12.dp), color = Color.Gray)
-                            }
-                            if (channelDirectoryServer != null) serverChannelList.forEach { channel ->
+                        if (channelDirectoryServer == null) AccountChannelsPage(selectedAccount, accountSnapshot, subscriptionRows, server,
+                            onOpen = ::openChannelVideos, onBrowse = ::openServerChannels,
+                            onRefresh = { selectedAccount?.let { scope.launch { accountLibrary.refresh(it.id) } } }, onUnsubscribe = ::unsubscribeAccountChannel)
+                        else Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp)) {
+                            serverChannelList.forEach { channel ->
                                 Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                                     TextButton(onClick = { openChannelVideos(channel) }, modifier = Modifier.weight(1f)) { Text(channel.displayName.ifBlank { channel.name }, maxLines = 2) }
-                                    Text("${channel.videosCount ?: 0}  ·  ${channel.host ?: channelDirectoryServer?.removePrefix("https://")}", color = Color.Gray, modifier = Modifier.clickable { openServerChannels(channel.host?.let { "https://$it" } ?: channelDirectoryServer.orEmpty()) }.padding(8.dp))
-                                }
-                                HorizontalDivider(color = colors.outlineVariant)
-                            } else subscriptionRows.forEach { row ->
-                                Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                                    TextButton(onClick = { openChannelVideos(PeerTubeChannel(row.title, row.channelName.orEmpty(), java.net.URI(row.server).host, 0)) }, modifier = Modifier.weight(1f)) { Text(row.title, maxLines = 2) }
-                                    TextButton(onClick = { openServerChannels(row.server) }) { Text(java.net.URI(row.server).host.orEmpty(), color = Color.Gray, maxLines = 1) }
+                                    Text("${channel.videosCount ?: 0} · ${channel.host.orEmpty()}", color = colors.onSurfaceVariant)
                                 }
                                 HorizontalDivider(color = colors.outlineVariant)
                             }
-                            if (channelDirectoryServer == null && subscriptionRows.isEmpty()) Text(stringResource(R.string.no_subscribed_channels), Modifier.padding(vertical = 16.dp), color = Color.Gray)
                         }
                     } else if (!showVideo) FeedRefreshContainer(
                         enabled = page == "Home" && !wideLayout,
                         refreshing = homeRefreshing,
-                        onRefresh = { if (!busy) loadHome() }
+                        onRefresh = { if (!busy) { loadHome(); if (serverSubscriptions) { loadAccountFeed(); selectedAccount?.let { scope.launch { accountLibrary.refresh(it.id) } } } } }
                     ) {
                     if (page == "You" && visibleVideos.isEmpty() && youSection in listOf(YouSection.Favorites, YouSection.History)) {
                         Text(if (youSection == YouSection.Favorites) uiText("В избранном пока нет видео", "No saved videos yet") else uiText("История пока пуста", "No watch history yet"), Modifier.padding(20.dp), color = colors.onSurfaceVariant)
                     }
                     LazyVerticalGrid(state = activeFeedState, modifier = Modifier.nestedScroll(feedScrollConnection), columns = if (wideLayout) GridCells.Fixed(tabletColumns(LocalConfiguration.current.screenWidthDp)) else GridCells.Adaptive(minSize = 230.dp), contentPadding = PaddingValues(12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
                         if (page == "Home" && options.homeSort != "sections") {
-                            videoSection(null, sortHomeVideos(homeFollowing + homeRecommended + homeRecent, options.homeSort, server), "home", server, favorites, subscriptionRows.map { it.identity }.toSet(), ::openVideo,
+                            videoSection(null, sortHomeVideos(homeFollowing + homeRecommended + homeRecent, options.homeSort, server), "home", server, favorites, effectiveSubscriptions.map { it.identity }.toSet(), ::openVideo,
                                 { video -> toggleCurrentVideoFavorite(video) },
-                                { video -> toggleSubscription(video, server, database, subscriptionRows, scope) })
+                                { video -> toggleCurrentVideoSubscription(video) })
                         } else if (page == "Home") {
-                            if (homeFollowing.isNotEmpty()) videoSection(R.string.from_subscriptions, homeFollowing, "following", server, favorites, subscriptionRows.map { it.identity }.toSet(), ::openVideo,
+                            if (homeFollowing.isNotEmpty()) videoSection(R.string.from_subscriptions, homeFollowing, "following", server, favorites, effectiveSubscriptions.map { it.identity }.toSet(), ::openVideo,
                                 { video -> scope.launch { val id = video.uuid; if (id in favorites) database.library().delete(id, "favorite") else database.library().put(video.toSavedVideo(server, "favorite")) } },
-                                { video -> toggleSubscription(video, server, database, subscriptionRows, scope) })
-                            if (homeRecommended.isNotEmpty()) videoSection(if (recommendationsUseHistory) R.string.recommended_for_you else R.string.popular_now, homeRecommended, "recommended", server, favorites, subscriptionRows.map { it.identity }.toSet(), ::openVideo,
+                                { video -> toggleCurrentVideoSubscription(video) })
+                            if (homeRecommended.isNotEmpty()) videoSection(if (recommendationsUseHistory) R.string.recommended_for_you else R.string.popular_now, homeRecommended, "recommended", server, favorites, effectiveSubscriptions.map { it.identity }.toSet(), ::openVideo,
                                 { video -> scope.launch { val id = video.uuid; if (id in favorites) database.library().delete(id, "favorite") else database.library().put(video.toSavedVideo(server, "favorite")) } },
-                                { video -> toggleSubscription(video, server, database, subscriptionRows, scope) })
-                            videoSection(R.string.latest_videos, homeRecent, "latest", server, favorites, subscriptionRows.map { it.identity }.toSet(), ::openVideo,
+                                { video -> toggleCurrentVideoSubscription(video) })
+                            videoSection(R.string.latest_videos, homeRecent, "latest", server, favorites, effectiveSubscriptions.map { it.identity }.toSet(), ::openVideo,
                                 { video -> scope.launch { val id = video.uuid; if (id in favorites) database.library().delete(id, "favorite") else database.library().put(video.toSavedVideo(server, "favorite")) } },
-                                { video -> toggleSubscription(video, server, database, subscriptionRows, scope) })
+                                { video -> toggleCurrentVideoSubscription(video) })
                         } else {
-                            videoSection(null, visibleVideos, page.lowercase(), server, favorites, subscriptionRows.map { it.identity }.toSet(), ::openVideo,
+                            videoSection(null, visibleVideos, page.lowercase(), server, favorites, effectiveSubscriptions.map { it.identity }.toSet(), ::openVideo,
                                 { video -> scope.launch { val id = video.uuid; if (id in favorites) database.library().delete(id, "favorite") else database.library().put(video.toSavedVideo(server, "favorite")) } },
-                                { video -> toggleSubscription(video, server, database, subscriptionRows, scope) })
+                                { video -> toggleCurrentVideoSubscription(video) })
+                        }
+                        if (page == "Subscriptions" && serverSubscriptions && accountFeedMore) item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
+                            TextButton(onClick = { loadAccountFeed(append = true) }, enabled = !accountFeedBusy, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.load_more)) }
                         }
                         if (page == "Search" && hasMoreResults) item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
                             TextButton(onClick = { searchNow(resultPage + 1) }, enabled = !busy, modifier = Modifier.fillMaxWidth()) {
@@ -752,7 +832,7 @@ class MainActivity : ComponentActivity() {
                     val next = deduplicateVideos(recommendedVideos + homeVideos + serverVideos + liveVideos + videos + subscriptionFeed, server)
                         .filterNot { it.apiId() == current.apiId() && it.sourceServer(server) == current.sourceServer(server) }.take(20)
                     TabletVideoScreen(current, server, loadingVideo, playerError, next, tabletFullscreen,
-                        current.apiId() in favorites, subscriptionRows.any { it.identity == current.subscriptionIdentity(server) },
+                        current.apiId() in favorites, effectiveSubscriptions.any { it.identity == current.subscriptionIdentity(server) },
                         onBrowse = { tabletFullscreen = false; tabletBrowsing = true },
                         onFullscreen = { tabletFullscreen = !tabletFullscreen }, onOpen = ::openVideo,
                         onFavorite = { toggleCurrentVideoFavorite(current) }, onSubscribe = { toggleCurrentVideoSubscription(current) },
@@ -776,7 +856,7 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                     if (!phonePlayerFullscreen) Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState())) {
-                        WatchDetails(video, server, video.apiId() in favorites, subscriptionRows.any { it.identity == video.subscriptionIdentity(server) },
+                        WatchDetails(video, server, video.apiId() in favorites, effectiveSubscriptions.any { it.identity == video.subscriptionIdentity(server) },
                             onFavorite = { toggleCurrentVideoFavorite(video) }, onSubscribe = { toggleCurrentVideoSubscription(video) },
                             onChannel = { video.channel?.name?.let { handle -> openChannelVideos(PeerTubeChannel(video.channel.displayName ?: handle, handle, video.sourceServer(server).removePrefix("https://"))); closePlayer() } })
                         val next = deduplicateVideos(recommendedVideos + homeVideos + serverVideos + liveVideos + videos + subscriptionFeed, server)
@@ -791,6 +871,8 @@ class MainActivity : ComponentActivity() {
         }
         if (floatingPlayer && selectedVideo != null && !loadingVideo) FloatingVideoPlayer(selectedVideo!!, server, ::expandPlayer, ::closePlayer)
         }
+        accountActionError?.let { reason -> AlertDialog(onDismissRequest = { accountActionError = null },
+            text = { Text(accountErrorText(reason)) }, confirmButton = { TextButton(onClick = { accountActionError = null }) { Text("OK") } }) }
         if (settingsOpen) SettingsScreen(onClose = { settingsOpen = false; settingsSection = null }, onCheckUpdates = { updateRequest++ }, initialSection = settingsSection)
 
     }
@@ -830,17 +912,6 @@ private fun LazyGridScope.videoSection(
             onFavorite = { onFavorite(video) },
             onSubscribe = { onSubscribe(video) }
         )
-    }
-}
-
-private fun toggleSubscription(
-    video: Video, server: String, database: PeerIcheDatabase, rows: List<SavedVideo>,
-    scope: kotlinx.coroutines.CoroutineScope
-) {
-    val row = video.toSubscription(server) ?: return
-    scope.launch {
-        if (rows.any { it.identity == row.identity }) database.library().delete(row.identity, "subscription")
-        else database.library().put(row)
     }
 }
 

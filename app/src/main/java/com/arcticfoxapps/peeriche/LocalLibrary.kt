@@ -68,6 +68,15 @@ suspend fun saveServerList(context: Context, value: String, active: String) {
     }
 }
 
+internal suspend fun useAccountServer(context: Context, host: String) {
+    val origin = authServerOrigin(host)
+    context.peerIcheDataStore.edit {
+        val servers = it[serverListKey].orEmpty().lines().mapNotNull { value -> runCatching { normalizeServer(value) }.getOrNull() }
+        it[serverListKey] = (servers + origin).distinct().joinToString("\n")
+        it[activeServerKey] = origin
+    }
+}
+
 suspend fun saveDarkTheme(context: Context, enabled: Boolean) {
     context.peerIcheDataStore.edit { it[darkThemeKey] = enabled }
 }
