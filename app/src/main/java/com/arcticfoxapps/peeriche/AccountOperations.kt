@@ -4,7 +4,7 @@ import com.google.gson.JsonObject
 
 /** Fixed endpoint descriptions; account credentials never leave the auth transport. */
 internal class AccountOperation private constructor(val method: String, val segments: List<String>,
-    val query: Map<String, String> = emptyMap(), val body: JsonObject? = null, val empty: Boolean = false) {
+    val query: Map<String, String> = emptyMap(), val body: JsonObject? = null, val empty: Boolean = false, val multipart: Boolean = false) {
     val writes: Boolean get() = method != "GET"
     companion object {
         private fun path(vararg values: String) = listOf("api", "v1") + values
@@ -16,6 +16,12 @@ internal class AccountOperation private constructor(val method: String, val segm
         fun feed(start: Int, sensitive: Boolean) = AccountOperation("GET", path("users", "me", "subscriptions", "videos"),
             mapOf("start" to start.coerceAtLeast(0).toString(), "count" to "30", "sort" to "-publishedAt", "nsfw" to sensitive.toString()))
         fun ownChannels() = AccountOperation("GET", path("users", "me"))
+        fun creatorConfig() = AccountOperation("GET", path("config"))
+        fun quotaUsed() = AccountOperation("GET", path("users", "me", "video-quota-used"))
+        fun ownVideos(start: Int) = AccountOperation("GET", path("users", "me", "videos"), mapOf("start" to start.coerceAtLeast(0).toString(), "count" to "20", "sort" to "-createdAt", "includeScheduledLive" to "true"))
+        fun live(uuid: String) = AccountOperation("GET", path("videos", "live", id(uuid)))
+        fun createLive(metadata: CreatorMetadata, replay: Boolean, permanent: Boolean) = AccountOperation("POST", path("videos", "live"),
+            body = metadata.json().apply { addProperty("saveReplay", replay); addProperty("permanentLive", permanent) }, multipart = true)
         fun subscription(handle: String) = AccountOperation("GET", path("users", "me", "subscriptions", validSubscriptionHandle(handle)))
         fun subscribe(handle: String) = AccountOperation("POST", path("users", "me", "subscriptions"), body = JsonObject().apply { addProperty("uri", validSubscriptionHandle(handle)) }, empty = true)
         fun unsubscribe(handle: String) = AccountOperation("DELETE", path("users", "me", "subscriptions", validSubscriptionHandle(handle)), empty = true)

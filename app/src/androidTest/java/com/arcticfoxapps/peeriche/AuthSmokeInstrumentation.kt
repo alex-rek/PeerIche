@@ -9,8 +9,10 @@ import java.util.UUID
 
 /** Isolated device-side Keystore/AtomicFile integration test, without a real account or new dependencies. */
 class AuthSmokeInstrumentation : Instrumentation() {
-    override fun onCreate(arguments: Bundle?) { super.onCreate(arguments); start() }
+    private var creatorUi = false
+    override fun onCreate(arguments: Bundle?) { super.onCreate(arguments); creatorUi = arguments?.getString("creator-ui") == "true"; start() }
     override fun onStart() {
+        if (creatorUi) { creatorUiFixture(this); return }
         val result = Bundle()
         val suffix = UUID.randomUUID().toString()
         val name = "auth-smoke-$suffix.bin"
@@ -94,8 +96,9 @@ class AuthSmokeInstrumentation : Instrumentation() {
                 check(store.load().sessions.single().profile.userId == 7L)
                 check(restored.logout(account.id) && revoked)
                 check(store.load().sessions.isEmpty())
+                creatorSmoke(targetContext)
             }
-            result.putString("stream", "PASS: Android Keystore, restore, refresh, own channels, subscriptions/feed, remote video, rating/removal, comment/reply, tamper rejection, AtomicFile recovery, logout (isolated fixtures).\n")
+            result.putString("stream", "PASS: Android Keystore, restore, refresh, subscriptions, ratings/comments, tamper/AtomicFile, logout; creator URI upload, lost acknowledgement/resume, cover retry without duplicate, pause, account switch, cancel, own videos and OBS credentials (isolated fixtures).\n")
         } catch (failure: Throwable) {
             result.putString("stream", "FAIL: " + failure.javaClass.simpleName + "\n")
             resultCode = Activity.RESULT_CANCELED

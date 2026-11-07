@@ -54,6 +54,7 @@ internal interface AuthTransport {
     suspend fun me(server: String, token: String): AuthProfile
     suspend fun revoke(server: String, token: String)
     suspend fun accountRequest(server: String, token: String, operation: AccountOperation): JsonObject = throw AuthFailure("unsupported_account_operation")
+    suspend fun uploadRequest(server: String, token: String, operation: UploadOperation): UploadReply = throw AuthFailure("unsupported_account_operation")
 }
 
 internal fun authErrorReason(status: Int, json: JsonObject?): String {
@@ -158,9 +159,13 @@ internal class PeerTubeAuthTransport(client: OkHttpClient = OkHttpClient()) : Au
         operation.segments.forEach { url.addPathSegment(it) }
         operation.query.forEach { (key, value) -> url.addQueryParameter(key, value) }
         val request = Request.Builder().url(url.build()).header("Accept", "application/json").header("Authorization", "Bearer $token")
-        val body = operation.body?.toString()?.toRequestBody("application/json; charset=utf-8".toMediaType())
+        val body = if (operation.multipart) okhttp3.MultipartBody.Builder().setType(okhttp3.MultipartBody.FORM).apply {
+            operation.body?.entrySet()?.forEach { (key, value) -> addFormDataPart(key, value.asString) }
+        }.build() else operation.body?.toString()?.toRequestBody("application/json; charset=utf-8".toMediaType())
         request.method(operation.method, if (operation.method in listOf("POST", "PUT")) body ?: FormBody.Builder().build() else null)
         return try { execute(request.build(), operation.empty) }
         catch (failure: AuthFailure) { if (failure.status == 404) throw AuthFailure("account_resource_missing", 404) else throw failure }
     }
+    override suspend fun uploadRequest(server: String, token: String, operation: UploadOperation): UploadReply =
+        executeUpload(http, server, token, operation)
 }

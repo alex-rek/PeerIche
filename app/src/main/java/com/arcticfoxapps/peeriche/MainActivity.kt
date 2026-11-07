@@ -733,6 +733,7 @@ class MainActivity : ComponentActivity() {
                             channelDirectoryServer != null -> stringResource(R.string.channels_on_server)
                             youSection == YouSection.Channels -> stringResource(R.string.channels)
                             youSection == YouSection.Favorites -> stringResource(R.string.favorites)
+                            youSection == YouSection.Videos -> uiText("Ваши видео", "Your videos")
                             else -> stringResource(R.string.history)
                         }, onBack = ::backFromYou)
                     } }
@@ -750,6 +751,7 @@ class MainActivity : ComponentActivity() {
                             YouSection.History -> historyRows.map(SavedVideo::toVideo)
                             YouSection.Channels -> if (channelVideosMode) videos else emptyList()
                             YouSection.Menu -> emptyList()
+                            YouSection.Videos -> emptyList()
                         }
                         else -> videos
                     }
@@ -771,6 +773,8 @@ class MainActivity : ComponentActivity() {
                     if (page == "You" && youSection == YouSection.Menu) {
                         YouPage(server, onOpenSection = ::openYouSection, onSettings = { settingsSection = null; settingsOpen = true },
                             onAccountServer = { host -> scope.launch { useAccountServer(context, host) } })
+                    } else if (page == "You" && youSection == YouSection.Videos) {
+                        CreatorPage(onOpenVideo = ::openVideo)
                     } else if (page == "You" && youSection == YouSection.Channels && !channelVideosMode) {
                         if (channelDirectoryServer == null) AccountChannelsPage(selectedAccount, accountSnapshot, subscriptionRows, server,
                             onOpen = ::openChannelVideos, onBrowse = ::openServerChannels,

@@ -22,7 +22,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
-internal enum class YouSection { Menu, Channels, Favorites, History }
+internal enum class YouSection { Menu, Channels, Favorites, History, Videos }
 
 @Composable internal fun YouSectionHeader(title: String, onBack: () -> Unit) {
     Row(Modifier.fillMaxWidth().heightIn(min = 56.dp).padding(horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -63,6 +63,7 @@ internal enum class YouSection { Menu, Channels, Favorites, History }
             }
             HorizontalDivider(Modifier.padding(vertical = 12.dp), color = colors.outlineVariant)
             YouMenuRow(Icons.Default.AccountBox, uiText("Каналы", "Channels")) { onOpenSection(YouSection.Channels) }
+            if (active != null && !active.needsLogin) YouMenuRow(Icons.Default.VideoLibrary, uiText("Ваши видео", "Your videos")) { onOpenSection(YouSection.Videos) }
             YouMenuRow(Icons.Default.FavoriteBorder, uiText("Избранное", "Favorites")) { onOpenSection(YouSection.Favorites) }
             YouMenuRow(Icons.Default.History, uiText("История", "History")) { onOpenSection(YouSection.History) }
             HorizontalDivider(Modifier.padding(vertical = 12.dp), color = colors.outlineVariant)

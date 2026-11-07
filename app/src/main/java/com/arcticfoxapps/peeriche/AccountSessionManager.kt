@@ -124,6 +124,11 @@ internal class AccountSessionManager(private val store: AccountSessionStore, pri
         if (operation.writes && saved.activeId != id) throw AuthFailure("account_changed")
         authorizedLocked(id) { session -> api.accountRequest(session.server, session.access, operation) }
     }
+    suspend fun upload(id: String, operation: UploadOperation): UploadReply = mutex.withLock {
+        loadLocked()
+        if (saved.activeId != id) throw AuthFailure("account_changed")
+        authorizedLocked(id) { session -> api.uploadRequest(session.server, session.access, operation) }
+    }
     suspend fun logout(id: String): Boolean {
         val session = mutex.withLock {
             loadLocked()
