@@ -10,12 +10,13 @@ PeerIche is a continuation of PeerTubeTV by the same author. It is a standalone 
 - Public home feed from the selected PeerTube server.
 - Search through Sepia Search, PeerSeek, and up to five user configured PeerTube instances, with paging and de-duplication.
 - Manual server entry and discovery through the public JoinPeerTube instance directory.
-- Adaptive video grid and Home, Search, Subscriptions and Library navigation, with a tablet navigation rail.
+- Adaptive video grid and Home, Search, Subscriptions and You navigation, with a tablet navigation rail.
 - Room-backed favorites, watch history and channel subscriptions; DataStore-backed server and theme settings.
 - Full screen destination with Media3 playback when a playable URL is provided.
 - Graphite, Light and blue Aurora themes, plus automatic Android theme switching.
 - Compact header and an original Graphite vector launcher mark.
 - Watch page with collapsible description, channel subscription, public comment threads and Android sharing.
+- You page with the future account sign-in entry, followed channels, favorites, history and settings. Server authentication is not connected yet.
 - Picture-in-Picture on Android 8+, including automatic entry while playing when leaving the app.
 - The player PiP button opens a draggable video window over the previous in-app page; leaving Android opens system PiP. Comments follow the existing metadata translation setting and language.
 

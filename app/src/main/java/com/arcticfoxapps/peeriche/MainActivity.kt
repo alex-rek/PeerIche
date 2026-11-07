@@ -92,12 +92,35 @@ private suspend fun fetchSubscribedVideos(rows: List<SavedVideo>): List<Video> =
 
 class MainActivity : ComponentActivity() {
     internal val pipSupport by lazy { PlayerPipController(this) }
-    override fun onResume() { super.onResume(); pipSupport.onResume() }
+    private var playerFullscreen = false
+    internal fun setPlayerFullscreen(enabled: Boolean) {
+        playerFullscreen = enabled
+        applyPlayerSystemBars()
+    }
+    private fun applyPlayerSystemBars() {
+        if (android.os.Build.VERSION.SDK_INT >= 26 && isInPictureInPictureMode) return
+        val controller = WindowCompat.getInsetsController(window, window.decorView)
+        if (playerFullscreen) {
+            controller.systemBarsBehavior = androidx.core.view.WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            controller.hide(WindowInsetsCompat.Type.systemBars())
+        } else {
+            controller.systemBarsBehavior = androidx.core.view.WindowInsetsControllerCompat.BEHAVIOR_DEFAULT
+            controller.show(WindowInsetsCompat.Type.systemBars())
+        }
+    }
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        // Dialogs, the share sheet and returning from another app can reveal
+        // system bars without changing Compose's fullscreen state.
+        if (hasFocus) applyPlayerSystemBars()
+    }
+    override fun onResume() { super.onResume(); pipSupport.onResume(); applyPlayerSystemBars() }
     override fun onUserLeaveHint() { super.onUserLeaveHint(); pipSupport.onUserLeaveHint() }
     @androidx.annotation.RequiresApi(26)
     override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: Configuration) {
         super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
         pipSupport.onModeChanged(isInPictureInPictureMode)
+        if (!isInPictureInPictureMode) applyPlayerSystemBars()
     }
     override fun attachBaseContext(newBase: android.content.Context) { super.attachBaseContext(localizedAppContext(newBase)) }
     override fun onStop() {
@@ -205,10 +228,10 @@ class MainActivity : ComponentActivity() {
     var settingsOpen by rememberSaveable { mutableStateOf(false) }
     var settingsSection by rememberSaveable { mutableStateOf<String?>(null) }
     var chooseServerOpen by remember { mutableStateOf(false) }
-    var libraryTab by remember { mutableStateOf("Favorites") }
-    var subscriptionsTab by remember { mutableStateOf("Subscriptions") }
+    var youSection by rememberSaveable { mutableStateOf(YouSection.Menu) }
     var channelVideosMode by remember { mutableStateOf(false) }
     var channelDirectoryServer by remember { mutableStateOf<String?>(null) }
+    var channelVideosParentServer by remember { mutableStateOf<String?>(null) }
     var serverChannelList by remember { mutableStateOf(emptyList<PeerTubeChannel>()) }
     val favoriteRows by database.library().observe("favorite").collectAsState(initial = emptyList())
     val historyRows by database.library().observe("history").collectAsState(initial = emptyList())
@@ -219,15 +242,14 @@ class MainActivity : ComponentActivity() {
         val window = (context as? ComponentActivity)?.window
         if (showVideo || floatingPlayer) window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         else window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        if (showVideo && (phonePlayerFullscreen || (wideLayout && tabletFullscreen))) {
-            window?.let { WindowCompat.getInsetsController(it, it.decorView).hide(WindowInsetsCompat.Type.systemBars()) }
-        } else {
-            window?.let { WindowCompat.getInsetsController(it, it.decorView).show(WindowInsetsCompat.Type.systemBars()) }
-        }
         onDispose {
             window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-            window?.let { WindowCompat.getInsetsController(it, it.decorView).show(WindowInsetsCompat.Type.systemBars()) }
         }
+    }
+    val immersivePlayer = showVideo && !inPip && (phonePlayerFullscreen || (wideLayout && tabletFullscreen))
+    DisposableEffect(immersivePlayer) {
+        context.playerActivity()?.setPlayerFullscreen(immersivePlayer)
+        onDispose { context.playerActivity()?.setPlayerFullscreen(false) }
     }
 
     fun loadHome() {
@@ -338,9 +360,10 @@ class MainActivity : ComponentActivity() {
         }
     }
     fun openChannelVideos(channel: PeerTubeChannel) {
+        channelVideosParentServer = channelDirectoryServer
         channelDirectoryServer = null
-        subscriptionsTab = "Channels"
-        page = "Subscriptions"
+        youSection = YouSection.Channels
+        page = "You"
         channelVideosMode = true
         busy = true
         error = null
@@ -365,6 +388,29 @@ class MainActivity : ComponentActivity() {
                 .onFailure { error = it.message ?: context.getString(R.string.channels_load_failed) }
             busy = false
         }
+    }
+    fun navigateTo(destination: String) {
+        page = destination
+        channelVideosMode = false; channelDirectoryServer = null; channelVideosParentServer = null; error = null
+        if (destination == "You") youSection = YouSection.Menu
+        if (destination == "Home") loadHome()
+        if (destination == "Subscriptions") loadSubscriptions()
+    }
+    fun openYouSection(section: YouSection) {
+        youSection = section
+        channelVideosMode = false; channelDirectoryServer = null; channelVideosParentServer = null; error = null
+    }
+    fun backFromYou() {
+        when {
+            channelDirectoryServer != null -> { channelDirectoryServer = null; serverChannelList = emptyList() }
+            channelVideosMode -> {
+                channelVideosMode = false
+                channelVideosParentServer?.let { openServerChannels(it) }
+                channelVideosParentServer = null
+            }
+            else -> youSection = YouSection.Menu
+        }
+        error = null
     }
     fun setPhoneFullscreen(enabled: Boolean) {
         phoneFullscreen = enabled
@@ -456,22 +502,24 @@ class MainActivity : ComponentActivity() {
         "Server" -> serverGridState
         "Live" -> liveGridState
         "Search" -> searchGridState
-        "Subscriptions" -> if (channelVideosMode) channelGridState else subscriptionsGridState
-        else -> if (libraryTab == "Favorites") favoritesGridState else historyGridState
+        "Subscriptions" -> subscriptionsGridState
+        else -> when (youSection) {
+            YouSection.Channels -> channelGridState
+            YouSection.Favorites -> favoritesGridState
+            else -> historyGridState
+        }
     }
-    val feedScrollConnection = rememberFeedScrollConnection(!wideLayout && !showVideo, activeFeedState) { feedPanelsVisible = it }
-    LaunchedEffect(page, query, libraryTab, subscriptionsTab, wideLayout) { feedPanelsVisible = true }
+    val feedScrollConnection = rememberFeedScrollConnection(!wideLayout && !showVideo && page != "You", activeFeedState) { feedPanelsVisible = it }
+    LaunchedEffect(page, query, youSection, wideLayout) { feedPanelsVisible = true }
     val canNavigateBack = showVideo || channelDirectoryServer != null || channelVideosMode ||
-        (page == "Subscriptions" && subscriptionsTab == "Channels") || page != "Home"
+        page != "Home"
     BackHandler(enabled = canNavigateBack) {
         when {
             !wideLayout && showVideo && phonePlayerFullscreen -> setPhoneFullscreen(false)
             wideLayout && tabletFullscreen -> tabletFullscreen = false
             wideLayout && showVideo -> tabletBrowsing = true
             selectedVideo != null && !wideLayout && !floatingPlayer -> closePlayer()
-            channelDirectoryServer != null -> { channelDirectoryServer = null; serverChannelList = emptyList(); error = null }
-            channelVideosMode -> { channelVideosMode = false; error = null }
-            page == "Subscriptions" && subscriptionsTab == "Channels" -> subscriptionsTab = "Subscriptions"
+            page == "You" && youSection != YouSection.Menu -> backFromYou()
             page != "Home" -> { page = "Home"; loadHome() }
         }
     }
@@ -518,17 +566,15 @@ class MainActivity : ComponentActivity() {
             if (wideLayout && !showVideo && !floatingPlayer && selectedVideo != null && !loadingVideo) BackgroundVideoPlayer(selectedVideo!!, server, Modifier.fillMaxWidth(), compact = true,
                 onExpand = { tabletBrowsing = false }, onClose = ::closePlayer)
             if (!showVideo && !wideLayout) FeedPanel(feedPanelsVisible, top = false) { NavigationBar(containerColor = colors.surface, tonalElevation = 8.dp) {
-                listOf("Home", "Search", "Subscriptions", "Library").forEach { destination ->
+                listOf("Home", "Search", "Subscriptions", "You").forEach { destination ->
                     val (iconId, labelId) = when (destination) {
                         "Home" -> R.drawable.ic_nav_home to R.string.home
                         "Search" -> R.drawable.ic_nav_search to R.string.search
                         "Subscriptions" -> R.drawable.ic_nav_subscriptions to R.string.subscriptions
-                        else -> R.drawable.ic_nav_library to R.string.library
+                        else -> R.drawable.ic_nav_you to R.string.you
                     }
                     NavigationBarItem(selected = page == destination || (destination == "Home" && page in listOf("Server", "Live")), onClick = {
-                        page = destination
-                        if (destination == "Home") loadHome()
-                        if (destination == "Subscriptions") loadSubscriptions()
+                        navigateTo(destination)
                     }, icon = { Icon(painterResource(iconId), stringResource(labelId)) }, label = { Text(stringResource(labelId), fontWeight = if (page == destination) FontWeight.SemiBold else FontWeight.Normal) })
                 }
             }
@@ -537,9 +583,7 @@ class MainActivity : ComponentActivity() {
             Row(Modifier.fillMaxSize().padding(insets)) {
                 if (wideLayout && !tabletFullscreen) TabletNavigation(page, collapsed = showVideo || LocalConfiguration.current.screenWidthDp < 840) { destination ->
                     tabletBrowsing = selectedVideo != null
-                    page = destination
-                    if (destination == "Home") loadHome()
-                    if (destination == "Subscriptions") loadSubscriptions()
+                    navigateTo(destination)
                 }
                 Column(Modifier.weight(1f).fillMaxHeight()) {
                 FeedPanel(wideLayout || feedPanelsVisible, top = true) {
@@ -556,10 +600,9 @@ class MainActivity : ComponentActivity() {
                                     scope.launch { saveServerList(context, serverList, host) }
                                     chooseServerOpen = false
                                 }) }
-                                DropdownMenuItem(text = { Text(stringResource(R.string.settings)) }, onClick = { chooseServerOpen = false; settingsOpen = true })
+                                DropdownMenuItem(text = { Text(stringResource(R.string.choose_peer_server)) }, onClick = { chooseServerOpen = false; settingsSection = "servers"; settingsOpen = true })
                             }
                         }
-                        IconButton(onClick = { settingsOpen = true }) { Icon(Icons.Default.Settings, stringResource(R.string.settings)) }
                     }
                 }
                 }
@@ -570,14 +613,7 @@ class MainActivity : ComponentActivity() {
                             horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                             listOf("Home" to R.string.home, "Server" to R.string.on_server, "Live" to R.string.live_now, "Subscriptions" to R.string.subscriptions).forEach { (destination, label) ->
                                 FilterChip(selected = page == destination, onClick = {
-                                    page = destination
-                                    if (destination == "Home") loadHome()
-                                    if (destination == "Subscriptions") {
-                                        subscriptionsTab = "Subscriptions"
-                                        channelVideosMode = false
-                                        channelDirectoryServer = null
-                                        loadSubscriptions()
-                                    }
+                                    navigateTo(destination)
                                 }, label = { Text(stringResource(label), maxLines = 1) })
                             }
                         }
@@ -610,22 +646,14 @@ class MainActivity : ComponentActivity() {
                             }
                         }
                     }
-                    when (page) {
-                        "Subscriptions" -> {
-                            Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-                            listOf("Subscriptions" to R.string.subscriptions, "Channels" to R.string.channels).forEach { (tab, res) ->
-                                FilterChip(selected = subscriptionsTab == tab, onClick = { subscriptionsTab = tab; channelVideosMode = false; channelDirectoryServer = null; if (tab == "Subscriptions") loadSubscriptions() }, label = { Text(stringResource(res)) }, modifier = Modifier.padding(end = 8.dp))
-                            }
-                            }
-                            if (channelVideosMode || channelDirectoryServer != null) Text(
-                                stringResource(if (channelVideosMode) R.string.channel_videos else R.string.channels_on_server),
-                                Modifier.padding(start = 20.dp, top = 4.dp, bottom = 6.dp), color = colors.onBackground, fontSize = 21.sp, fontWeight = FontWeight.Bold
-                            )
-                        }
-                        "Library" -> Row(Modifier.padding(horizontal = 12.dp)) {
-                            listOf("Favorites" to R.string.favorites, "History" to R.string.history).forEach { (label, res) -> FilterChip(selected = libraryTab == label, onClick = { libraryTab = label }, label = { Text(stringResource(res)) }, modifier = Modifier.padding(end = 8.dp)) }
-                        }
-                    }
+                    if (page == "You" && youSection != YouSection.Menu) YouSectionHeader(
+                        title = when {
+                            channelVideosMode -> stringResource(R.string.channel_videos)
+                            channelDirectoryServer != null -> stringResource(R.string.channels_on_server)
+                            youSection == YouSection.Channels -> stringResource(R.string.channels)
+                            youSection == YouSection.Favorites -> stringResource(R.string.favorites)
+                            else -> stringResource(R.string.history)
+                        }, onBack = ::backFromYou)
                     } }
                     val browsingFeed = page == "Server" || page == "Live"
                     val watchedIds = remember(historyRows) { historyRows.map { it.identity.substringBefore('|') }.toSet() }
@@ -635,19 +663,30 @@ class MainActivity : ComponentActivity() {
                     val visibleVideos = when (page) {
                         "Server" -> serverVideos
                         "Live" -> liveVideos
-                        "Library" -> (if (libraryTab == "Favorites") favoriteRows else historyRows).map(SavedVideo::toVideo)
+                        "You" -> when (youSection) {
+                            YouSection.Favorites -> favoriteRows.map(SavedVideo::toVideo)
+                            YouSection.History -> historyRows.map(SavedVideo::toVideo)
+                            YouSection.Channels -> if (channelVideosMode) videos else emptyList()
+                            YouSection.Menu -> emptyList()
+                        }
                         else -> videos
                     }
-                    if (if (browsingFeed) browseBusy else busy) LinearProgressIndicator(Modifier.fillMaxWidth().padding(horizontal = 16.dp), color = colors.primary, trackColor = colors.surface)
-                    (if (browsingFeed) browseError else error)?.let { Text(it, Modifier.padding(18.dp), color = if (darkTheme) Color(0xFFFFB49B) else Color(0xFF9C341F)) }
+                    val showFeedStatus = page != "You" || (youSection == YouSection.Channels && (channelVideosMode || channelDirectoryServer != null))
+                    if (showFeedStatus && (if (browsingFeed) browseBusy else busy)) LinearProgressIndicator(Modifier.fillMaxWidth().padding(horizontal = 16.dp), color = colors.primary, trackColor = colors.surface)
+                    (if (!showFeedStatus) null else if (browsingFeed) browseError else error)?.let { Text(it, Modifier.padding(18.dp), color = if (darkTheme) Color(0xFFFFB49B) else Color(0xFF9C341F)) }
                     if (browsingFeed && browseError != null && !browseBusy) Row {
                         if (!browseUnsupported) TextButton(onClick = { loadBrowse(if (browseHasMore) browsePage + 1 else 0) }) {
                             Text(stringResource(if (page == "Live" && browseHasMore) R.string.find_more_live else R.string.retry))
                         }
                         if (page == "Server") TextButton(onClick = { settingsSection = "servers"; settingsOpen = true }) { Text(stringResource(R.string.choose_peer_server)) }
                     }
-                    if (page == "Subscriptions" && subscriptionsTab == "Channels" && !channelVideosMode) {
+                    if (page == "You" && youSection == YouSection.Menu) {
+                        YouPage(server, onOpenSection = ::openYouSection, onSettings = { settingsSection = null; settingsOpen = true })
+                    } else if (page == "You" && youSection == YouSection.Channels && !channelVideosMode) {
                         Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp)) {
+                            if (channelDirectoryServer == null) TextButton(onClick = { openServerChannels(server) }) {
+                                Text(stringResource(R.string.channels_on_server) + " · " + server.removePrefix("https://"))
+                            }
                             if (channelDirectoryServer == null) Row(Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
                                 Text(stringResource(R.string.channel_column), Modifier.weight(1f), color = Color.Gray)
                                 Text(stringResource(R.string.server_column), Modifier.padding(end = 12.dp), color = Color.Gray)
@@ -672,6 +711,9 @@ class MainActivity : ComponentActivity() {
                         refreshing = homeRefreshing,
                         onRefresh = { if (!busy) loadHome() }
                     ) {
+                    if (page == "You" && visibleVideos.isEmpty() && youSection in listOf(YouSection.Favorites, YouSection.History)) {
+                        Text(if (youSection == YouSection.Favorites) uiText("В избранном пока нет видео", "No saved videos yet") else uiText("История пока пуста", "No watch history yet"), Modifier.padding(20.dp), color = colors.onSurfaceVariant)
+                    }
                     LazyVerticalGrid(state = activeFeedState, modifier = Modifier.nestedScroll(feedScrollConnection), columns = if (wideLayout) GridCells.Fixed(tabletColumns(LocalConfiguration.current.screenWidthDp)) else GridCells.Adaptive(minSize = 230.dp), contentPadding = PaddingValues(12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
                         if (page == "Home" && options.homeSort != "sections") {
                             videoSection(null, sortHomeVideos(homeFollowing + homeRecommended + homeRecent, options.homeSort, server), "home", server, favorites, subscriptionRows.map { it.identity }.toSet(), ::openVideo,

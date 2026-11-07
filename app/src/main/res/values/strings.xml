@@ -4,6 +4,7 @@
     <string name="home">Home</string>
     <string name="search">Search</string>
     <string name="subscriptions">Subscriptions</string>
+    <string name="you">You</string>
     <string name="library">Library</string>
     <string name="server">PeerTube server</string>
     <string name="about_independent">PeerIche is an independent client and is not affiliated with Framasoft.</string>

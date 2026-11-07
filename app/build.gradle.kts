@@ -31,8 +31,8 @@ android {
         applicationId = "com.arcticfoxapps.peeriche"
         minSdk = 23
         targetSdk = 35
-        versionCode = 16
-        versionName = "0.4.1"
+        versionCode = 18
+        versionName = "0.5.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     compileOptions {
