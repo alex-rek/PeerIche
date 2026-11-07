@@ -681,7 +681,8 @@ class MainActivity : ComponentActivity() {
                         if (page == "Server") TextButton(onClick = { settingsSection = "servers"; settingsOpen = true }) { Text(stringResource(R.string.choose_peer_server)) }
                     }
                     if (page == "You" && youSection == YouSection.Menu) {
-                        YouPage(server, onOpenSection = ::openYouSection, onSettings = { settingsSection = null; settingsOpen = true })
+                        YouPage(server, onOpenSection = ::openYouSection, onSettings = { settingsSection = null; settingsOpen = true },
+                            onAccountServer = { host -> scope.launch { saveServerList(context, (availableServers + host).distinct().joinToString("\n"), host) } })
                     } else if (page == "You" && youSection == YouSection.Channels && !channelVideosMode) {
                         Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp)) {
                             if (channelDirectoryServer == null) TextButton(onClick = { openServerChannels(server) }) {
