@@ -22,7 +22,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Composable internal fun VideoCommentsSheet(video: Video, server: String, onLogin: () -> Unit, onClose: () -> Unit) {
+@Composable internal fun VideoCommentsSheet(video: Video, server: String, onClose: () -> Unit) {
     val context = LocalContext.current
     val manager = remember(context) { PeerTubeAccounts.get(context) }
     val accounts by manager.state.collectAsState()
@@ -86,7 +86,7 @@ import kotlinx.coroutines.launch
         load()
     }
     fun send() {
-        val account = owner ?: return onLogin()
+        val account = owner ?: return
         val target = resolved ?: return
         if (sending || draft.isBlank() || draft.length > 10_000) return
         val original = draft
@@ -146,9 +146,8 @@ import kotlinx.coroutines.launch
                 }
                 if (thread == null && start < total && !failed) item { TextButton(onClick = { load(append = true) }, enabled = !busy && !sending, modifier = Modifier.fillMaxWidth()) { Text(uiText("Загрузить ещё", "Load more")) } }
             }
-            if (commentsEnabled) Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                if (owner == null) TextButton(onClick = onLogin) { Text(uiText("Войти, чтобы написать комментарий", "Sign in to comment")) }
-                else if (resolved == null) {
+            if (commentsEnabled && owner != null) Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                if (resolved == null) {
                     accountError?.let { Text(accountErrorText(it), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error) }
                     if (accountError != null) TextButton(onClick = { retry++ }) { Text(uiText("Повторить", "Retry")) }
                 } else {

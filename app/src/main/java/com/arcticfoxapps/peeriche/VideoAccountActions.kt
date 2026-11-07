@@ -1,6 +1,8 @@
 package com.arcticfoxapps.peeriche
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -11,11 +13,16 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 
-@Composable internal fun VideoAccountActions(video: Video, server: String, onLogin: () -> Unit) {
+@Composable internal fun VideoAccountActions(video: Video, server: String, actions: @Composable RowScope.() -> Unit) {
     val context = LocalContext.current
     val manager = remember(context) { PeerTubeAccounts.get(context) }
     val accounts by manager.state.collectAsState()
     val owner = accounts.active?.takeUnless { it.needsLogin }
+    if (owner == null) {
+        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp), content = actions)
+        return
+    }
     val library = remember(context) { AccountLibraries.get(context) }
     val scope = rememberCoroutineScope()
     val key = video.sourceServer(server) + "|" + video.apiId()
@@ -37,7 +44,7 @@ import kotlinx.coroutines.launch
         finally { busy = false }
     }
     fun rate(value: String) {
-        val account = owner ?: return onLogin()
+        val account = owner
         val target = resolved ?: return
         if (busy) return
         val next = if (rating == value) "none" else value
@@ -52,17 +59,17 @@ import kotlinx.coroutines.launch
             finally { busy = false }
         }
     }
-    Column(Modifier.fillMaxWidth().padding(horizontal = 12.dp)) {
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            FilterChip(selected = rating == "like", onClick = { rate("like") }, enabled = owner == null || (!busy && resolved != null),
+    Column(Modifier.fillMaxWidth()) {
+        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FilterChip(selected = rating == "like", onClick = { rate("like") }, enabled = !busy && resolved != null,
                 label = { Text(counts.likes.toString()) }, leadingIcon = { Icon(Icons.Default.ThumbUp, uiText("Нравится", "Like"), Modifier.size(20.dp)) })
-            FilterChip(selected = rating == "dislike", onClick = { rate("dislike") }, enabled = owner == null || (!busy && resolved != null),
+            FilterChip(selected = rating == "dislike", onClick = { rate("dislike") }, enabled = !busy && resolved != null,
                 label = { Text(counts.dislikes.toString()) }, leadingIcon = { Icon(Icons.Default.ThumbDown, uiText("Не нравится", "Dislike"), Modifier.size(20.dp)) })
-            if (owner == null) TextButton(onClick = onLogin) { Text(uiText("Войти", "Sign in")) }
+            actions()
         }
         if (busy) LinearProgressIndicator(Modifier.fillMaxWidth())
         error?.let { reason ->
-            Text(accountErrorText(reason), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+            Text(accountErrorText(reason), Modifier.padding(horizontal = 12.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
             TextButton(onClick = { retry++ }) { Text(uiText("Повторить", "Retry")) }
         }
     }

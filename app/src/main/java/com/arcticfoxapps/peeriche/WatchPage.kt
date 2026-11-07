@@ -3,11 +3,9 @@ package com.arcticfoxapps.peeriche
 import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
@@ -27,7 +25,6 @@ import androidx.compose.ui.unit.dp
 import androidx.core.text.HtmlCompat
 import coil.compose.AsyncImage
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.launch
 
 internal fun Video.publicWatchUrl(server: String): String {
     val supplied = runCatching { java.net.URI(url.orEmpty()) }.getOrNull()
@@ -44,8 +41,8 @@ internal fun Video.shareText(server: String): String = name + "\n" + publicWatch
     val colors = MaterialTheme.colorScheme
     val manager = remember(context) { PeerTubeAccounts.get(context) }
     val accountState by manager.state.collectAsState()
-    val scope = rememberCoroutineScope()
-    var login by remember { mutableStateOf(false) }
+    val serverSubscription = LocalServerSubscriptions.current && accountState.active != null
+    val canSubscribe = !serverSubscription || accountState.active?.needsLogin == false
     var expanded by rememberSaveable(video.apiId()) { mutableStateOf(false) }
     var comments by rememberSaveable(video.apiId()) { mutableStateOf(false) }
     var speechSettings by remember { mutableStateOf(false) }
@@ -79,8 +76,7 @@ internal fun Video.shareText(server: String): String = name + "\n" + publicWatch
                 uiText("Описание видео", "Video description")) }
         }
         if (expanded) LinkedWatchDescription(translatedMetadata(fullDescription).ifBlank { uiText("Описание отсутствует", "No description") })
-        VideoAccountActions(video, server, onLogin = { login = true })
-        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        VideoAccountActions(video, server) {
             AssistChip(onClick = onFavorite, label = { Text(uiText(if (favorite) "В избранном" else "В избранное", if (favorite) "Saved" else "Save")) },
                 leadingIcon = { Icon(if (favorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder, null, Modifier.size(20.dp)) })
             val shareLabel = uiText("Поделиться", "Share")
@@ -106,11 +102,11 @@ internal fun Video.shareText(server: String): String = name + "\n" + publicWatch
                 Text(title, maxLines = 2, fontWeight = FontWeight.SemiBold)
                 channel?.followersCount?.let { Text(java.text.NumberFormat.getIntegerInstance().format(it) + " " + uiText("подписчиков", "followers"), style = MaterialTheme.typography.bodySmall, color = colors.onSurfaceVariant) }
             }
-            FilledTonalButton(onClick = onSubscribe, enabled = video.channel?.name != null, contentPadding = PaddingValues(horizontal = 14.dp)) {
+            if (canSubscribe) FilledTonalButton(onClick = onSubscribe, enabled = video.channel?.name != null, contentPadding = PaddingValues(horizontal = 14.dp)) {
                 Text(uiText(if (subscribed) "Вы подписаны" else "Подписаться", if (subscribed) "Subscribed" else "Subscribe"), maxLines = 1)
             }
         }
-        Text(if (LocalServerSubscriptions.current && accountState.active != null)
+        if (canSubscribe) Text(if (serverSubscription)
             uiText("Подписка аккаунта: ${accountState.active!!.username}@${java.net.URI(accountState.active!!.server).authority}", "Account subscription: ${accountState.active!!.username}@${java.net.URI(accountState.active!!.server).authority}")
             else uiText("Подписка на этом устройстве", "Subscription on this device"), Modifier.padding(horizontal = 16.dp),
             style = MaterialTheme.typography.bodySmall, color = colors.onSurfaceVariant)
@@ -123,8 +119,7 @@ internal fun Video.shareText(server: String): String = name + "\n" + publicWatch
             }
         }
     }
-    if (comments) VideoCommentsSheet(video, server, onLogin = { login = true }) { comments = false }
-    if (login) AccountScreen(server, manager, onUseServer = { host -> scope.launch { useAccountServer(context, host) } }) { login = false }
+    if (comments) VideoCommentsSheet(video, server) { comments = false }
     if (speechSettings) SpeechSettingsDialog { speechSettings = false }
 }
 
