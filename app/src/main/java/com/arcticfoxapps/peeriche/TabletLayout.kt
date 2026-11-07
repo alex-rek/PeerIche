@@ -52,7 +52,7 @@ internal fun tabletColumns(widthDp: Int): Int = if (widthDp >= 1100) 3 else 2
 @Composable internal fun TabletVideoScreen(video: Video, server: String, loading: Boolean, error: String?,
     recommendations: List<Video>, fullscreen: Boolean, favorite: Boolean, subscribed: Boolean,
     onBrowse: () -> Unit, onFullscreen: () -> Unit, onOpen: (Video) -> Unit,
-    onFavorite: () -> Unit, onSubscribe: () -> Unit, onRetry: () -> Unit) {
+    onFavorite: () -> Unit, onSubscribe: () -> Unit, onChannel: () -> Unit, onRetry: () -> Unit) {
     val context = LocalContext.current
     var controller by remember { mutableStateOf<Player?>(null) }
     var noSubtitles by remember { mutableStateOf(false) }
@@ -69,42 +69,23 @@ internal fun tabletColumns(widthDp: Int): Int = if (widthDp >= 1100) 3 else 2
                 if (loading) LinearProgressIndicator(Modifier.fillMaxWidth())
                 else if (video.playableUrl() != null) BackgroundVideoPlayer(video, server,
                     if (fullscreen) Modifier.weight(1f).fillMaxWidth() else Modifier.fillMaxWidth().aspectRatio(16f / 9f),
-                    fullscreen = fullscreen, onFullscreenToggle = onFullscreen, onController = { controller = it })
+                    fullscreen = fullscreen, onFullscreenToggle = onFullscreen, onController = { controller = it }, onBack = { if (fullscreen) onFullscreen() else onBrowse() })
                 else {
                     Text(error ?: stringResource(R.string.video_unavailable), color = colors.error)
                     TextButton(onClick = onRetry) { Text(stringResource(R.string.retry)) }
                 }
                 if (!fullscreen) Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text(translatedMetadata(video.name), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = colors.onBackground)
-                    Text(video.channel?.displayName ?: video.account?.displayName.orEmpty(), color = colors.onSurfaceVariant)
-                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        TextButton(onClick = onBrowse) { Text(stringResource(R.string.back)) }
-                        FilledTonalButton(onClick = onSubscribe, enabled = video.channel?.name != null) { Text(stringResource(if (subscribed) R.string.unsubscribe_button else R.string.subscribe_button)) }
-                        TextButton(onClick = onFavorite) { Text(stringResource(if (favorite) R.string.remove_favorite else R.string.add_favorite)) }
-                        TextButton(enabled = controller != null, onClick = {
-                            val player = controller ?: return@TextButton
-                            if (player.currentTracks.groups.none { it.type == C.TRACK_TYPE_TEXT }) noSubtitles = true
-                            else {
-                                subtitleDialog?.dismiss()
-                                subtitleDialog = TrackSelectionDialogBuilder(context, context.getString(R.string.subtitles), player, C.TRACK_TYPE_TEXT)
-                                    .setShowDisableOption(true).build().also { it.show() }
-                            }
-                        }) { Text(stringResource(R.string.subtitles)) }
-                        TextButton(onClick = onFullscreen) { Text(stringResource(R.string.enter_fullscreen)) }
-                    }
-                    var descriptionExpanded by remember(video.apiId()) { mutableStateOf(false) }
-                    TextButton(onClick = { descriptionExpanded = !descriptionExpanded }) { Text(stringResource(if (descriptionExpanded) R.string.hide_description else R.string.show_description)) }
-                    if (descriptionExpanded) Text(translatedMetadata(video.description.orEmpty()), color = colors.onSurfaceVariant)
+                    WatchDetails(video, server, favorite, subscribed, onFavorite, onSubscribe, onChannel)
                     if (!sideBySide) {
                         Text(stringResource(R.string.next_videos), style = MaterialTheme.typography.titleMedium)
-                        recommendations.forEach { RecommendationRow(it, server) { onOpen(it) } }
+                        recommendations.forEach { NextVideoRow(it, server) { onOpen(it) } }
                     }
                 }
             }
             if (sideBySide && !fullscreen) Column(Modifier.widthIn(min = 240.dp, max = 340.dp).weight(.48f).fillMaxHeight()) {
                 Text(stringResource(R.string.next_videos), style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(bottom = 12.dp))
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    items(recommendations, key = { it.sourceServer(server) + "|" + it.apiId() }) { item -> RecommendationRow(item, server) { onOpen(item) } }
+                    items(recommendations, key = { it.sourceServer(server) + "|" + it.apiId() }) { item -> NextVideoRow(item, server) { onOpen(item) } }
                 }
             }
         }

@@ -38,4 +38,36 @@ class LiveVideosTest {
         assertFalse(completed)
         assertTrue(job.isCancelled)
     }
+    @Test fun skipsWaitingIndexPagesAndReturnsTheFirstActivePageWithCorrectCursor() = runBlocking {
+        val requested = mutableListOf<Int>()
+        val result = scanLivePages(0, "https://video.example", false, fetch = { page ->
+            requested += page
+            VideoPage(listOf(candidate("$page")), total = 61)
+        }, resolve = { it.copy(state = VideoState(if (it.uuid == "2") 1 else 4), directStreamUrl = "https://video.example/live.m3u8") })
+        assertEquals(listOf(0, 1, 2), requested)
+        assertEquals("2", result.videos.single().uuid)
+        assertEquals(3, result.nextPage)
+        assertFalse(result.hasMore)
+    }
+    @Test fun boundsEmptyPageScanningAndKeepsContinuationInsteadOfClaimingNoMoreLiveStreams() = runBlocking {
+        var count = 0
+        val result = scanLivePages(0, "https://video.example", false, fetch = {
+            count++; VideoPage(listOf(candidate("$it")), total = 1000)
+        }, resolve = { it.copy(state = VideoState(5)) }, maxPages = 2)
+        assertEquals(2, count)
+        assertTrue(result.hasMore); assertEquals(2, result.nextPage); assertTrue(result.videos.isEmpty())
+    }
+    @Test fun stopsEmptyCatalogAndExcludesSensitiveStreams() = runBlocking {
+        val result = scanLivePages(0, "https://video.example", false,
+            fetch = { VideoPage(listOf(candidate("hidden").copy(nsfw = true)), total = 1) },
+            resolve = { error("Sensitive stream must not be resolved") })
+        assertFalse(result.hasMore); assertTrue(result.videos.isEmpty())
+    }
+    @Test fun unreachableOriginDoesNotCauseOneTimeoutForEveryVideoOnTheSameHost() = runBlocking {
+        var requests = 0
+        val result = resolveLiveVideos((1..30).map { candidate("$it") }, "https://video.example") {
+            requests++; throw java.io.IOException("origin down")
+        }
+        assertTrue(result.isEmpty()); assertTrue(requests <= 6)
+    }
 }

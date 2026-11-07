@@ -91,4 +91,11 @@
     <string name="home_sort_oldest">Сначала старые</string>
     <string name="home_sort_views">По просмотрам</string>
     <string name="home_sort_sections">По подборкам</string>
+    <string name="server_not_peertube">Этот адрес не поддерживает PeerTube API. Выберите сервер PeerTube в настройках «Серверы».</string>
+    <string name="server_feed_failed">Не удалось загрузить видео этого сервера. Проверьте соединение или выберите другой сервер.</string>
+    <string name="live_feed_failed">Не удалось загрузить прямые трансляции. Проверьте подключение к сети и повторите попытку.</string>
+    <string name="choose_peer_server">Выбрать сервер</string>
+    <string name="live_more_results">В проверенной подборке нет активных эфиров. Продолжите поиск на следующих страницах.</string>
+    <string name="find_more_live">Искать дальше</string>
+    <string name="pip_unavailable">Картинка в картинке недоступна. Проверьте разрешение приложения в настройках Android.</string>
 </resources>

@@ -91,9 +91,17 @@ private suspend fun fetchSubscribedVideos(rows: List<SavedVideo>): List<Video> =
 }
 
 class MainActivity : ComponentActivity() {
+    internal val pipSupport by lazy { PlayerPipController(this) }
+    override fun onResume() { super.onResume(); pipSupport.onResume() }
+    override fun onUserLeaveHint() { super.onUserLeaveHint(); pipSupport.onUserLeaveHint() }
+    @androidx.annotation.RequiresApi(26)
+    override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: Configuration) {
+        super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
+        pipSupport.onModeChanged(isInPictureInPictureMode)
+    }
     override fun attachBaseContext(newBase: android.content.Context) { super.attachBaseContext(localizedAppContext(newBase)) }
     override fun onStop() {
-        if (!AppPreferences.get(this).options.value.backgroundPlayback) PlaybackService.pausePlayback()
+        if (!pipSupport.windowActive && !AppPreferences.get(this).options.value.backgroundPlayback) PlaybackService.pausePlayback()
         super.onStop()
     }
     private var requestedPlayback by mutableStateOf<Video?>(null)
@@ -124,6 +132,7 @@ class MainActivity : ComponentActivity() {
 @OptIn(ExperimentalLayoutApi::class)
 @Composable private fun PeerIcheApp(requestedPlayback: Video?) {
     val context = LocalContext.current
+    val inPip = context.playerActivity()?.pipSupport?.active == true
     val options by AppPreferences.get(context).options.collectAsState()
     val wideLayout = LocalConfiguration.current.smallestScreenWidthDp >= 600 && LocalConfiguration.current.screenWidthDp >= 600
     val landscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
@@ -154,6 +163,7 @@ class MainActivity : ComponentActivity() {
     var browseGeneration by remember { mutableIntStateOf(0) }
     var browseBusy by remember { mutableStateOf(false) }
     var browseError by remember { mutableStateOf<String?>(null) }
+    var browseUnsupported by remember { mutableStateOf(false) }
     var browsePage by remember { mutableIntStateOf(0) }
     var browseHasMore by remember { mutableStateOf(false) }
     var searchJob by remember { mutableStateOf<kotlinx.coroutines.Job?>(null) }
@@ -178,11 +188,21 @@ class MainActivity : ComponentActivity() {
     LaunchedEffect(landscape) { if (!landscape) inlineLandscape = false }
     val showVideo = selectedVideo != null && (!wideLayout || !tabletBrowsing)
     var loadingVideo by remember { mutableStateOf(false) }
-    LaunchedEffect(requestedPlayback) { requestedPlayback?.let { selectedVideo = it; tabletBrowsing = false } }
+    LaunchedEffect(requestedPlayback) {
+        requestedPlayback?.let { requested ->
+            selectedVideo = requested; tabletBrowsing = false
+            try {
+                val detail = PeerTubeClients.video(requested.sourceServer(server), requested.apiId())
+                if (selectedVideo?.apiId() == requested.apiId()) selectedVideo = detail
+            } catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled }
+            catch (_: Exception) { }
+        }
+    }
     var playerError by remember { mutableStateOf<String?>(null) }
     var videoLoadGeneration by remember { mutableIntStateOf(0) }
     var updateRequest by remember { mutableIntStateOf(0) }
     var settingsOpen by rememberSaveable { mutableStateOf(false) }
+    var settingsSection by rememberSaveable { mutableStateOf<String?>(null) }
     var chooseServerOpen by remember { mutableStateOf(false) }
     var libraryTab by remember { mutableStateOf("Favorites") }
     var subscriptionsTab by remember { mutableStateOf("Subscriptions") }
@@ -263,6 +283,7 @@ class MainActivity : ComponentActivity() {
         browseJob?.cancel()
         browseBusy = true
         browseError = null
+        browseUnsupported = false
         browseJob = scope.launch {
             try {
                 val response = if (destination == "Server") PeerTubeClients.serverPage(server, pageToLoad, options.includeSensitive)
@@ -271,12 +292,18 @@ class MainActivity : ComponentActivity() {
                     val previous = if (destination == "Server") serverVideos else liveVideos
                     val collected = if (pageToLoad == 0) response.videos else deduplicateVideos(previous + response.videos, server)
                     if (destination == "Server") serverVideos = collected else liveVideos = collected
-                    browsePage = pageToLoad
+                    browsePage = (response.nextPage ?: (pageToLoad + 1)) - 1
                     browseHasMore = response.hasMore
-                    if (collected.isEmpty()) browseError = context.getString(if (destination == "Live") R.string.no_live_videos else R.string.no_results)
+                    if (collected.isEmpty()) browseError = context.getString(if (destination == "Live") {
+                        if (response.hasMore) R.string.live_more_results else R.string.no_live_videos
+                    } else R.string.no_results)
                 }
             } catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled }
-            catch (_: Exception) { if (generation == browseGeneration) browseError = context.getString(R.string.search_failed) }
+            catch (_: NotPeerTubeServerException) { if (generation == browseGeneration) {
+                browseUnsupported = true
+                browseError = context.getString(R.string.server_not_peertube)
+            } }
+            catch (_: Exception) { if (generation == browseGeneration) browseError = context.getString(if (destination == "Server") R.string.server_feed_failed else R.string.live_feed_failed) }
             finally { if (generation == browseGeneration) browseBusy = false }
         }
     }
@@ -343,6 +370,7 @@ class MainActivity : ComponentActivity() {
         inlineLandscape = !enabled && landscape
     }
     fun closePlayer() {
+        context.playerActivity()?.pipSupport?.disable()
         (context as? ComponentActivity)?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
         phoneFullscreen = false
         inlineLandscape = false
@@ -468,6 +496,10 @@ class MainActivity : ComponentActivity() {
         }
     }
     MaterialTheme(colorScheme = scheme) {
+        if (inPip && selectedVideo != null) {
+            BackgroundVideoPlayer(selectedVideo!!, server, Modifier.fillMaxSize(), pip = true)
+            return@MaterialTheme
+        }
         AppUpdateFeature(updateRequest)
         val colors = MaterialTheme.colorScheme
         CompositionLocalProvider(LocalMetadataTranslationPaused provides settingsOpen) {
@@ -597,7 +629,12 @@ class MainActivity : ComponentActivity() {
                     }
                     if (if (browsingFeed) browseBusy else busy) LinearProgressIndicator(Modifier.fillMaxWidth().padding(horizontal = 16.dp), color = colors.primary, trackColor = colors.surface)
                     (if (browsingFeed) browseError else error)?.let { Text(it, Modifier.padding(18.dp), color = if (darkTheme) Color(0xFFFFB49B) else Color(0xFF9C341F)) }
-                    if (browsingFeed && browseError != null && !browseBusy) TextButton(onClick = { loadBrowse(if (browseHasMore) browsePage + 1 else 0) }) { Text(stringResource(R.string.retry)) }
+                    if (browsingFeed && browseError != null && !browseBusy) Row {
+                        if (!browseUnsupported) TextButton(onClick = { loadBrowse(if (browseHasMore) browsePage + 1 else 0) }) {
+                            Text(stringResource(if (page == "Live" && browseHasMore) R.string.find_more_live else R.string.retry))
+                        }
+                        if (page == "Server") TextButton(onClick = { settingsSection = "servers"; settingsOpen = true }) { Text(stringResource(R.string.choose_peer_server)) }
+                    }
                     if (page == "Subscriptions" && subscriptionsTab == "Channels" && !channelVideosMode) {
                         Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp)) {
                             if (channelDirectoryServer == null) Row(Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
@@ -649,7 +686,7 @@ class MainActivity : ComponentActivity() {
                                 Text(stringResource(if (busy) R.string.loading_more else R.string.load_more))
                             }
                         }
-                        if (browsingFeed && browseHasMore) item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
+                        if (browsingFeed && browseHasMore && (visibleVideos.isNotEmpty() || browseError == null)) item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
                             TextButton(onClick = { loadBrowse(browsePage + 1) }, enabled = !browseBusy, modifier = Modifier.fillMaxWidth()) {
                                 Text(stringResource(if (browseBusy) R.string.loading_more else R.string.load_more))
                             }
@@ -658,13 +695,14 @@ class MainActivity : ComponentActivity() {
                     }
                 } else if (wideLayout) {
                     val current = selectedVideo!!
-                    val next = deduplicateVideos(recommendedVideos + homeVideos + videos + subscriptionFeed, server)
+                    val next = deduplicateVideos(recommendedVideos + homeVideos + serverVideos + liveVideos + videos + subscriptionFeed, server)
                         .filterNot { it.apiId() == current.apiId() && it.sourceServer(server) == current.sourceServer(server) }.take(20)
                     TabletVideoScreen(current, server, loadingVideo, playerError, next, tabletFullscreen,
                         current.apiId() in favorites, subscriptionRows.any { it.identity == current.subscriptionIdentity(server) },
                         onBrowse = { tabletFullscreen = false; tabletBrowsing = true },
                         onFullscreen = { tabletFullscreen = !tabletFullscreen }, onOpen = ::openVideo,
                         onFavorite = { toggleCurrentVideoFavorite(current) }, onSubscribe = { toggleCurrentVideoSubscription(current) },
+                        onChannel = { current.channel?.name?.let { handle -> openChannelVideos(PeerTubeChannel(current.channel.displayName ?: handle, handle, current.sourceServer(server).removePrefix("https://"))); closePlayer() } },
                         onRetry = { openVideo(current) })
                 } else {
                     val video = selectedVideo!!
@@ -676,39 +714,28 @@ class MainActivity : ComponentActivity() {
                         }
                         playUrl != null -> BackgroundVideoPlayer(video, server,
                             modifier = if (phonePlayerFullscreen) Modifier.fillMaxSize() else Modifier.fillMaxWidth().aspectRatio(16f / 9f),
-                            fullscreen = phonePlayerFullscreen, onFullscreenToggle = { setPhoneFullscreen(!phonePlayerFullscreen) })
+                            fullscreen = phonePlayerFullscreen, onFullscreenToggle = { setPhoneFullscreen(!phonePlayerFullscreen) },
+                            onBack = { if (phonePlayerFullscreen) setPhoneFullscreen(false) else closePlayer() })
                         else -> Column(Modifier.fillMaxWidth().padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(playerError ?: stringResource(R.string.video_unavailable), color = colors.onBackground)
                             TextButton(onClick = { openVideo(video) }) { Text(stringResource(R.string.retry)) }
                         }
                     }
                     if (!phonePlayerFullscreen) Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState())) {
-                        FlowRow(Modifier.fillMaxWidth().padding(horizontal = 12.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                            val channel = video.channel?.name?.let { PeerTubeChannel(video.channel.displayName ?: it, it, video.sourceServer(server).removePrefix("https://"), 0) }
-                            TextButton(onClick = ::closePlayer) { Text(stringResource(R.string.back)) }
-                            TextButton(onClick = { toggleCurrentVideoSubscription(video) }, enabled = channel != null) {
-                                Text(stringResource(if (channel != null && subscriptionRows.any { it.identity == video.subscriptionIdentity(server) }) R.string.unsubscribe_button else R.string.subscribe_button), maxLines = 2)
-                            }
-                            TextButton(onClick = { toggleCurrentVideoFavorite(video) }) {
-                                Text(stringResource(if (video.apiId() in favorites) R.string.remove_favorite else R.string.add_favorite), maxLines = 2)
-                            }
-                            TextButton(onClick = {
-                                video.channel?.name?.let { handle ->
-                                    openChannelVideos(PeerTubeChannel(video.channel.displayName ?: handle, handle, video.sourceServer(server).removePrefix("https://")))
-                                    closePlayer()
-                                }
-                            }, enabled = video.channel?.name != null) { Text(stringResource(R.string.channel_videos), maxLines = 2) }
-                        }
-                        Text(translatedMetadata(video.name), Modifier.padding(16.dp), color = colors.onBackground, fontSize = 21.sp, fontWeight = FontWeight.Bold)
-                        Text(stringResource(R.string.video_meta, video.views, video.channel?.displayName ?: video.account?.displayName.orEmpty()), Modifier.padding(horizontal = 16.dp), color = Color.Gray)
-                        Text(translatedMetadata(video.description.orEmpty()), Modifier.padding(16.dp), color = colors.onSurfaceVariant)
+                        WatchDetails(video, server, video.apiId() in favorites, subscriptionRows.any { it.identity == video.subscriptionIdentity(server) },
+                            onFavorite = { toggleCurrentVideoFavorite(video) }, onSubscribe = { toggleCurrentVideoSubscription(video) },
+                            onChannel = { video.channel?.name?.let { handle -> openChannelVideos(PeerTubeChannel(video.channel.displayName ?: handle, handle, video.sourceServer(server).removePrefix("https://"))); closePlayer() } })
+                        val next = deduplicateVideos(recommendedVideos + homeVideos + serverVideos + liveVideos + videos + subscriptionFeed, server)
+                            .filterNot { it.apiId() == video.apiId() && it.sourceServer(server) == video.sourceServer(server) }.take(20)
+                        if (next.isNotEmpty()) Text(uiText("Далее", "Up next"), Modifier.padding(16.dp), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                        next.forEach { item -> NextVideoRow(item, server) { openVideo(item) } }
                     }
                 }
                 }
             }
         }
         }
-        if (settingsOpen) SettingsScreen(onClose = { settingsOpen = false }, onCheckUpdates = { updateRequest++ })
+        if (settingsOpen) SettingsScreen(onClose = { settingsOpen = false; settingsSection = null }, onCheckUpdates = { updateRequest++ }, initialSection = settingsSection)
 
     }
 }

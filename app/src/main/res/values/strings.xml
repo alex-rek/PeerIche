@@ -91,4 +91,11 @@
     <string name="home_sort_oldest">Oldest first</string>
     <string name="home_sort_views">Most viewed</string>
     <string name="home_sort_sections">By collections</string>
+    <string name="server_not_peertube">This address does not support the PeerTube API. Choose a PeerTube server in Servers settings.</string>
+    <string name="server_feed_failed">Could not load videos from this server. Check your connection or choose another server.</string>
+    <string name="live_feed_failed">Could not load live streams. Check your connection and try again.</string>
+    <string name="choose_peer_server">Choose server</string>
+    <string name="live_more_results">No active streams in the checked selection. Search the next pages.</string>
+    <string name="find_more_live">Find more streams</string>
+    <string name="pip_unavailable">Picture in picture is unavailable. Check the app permission in Android settings.</string>
 </resources>

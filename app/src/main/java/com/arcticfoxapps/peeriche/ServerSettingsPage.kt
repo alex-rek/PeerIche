@@ -38,6 +38,7 @@ private data class ServerProbe(val online: Boolean, val videos: Int)
     var sort by remember { mutableStateOf("connected") }
     var busy by remember { mutableStateOf<String?>(null) }
     var failure by remember { mutableStateOf(false) }
+    var incompatible by remember { mutableStateOf(false) }
     var checked by remember { mutableIntStateOf(0) }
     var nextPage by remember { mutableIntStateOf(directory.size) }
     var hasMore by remember { mutableStateOf(true) }
@@ -54,16 +55,17 @@ private data class ServerProbe(val online: Boolean, val videos: Int)
     }
     fun connect(raw: String) {
         scope.launch {
-            busy = raw; failure = false
+            busy = raw; failure = false; incompatible = false
             try {
                 val normalized = normalizeServer(raw)
-                val page = withTimeout(12_000) { PeerTubeClients.server(normalized).videos(count = 1) }
+                val page = withTimeout(12_000) { PeerTubeClients.checkServer(normalized) }
                 val host = java.net.URI(normalized).authority.orEmpty()
                 probes = probes + (host to ServerProbe(true, page.total))
                 saveServerList(context, (configured + normalized).distinct().joinToString("\n"), normalized)
                 address = ""
                 cache.edit().putString("probes", Gson().toJson(probes)).apply()
-            } catch (timeout: TimeoutCancellationException) { failure = true }
+            } catch (_: NotPeerTubeServerException) { failure = true; incompatible = true }
+            catch (timeout: TimeoutCancellationException) { failure = true }
             catch (cancelled: CancellationException) { throw cancelled }
             catch (_: Exception) { failure = true }
             finally { busy = null }
@@ -74,7 +76,7 @@ private data class ServerProbe(val online: Boolean, val videos: Int)
             OutlinedTextField(address, { address = it; failure = false }, modifier = Modifier.fillMaxWidth(), singleLine = true,
                 label = { Text(uiText("HTTPS-адрес сервера", "HTTPS server address")) }, isError = failure)
             FilledTonalButton(enabled = address.isNotBlank() && busy == null, onClick = { connect(address) }) { Text(uiText("Проверить и подключить", "Check and connect")) }
-            if (failure) Text(uiText("Подключение не удалось. Проверьте HTTPS-адрес, сеть и доступность PeerTube API. Предыдущий сервер сохранён.", "Connection failed. Check the HTTPS address, network and PeerTube API. Your previous server is retained."), color = MaterialTheme.colorScheme.error)
+            if (failure) Text(if (incompatible) uiText("Этот сайт не поддерживает PeerTube API. Выберите сервер PeerTube. Предыдущий сервер сохранён.", "This website does not support the PeerTube API. Choose a PeerTube server. Your previous server is retained.") else uiText("Подключение не удалось. Проверьте HTTPS-адрес, сеть и доступность PeerTube API. Предыдущий сервер сохранён.", "Connection failed. Check the HTTPS address, network and PeerTube API. Your previous server is retained."), color = MaterialTheme.colorScheme.error)
             OutlinedTextField(query, { query = it }, modifier = Modifier.fillMaxWidth().padding(top = 16.dp), singleLine = true,
                 label = { Text(uiText("Поиск по названию или адресу", "Find by name or address")) })
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -101,7 +103,7 @@ private data class ServerProbe(val online: Boolean, val videos: Int)
                             val semaphore = Semaphore(5)
                             all.map { row -> async { semaphore.withPermit {
                                 val probe = try {
-                                    val page = withTimeout(8_000) { PeerTubeClients.server("https://${row.host}").videos(count = 1) }
+                                    val page = withTimeout(8_000) { PeerTubeClients.checkServer("https://${row.host}") }
                                     ServerProbe(true, page.total)
                                 } catch (timeout: TimeoutCancellationException) { ServerProbe(false, 0) }
                                 catch (cancelled: CancellationException) { throw cancelled }

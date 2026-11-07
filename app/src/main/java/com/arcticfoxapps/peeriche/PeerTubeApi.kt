@@ -14,8 +14,15 @@ import retrofit2.http.Query
 
 data class VideoPage(val data: List<Video> = emptyList(), val total: Int = 0)
 data class ChannelPage(val data: List<PeerTubeChannel> = emptyList(), val total: Int = 0)
-data class PeerTubeChannel(val displayName: String = "", val name: String = "", val host: String? = null, val videosCount: Int? = null)
-data class SearchPage(val videos: List<Video>, val hasMore: Boolean)
+data class CommentPage(val data: List<VideoComment> = emptyList(), val total: Int = 0)
+data class VideoComment(val id: Int = 0, val text: String? = null, val account: Account? = null,
+    val createdAt: String? = null, val totalReplies: Int = 0, val isDeleted: Boolean = false)
+data class CommentTree(val comment: VideoComment? = null, val children: List<CommentTree> = emptyList())
+data class FullVideoDescription(val description: String = "")
+data class Avatar(val path: String? = null, val fileUrl: String? = null)
+data class PeerTubeChannel(val displayName: String = "", val name: String = "", val host: String? = null, val videosCount: Int? = null,
+    val followersCount: Long? = null, val avatars: List<Avatar>? = null)
+data class SearchPage(val videos: List<Video>, val hasMore: Boolean, val nextPage: Int? = null)
 data class InstancePage(val data: List<PeerTubeInstance> = emptyList(), val total: Int = 0)
 data class InstanceStats(val totalVideos: Long? = null)
 data class PeerTubeInstance(val host: String = "", val name: String? = null, val totalVideos: Long? = null, val country: String? = null, val stats: InstanceStats? = null)
@@ -48,7 +55,8 @@ data class Video(
     val streamingPlaylists: List<StreamingPlaylist>? = null,
     val directStreamUrl: String? = null,
     val channel: Channel? = null, val account: Account? = null, val nsfw: Boolean = false,
-    val isLive: Boolean = false, val state: VideoState? = null
+    val isLive: Boolean = false, val state: VideoState? = null, val commentsEnabled: Boolean = true,
+    val comments: Int? = null
 ) {
     fun sourceServer(fallback: String): String {
         val urlHost = runCatching { java.net.URI(url).takeIf { it.scheme == "https" || it.scheme == "http" }?.host }.getOrNull()
@@ -90,11 +98,17 @@ data class VideoFile(val fileUrl: String? = null, val resolution: Resolution? = 
 data class VideoState(val id: Int = 0)
 data class Resolution(val id: Int = 0, val label: String? = null)
 data class StreamingPlaylist(val playlistUrl: String? = null, val files: List<VideoFile>? = null)
-data class Channel(val displayName: String? = null, val name: String? = null, val host: String? = null)
-data class Account(val displayName: String? = null, val name: String? = null, val host: String? = null)
+data class Channel(val displayName: String? = null, val name: String? = null, val host: String? = null, val avatars: List<Avatar>? = null)
+data class Account(val displayName: String? = null, val name: String? = null, val host: String? = null, val avatars: List<Avatar>? = null)
 
 
 interface PeerTubeApi {
+    @GET("api/v1/videos") suspend fun videoListing(
+        @Query("count") count: Int = 30, @Query("start") start: Int = 0,
+        @Query("isLocal") isLocal: Boolean? = null, @Query("nsfw") nsfw: String = "false",
+        @Query("isLive") isLive: Boolean? = null, @Query("includeScheduledLive") includeScheduledLive: Boolean? = null,
+        @Query("sort") sort: String = "-publishedAt"
+    ): okhttp3.ResponseBody
     @GET("api/v1/videos") suspend fun videos(
         @Query("sort") sort: String = "-publishedAt", @Query("count") count: Int = 30,
         @Query("isLocal") isLocal: Boolean? = null, @Query("start") start: Int = 0,
@@ -106,6 +120,10 @@ interface PeerTubeApi {
         @Query("count") count: Int = 30, @Query("sort") sort: String = "-match", @Query("nsfw") nsfw: String = "false"
     ): VideoPage
     @GET("api/v1/videos/{id}") suspend fun video(@Path("id") id: String): Video
+    @GET("api/v1/videos/{id}/description") suspend fun description(@Path("id") id: String): FullVideoDescription
+    @GET("api/v1/videos/{id}/comment-threads") suspend fun comments(@Path("id") id: String, @Query("start") start: Int = 0, @Query("count") count: Int = 20): CommentPage
+    @GET("api/v1/videos/{id}/comment-threads/{thread}") suspend fun commentThread(@Path("id") id: String, @Path("thread") thread: Int): CommentTree
+    @GET("api/v1/video-channels/{handle}") suspend fun channel(@Path(value = "handle", encoded = true) handle: String): PeerTubeChannel
     @GET("api/v1/videos/{id}/captions") suspend fun captions(@Path("id") id: String): CaptionPage
     @GET("api/v1/video-channels/{handle}/videos") suspend fun channelVideos(@Path(value = "handle", encoded = true) handle: String, @Query("count") count: Int = 30): VideoPage
     @GET("api/v1/video-channels") suspend fun channels(@Query("count") count: Int = 100, @Query("start") start: Int = 0, @Query("sort") sort: String = "-createdAt"): ChannelPage
@@ -114,7 +132,7 @@ interface PeerTubeApi {
 interface SepiaApi {
     @GET("api/v1/search/videos") suspend fun live(
         @Query("start") start: Int = 0, @Query("count") count: Int = 30,
-        @Query("sort") sort: String = "-publishedAt", @Query("isLive") isLive: Boolean = true,
+        @Query("sort") sort: String = "-views", @Query("isLive") isLive: Boolean = true,
         @Query("includeScheduledLive") includeScheduledLive: Boolean = false, @Query("nsfw") nsfw: String = "false"
     ): VideoPage
     @GET("api/v1/search/videos") suspend fun search(
@@ -186,22 +204,36 @@ object PeerTubeClients {
     suspend fun popular(server: String) = server(server).videos(sort = "-views", count = 30).data
     suspend fun serverPage(host: String, page: Int, sensitive: Boolean): SearchPage {
         val start = page.coerceAtLeast(0) * 30
-        val response = server(host).videos(isLocal = true, start = start, nsfw = sensitive.toString())
+        val response = checkedVideoListing(host, start = start, local = true, sensitive = sensitive)
         return SearchPage(response.data, start + response.data.size < response.total)
     }
+    suspend fun checkServer(host: String): VideoPage = checkedVideoListing(host, count = 1)
+    private suspend fun checkedVideoListing(host: String, start: Int = 0, count: Int = 30, local: Boolean? = null,
+        sensitive: Boolean = false, live: Boolean? = null): VideoPage {
+        val body = try { server(host).videoListing(count, start, local, sensitive.toString(), live, if (live == true) false else null) }
+        catch (error: retrofit2.HttpException) { if (error.code() == 404) throw NotPeerTubeServerException() else throw error }
+        return body.use { parsePeerTubeVideoPage(it.string()) }
+    }
     suspend fun livePage(host: String, page: Int, sensitive: Boolean): SearchPage {
-        val start = page.coerceAtLeast(0) * 30
-        val response = try { kotlinx.coroutines.withTimeout(15_000) { sepia.live(start = start, nsfw = sensitive.toString()) } }
+        val indexed = try { scanLivePages(page, host, sensitive,
+            fetch = { index -> kotlinx.coroutines.withTimeout(15_000) { sepia.live(start = index * 30, nsfw = sensitive.toString()) } },
+            resolve = { candidate -> server(candidate.sourceServer(host)).video(candidate.apiId()) }) }
         catch (timeout: kotlinx.coroutines.TimeoutCancellationException) {
-            server(host).videos(start = start, isLive = true, includeScheduledLive = false, nsfw = sensitive.toString())
+            null
         } catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled }
-        catch (_: Exception) {
-            server(host).videos(start = start, isLive = true, includeScheduledLive = false, nsfw = sensitive.toString())
+        catch (_: Exception) { null }
+        if (indexed != null && indexed.videos.isNotEmpty()) return indexed
+        // The global live feed must not depend on a mistakenly selected non-PeerTube website.
+        for (fallback in listOf(host, "https://peertube.tv").distinct()) {
+            try {
+                val response = kotlinx.coroutines.withTimeout(10_000) { checkedVideoListing(fallback, live = true, sensitive = sensitive) }
+                val active = resolveLiveVideos(response.data, fallback) { candidate -> server(candidate.sourceServer(fallback)).video(candidate.apiId()) }
+                if (active.isNotEmpty()) return SearchPage(active, indexed?.hasMore ?: false, indexed?.nextPage)
+            } catch (timeout: kotlinx.coroutines.TimeoutCancellationException) { /* try the next source */ }
+            catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled }
+            catch (_: Exception) { /* try the next source */ }
         }
-        val active = resolveLiveVideos(response.data, host) { candidate ->
-            server(candidate.sourceServer(host)).video(candidate.apiId())
-        }
-        return SearchPage(active.filter { sensitive || !it.nsfw }, start + response.data.size < response.total)
+        return indexed ?: throw java.io.IOException("Live sources unavailable")
     }
     suspend fun video(server: String, id: String): Video = server(server).video(id)
     suspend fun allChannels(server: String): List<PeerTubeChannel> {

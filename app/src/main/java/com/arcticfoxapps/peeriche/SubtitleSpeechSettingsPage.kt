@@ -40,20 +40,20 @@ import java.util.Locale
         dismissButton = { TextButton(onClick = onDismiss) { Text(uiText("Отмена", "Cancel")) } })
 }
 
-@Composable internal fun SpeechQuickControl(modifier: Modifier = Modifier) {
+@Composable internal fun SpeechQuickControl(modifier: Modifier = Modifier, transparent: Boolean = false, showSettings: Boolean = true) {
     val context = LocalContext.current
     val preferences = remember { AppPreferences.get(context) }
     val options by preferences.options.collectAsState()
     val status by SubtitleSpeechRuntime.status.collectAsState()
     var offer by remember { mutableStateOf(false) }
     var settings by remember { mutableStateOf(false) }
-    Row(modifier.background(Color.Black.copy(alpha = .55f), MaterialTheme.shapes.large), verticalAlignment = Alignment.CenterVertically) {
+    Row(if (transparent) modifier else modifier.background(Color.Black.copy(alpha = .55f), MaterialTheme.shapes.large), verticalAlignment = Alignment.CenterVertically) {
         IconButton(onClick = {
             if (!options.speech.enabled && !options.speech.offeredAuto) offer = true
             else preferences.update { it.copy(speech = it.speech.copy(enabled = !it.speech.enabled, mode = it.speech.mode.takeUnless { mode -> mode == "off" } ?: "auto")) }
         }) { Icon(if (options.speech.enabled) Icons.Default.RecordVoiceOver else Icons.Default.VoiceOverOff,
             uiText("Озвучивание субтитров", "Subtitle speech"), tint = if (options.speech.enabled) MaterialTheme.colorScheme.primary else Color.White) }
-        IconButton(onClick = { settings = true }, modifier = Modifier.size(36.dp)) {
+        if (showSettings) IconButton(onClick = { settings = true }, modifier = Modifier.size(36.dp)) {
             Icon(Icons.Default.Tune, uiText("Настройки озвучивания", "Speech settings"), tint = Color.White, modifier = Modifier.size(20.dp))
         }
         if (options.speech.enabled && status in listOf("missing_voice", "engine_error", "speech_error", "no_subtitles", "captions_error")) {

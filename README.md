@@ -15,8 +15,10 @@ PeerIche is a continuation of PeerTubeTV by the same author. It is a standalone 
 - Full screen destination with Media3 playback when a playable URL is provided.
 - Graphite, Light and blue Aurora themes, plus automatic Android theme switching.
 - Compact header and an original Graphite vector launcher mark.
+- Watch page with collapsible description, channel subscription, public comment threads and Android sharing.
+- Picture-in-Picture on Android 8+, including automatic entry while playing when leaving the app.
 
-This is an early implementation. Local channel subscriptions load public channel videos; account sign-in, dedicated channel pages, persistent playlists, advanced search filters, Picture-in-Picture, and DeX validation remain to be implemented. Tablet layout has a responsive rail and grid but still needs broader device validation. Room and DataStore files are app-private and not shared with PeerTubeTV.
+This is an early implementation. Local channel subscriptions load public channel videos; account sign-in, dedicated channel pages, persistent playlists, advanced search filters, and DeX validation remain to be implemented. Tablet layout has a responsive rail and grid but still needs broader device validation. Room and DataStore files are app-private and not shared with PeerTubeTV.
 
 ## Build
 
@@ -95,5 +97,11 @@ The player offers Original, 16:9, 4:3, 1:1 and 21:9 display formats independentl
 Android TextToSpeech can speak original or translated subtitles, both sequentially, or automatically use the target language. It is disabled by default. Player → Subtitles → Speech contains engine/voice selection, language, rate, pitch, original-audio duck/mute, synchronization strategy, fallback and voice testing. The player has quick enable and settings controls on phones and tablets. Offline installed voices are preferred; no cloud TTS dependency or voice pack is bundled.
 
 Speech belongs to PlaybackService and uses the existing subtitle translation and cache. The current timed cue replaces stale speech; no unbounded utterance queue is used. Pausing, seeking, changing items/speed, engine errors and disabling speech stop utterances and restore player volume. Long cues can be skipped at their deadline, accelerated up to 2.5×, or hold video temporarily (30-second watchdog). Explicit user pause and headphone disconnect cancel an owned hold. Video resumes when an owned hold ends or speech is disabled, but not after user pause.
+
+## Server and live-feed recovery (0.3.1)
+
+Server connection and local-video listing validate the PeerTube JSON response shape; HTML websites and unrelated JSON are rejected. A previously saved incompatible address shows a clear message and a direct Servers-settings action. PeerIche does not implement Odysee's separate API.
+
+Live discovery prioritizes most-viewed index entries, verifies their origin state, and automatically skips up to four empty index pages while preserving the next-page cursor. Network failures on one origin short-circuit further queued checks against that origin within the batch. When the index is unavailable or has no verified live result, the selected server and the default public PeerTube federation are tried as fallbacks. Network failure and a verified empty selection use different messages.
 
 External WebVTT provides exact start/end timestamps. Media3-only embedded cues have no end-time table: their window ends at the next cue event or an eight-second safety window. Resume restarts the current cue rather than resuming an exact phoneme. Actual TTS duration varies by voice. First-time ML Kit model preparation can delay translated speech; the chosen fallback applies. See `docs/SUBTITLE-SPEECH-AUDIT.md` and `docs/SUBTITLE-SPEECH-REPORT.md` for architecture and verification.

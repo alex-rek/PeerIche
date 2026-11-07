@@ -35,11 +35,11 @@ import java.util.Locale
 @Composable internal fun uiText(ru: String, en: String): String =
     if (ConfigurationCompat.getLocales(LocalConfiguration.current)[0]?.language == "ru") ru else en
 
-@Composable internal fun SettingsScreen(onClose: () -> Unit, onCheckUpdates: () -> Unit) {
+@Composable internal fun SettingsScreen(onClose: () -> Unit, onCheckUpdates: () -> Unit, initialSection: String? = null) {
     val context = LocalContext.current
     val preferences = remember { AppPreferences.get(context) }
     val options by preferences.options.collectAsState()
-    var section by rememberSaveable { mutableStateOf<String?>(null) }
+    var section by rememberSaveable { mutableStateOf(initialSection) }
     val categories = listOf(
         Triple("general", uiText("Общие", "General"), Icons.Default.Settings),
         Triple("search", uiText("Поиск", "Search"), Icons.Default.Search),
@@ -160,7 +160,7 @@ import java.util.Locale
     }
 }
 
-@Composable private fun PlayerSettingsPage(options: AppOptions, preferences: AppPreferences, onSpeech: () -> Unit) {
+@Composable internal fun PlayerSettingsPage(options: AppOptions, preferences: AppPreferences, onSpeech: () -> Unit) {
     LazyColumn(Modifier.fillMaxSize()) {
         item { SettingsToggle(uiText("Автовоспроизведение", "Start playback automatically"), options.autoplay) { value -> preferences.update { it.copy(autoplay = value) } } }
         item { SettingsToggle(uiText("Фоновое воспроизведение", "Background playback"), options.backgroundPlayback) { value -> preferences.update { it.copy(backgroundPlayback = value) } } }
