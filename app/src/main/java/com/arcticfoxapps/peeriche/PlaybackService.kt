@@ -18,12 +18,19 @@ import kotlinx.coroutines.flow.asStateFlow
 class PlaybackService : MediaSessionService() {
     companion object {
         private var playbackPlayer: ExoPlayer? = null
-        fun pausePlayback() { playbackPlayer?.pause() }
+        private var pauseSpeech: (() -> Unit)? = null
+        fun pausePlayback() { pauseSpeech?.invoke(); playbackPlayer?.pause() }
         private val ended = MutableStateFlow<String?>(null)
         val endedVideo = ended.asStateFlow()
     }
     private var session: MediaSession? = null
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    private var subtitleSpeech: SubtitleSpeechManager? = null
+    private val noisyReceiver = object : android.content.BroadcastReceiver() {
+        override fun onReceive(context: android.content.Context?, intent: Intent?) {
+            if (intent?.action == android.media.AudioManager.ACTION_AUDIO_BECOMING_NOISY) pausePlayback()
+        }
+    }
 
     override fun onCreate() {
         super.onCreate()
@@ -36,6 +43,14 @@ class PlaybackService : MediaSessionService() {
                 setWakeMode(C.WAKE_MODE_NETWORK)
             }
         playbackPlayer = player
+        pauseSpeech = { subtitleSpeech?.userPause() }
+        androidx.core.content.ContextCompat.registerReceiver(this, noisyReceiver,
+            android.content.IntentFilter(android.media.AudioManager.ACTION_AUDIO_BECOMING_NOISY), androidx.core.content.ContextCompat.RECEIVER_NOT_EXPORTED)
+        serviceScope.launch { AppPreferences.get(this@PlaybackService).options.collect { value ->
+            if (!value.speech.enabled) { subtitleSpeech?.close(); subtitleSpeech = null }
+            else if (subtitleSpeech == null) subtitleSpeech = SubtitleSpeechManager(this@PlaybackService, player, value)
+            else subtitleSpeech?.configure(value)
+        } }
         ended.value = null
         val watchTime = WatchTimeTracker()
         fun sampleWatchTime() {
@@ -52,6 +67,7 @@ class PlaybackService : MediaSessionService() {
         serviceScope.launch { while (isActive) { sampleWatchTime(); delay(250) } }
         // Headset next/previous buttons seek within the current single-video session.
         val controls = object : ForwardingPlayer(player) {
+            override fun pause() { subtitleSpeech?.userPause(); player.pause() }
             override fun getAvailableCommands(): Player.Commands = super.getAvailableCommands().buildUpon()
                 .addAll(Player.COMMAND_SEEK_TO_NEXT, Player.COMMAND_SEEK_TO_PREVIOUS,
                     Player.COMMAND_SEEK_TO_NEXT_MEDIA_ITEM, Player.COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM).build()
@@ -92,6 +108,9 @@ class PlaybackService : MediaSessionService() {
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? = session
 
     override fun onDestroy() {
+        subtitleSpeech?.close(resumeVideo = false); subtitleSpeech = null
+        unregisterReceiver(noisyReceiver)
+        pauseSpeech = null
         serviceScope.cancel()
         playbackPlayer = null
         session?.run { player.release(); release() }

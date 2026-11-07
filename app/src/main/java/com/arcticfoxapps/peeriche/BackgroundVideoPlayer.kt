@@ -77,7 +77,7 @@ data class VideoCaption(val language: CaptionLanguage? = null, val captionPath: 
             kotlinx.coroutines.delay(1000)
         }
     }
-    LaunchedEffect(player, video.apiId(), options.playbackSpeed, options.quality, options.subtitlesEnabled, options.subtitleLanguage) {
+    LaunchedEffect(player, video.apiId(), options.playbackSpeed, options.quality, options.subtitlesEnabled, options.subtitleLanguage, options.speech.enabled) {
         player ?: return@LaunchedEffect
         val language = options.subtitleLanguage.ifBlank {
             androidx.core.os.ConfigurationCompat.getLocales(android.content.res.Resources.getSystem().configuration)[0]?.language.orEmpty()
@@ -85,7 +85,7 @@ data class VideoCaption(val language: CaptionLanguage? = null, val captionPath: 
         player.setPlaybackSpeed(options.playbackSpeed)
         player.trackSelectionParameters = player.trackSelectionParameters.buildUpon()
             .setMaxVideoSize(Int.MAX_VALUE, if (options.quality > 0) options.quality else Int.MAX_VALUE)
-            .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, !options.subtitlesEnabled)
+            .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, !options.subtitlesEnabled && !options.speech.enabled)
             .setPreferredTextLanguage(language).build()
     }
     LaunchedEffect(player, video.apiId(), video.playableUrl(), captionRetry, options.quality, options.translateSubtitles, options.translateTo) {
@@ -123,7 +123,7 @@ data class VideoCaption(val language: CaptionLanguage? = null, val captionPath: 
         player.prepare()
         player.playWhenReady = wasPlaying
         if (nativeTranslation) player.trackSelectionParameters = player.trackSelectionParameters.buildUpon()
-            .setPreferredTextLanguage(options.translateTo).setTrackTypeDisabled(C.TRACK_TYPE_TEXT, !options.subtitlesEnabled).build()
+            .setPreferredTextLanguage(options.translateTo).setTrackTypeDisabled(C.TRACK_TYPE_TEXT, !options.subtitlesEnabled && !options.speech.enabled).build()
         translationFailed = false
         if (options.translateSubtitles && !nativeTranslation && captions.isNotEmpty()) {
             val source = captions.firstOrNull { it.language?.id?.substringBefore('-') == options.subtitleLanguage && it.language?.id?.substringBefore('-') != options.translateTo }
@@ -142,7 +142,7 @@ data class VideoCaption(val language: CaptionLanguage? = null, val captionPath: 
                     player.prepare()
                     player.playWhenReady = keepPlaying
                     player.trackSelectionParameters = player.trackSelectionParameters.buildUpon().setPreferredTextLanguage(options.translateTo)
-                        .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, !options.subtitlesEnabled).build()
+                        .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, !options.subtitlesEnabled && !options.speech.enabled).build()
                 }
             } catch (cancelled: CancellationException) { throw cancelled }
             catch (_: Exception) { translationFailed = true }
@@ -200,13 +200,14 @@ data class VideoCaption(val language: CaptionLanguage? = null, val captionPath: 
             subtitles.setFixedTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, options.subtitleSize.toFloat())
             subtitles.setStyle(CaptionStyleCompat(subtitleArgb(options.subtitleColor), android.graphics.Color.argb(160, 0, 0, 0),
                 android.graphics.Color.TRANSPARENT, CaptionStyleCompat.EDGE_TYPE_OUTLINE, android.graphics.Color.BLACK, android.graphics.Typeface.DEFAULT))
-            subtitles.setCues(subtitleCues.map { cue -> cue.buildUpon()
+            subtitles.setCues((if (options.subtitlesEnabled) subtitleCues else emptyList()).map { cue -> cue.buildUpon()
                 .setPosition(options.subtitleHorizontal / 100f).setPositionAnchor(Cue.ANCHOR_TYPE_MIDDLE)
                 .setLine(1 - options.subtitleBottom / 100f, Cue.LINE_TYPE_FRACTION).setLineAnchor(Cue.ANCHOR_TYPE_END).build() })
             }
             it.controllerShowTimeoutMs = options.controlsTimeout * 1000
             it.resizeMode = when (options.resizeMode) { "zoom" -> AspectRatioFrameLayout.RESIZE_MODE_ZOOM; "fill" -> AspectRatioFrameLayout.RESIZE_MODE_FILL; else -> AspectRatioFrameLayout.RESIZE_MODE_FIT }
         }, onRelease = { it.player = null }, modifier = Modifier.fillMaxSize())
+        SpeechQuickControl(Modifier.align(Alignment.TopStart).padding(4.dp))
         var formatMenu by remember { mutableStateOf(false) }
         Box(Modifier.align(Alignment.TopEnd).padding(4.dp)) {
             TextButton(onClick = { formatMenu = true }, modifier = Modifier.background(Color.Black.copy(alpha = .55f), CircleShape)) {

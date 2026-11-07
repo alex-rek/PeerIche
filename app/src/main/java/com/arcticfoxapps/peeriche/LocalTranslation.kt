@@ -61,10 +61,10 @@ object LocalTranslation {
         status.value = "ready"
     }
 
-    suspend fun translate(context: Context, text: String, sourceHint: String? = null): String {
+    suspend fun translate(context: Context, text: String, sourceHint: String? = null, targetLanguage: String? = null): String {
         if (text.isBlank()) return text
         val options = AppPreferences.get(context).options.value
-        val target = TranslateLanguage.fromLanguageTag(options.translateTo) ?: return text
+        val target = TranslateLanguage.fromLanguageTag(targetLanguage ?: options.translateTo) ?: return text
         val key = target + ":" + text
         synchronized(cache) { cache[key] }?.let { return it }
         return semaphore.withPermit { withContext(Dispatchers.IO) {
@@ -90,11 +90,12 @@ object LocalTranslation {
         } }
     }
 
-    suspend fun subtitle(context: Context, caption: VideoCaption, server: String): File? = subtitleMutex.withLock { withContext(Dispatchers.IO) {
+    suspend fun subtitle(context: Context, caption: VideoCaption, server: String,
+        targetLanguage: String = AppPreferences.get(context).options.value.translateTo): File? = subtitleMutex.withLock { withContext(Dispatchers.IO) {
         val options = AppPreferences.get(context).options.value
         val url = caption.resolvedUrl(server) ?: return@withContext null
-        if (caption.language?.id?.substringBefore('-') == options.translateTo) return@withContext null
-        val hash = MessageDigest.getInstance("SHA-256").digest((url + options.translateTo).toByteArray())
+        if (caption.language?.id?.substringBefore('-') == targetLanguage) return@withContext null
+        val hash = MessageDigest.getInstance("SHA-256").digest((url + targetLanguage).toByteArray())
             .joinToString("") { "%02x".format(it.toInt() and 255) }
         val target = File(context.cacheDir, "translated-subtitles/$hash.vtt")
         if (target.isFile) return@withContext target
@@ -112,7 +113,7 @@ object LocalTranslation {
             ?: TranslateLanguage.fromLanguageTag(Tasks.await(detector.identifyLanguage(raw.replace(Regex("<[^>]*>"), "").take(1000)), 20, TimeUnit.SECONDS)) }
             finally { detector.close() }
         require(source != null) { "Unknown subtitle language" }
-        val destination = requireNotNull(TranslateLanguage.fromLanguageTag(options.translateTo))
+        val destination = requireNotNull(TranslateLanguage.fromLanguageTag(targetLanguage))
         if (source == destination) return@withContext null
         val translator = Translation.getClient(TranslatorOptions.Builder().setSourceLanguage(source).setTargetLanguage(destination).build())
         val translated = try {

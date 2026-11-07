@@ -89,3 +89,11 @@ Home combines subscriptions, recommendations and recent videos into one deduplic
 The playback service records history after five seconds of actual playing time, including background playback. Pause/buffering time and seek jumps do not count. All Home modes react to history and hide watched videos. Existing history is retained. Ending a video returns to its browsing destination and scroll position.
 
 The player offers Original, 16:9, 4:3, 1:1 and 21:9 display formats independently of fit/zoom/stretch scaling. The selected format also appears in Player settings. Thumbnail loading tries the browsing server and origin for relative URLs, then preview images and origin metadata when needed; unavailable images show a placeholder rather than an unexplained blank surface.
+
+## Subtitle speech (0.3.0)
+
+Android TextToSpeech can speak original or translated subtitles, both sequentially, or automatically use the target language. It is disabled by default. Player → Subtitles → Speech contains engine/voice selection, language, rate, pitch, original-audio duck/mute, synchronization strategy, fallback and voice testing. The player has quick enable and settings controls on phones and tablets. Offline installed voices are preferred; no cloud TTS dependency or voice pack is bundled.
+
+Speech belongs to PlaybackService and uses the existing subtitle translation and cache. The current timed cue replaces stale speech; no unbounded utterance queue is used. Pausing, seeking, changing items/speed, engine errors and disabling speech stop utterances and restore player volume. Long cues can be skipped at their deadline, accelerated up to 2.5×, or hold video temporarily (30-second watchdog). Explicit user pause and headphone disconnect cancel an owned hold. Video resumes when an owned hold ends or speech is disabled, but not after user pause.
+
+External WebVTT provides exact start/end timestamps. Media3-only embedded cues have no end-time table: their window ends at the next cue event or an eight-second safety window. Resume restarts the current cue rather than resuming an exact phoneme. Actual TTS duration varies by voice. First-time ML Kit model preparation can delay translated speech; the chosen fallback applies. See `docs/SUBTITLE-SPEECH-AUDIT.md` and `docs/SUBTITLE-SPEECH-REPORT.md` for architecture and verification.

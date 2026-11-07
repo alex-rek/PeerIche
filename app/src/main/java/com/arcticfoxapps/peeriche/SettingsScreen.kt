@@ -49,14 +49,14 @@ import java.util.Locale
         Triple("about", uiText("О приложении", "About"), Icons.Default.Info)
     )
     Dialog(onDismissRequest = onClose, properties = DialogProperties(usePlatformDefaultWidth = false)) {
-        BackHandler { if (section != null) section = null else onClose() }
+        BackHandler { if (section == "speech") section = "player" else if (section != null) section = null else onClose() }
         Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
             Column(Modifier.fillMaxSize()) {
                 Row(Modifier.fillMaxWidth().heightIn(min = 64.dp).padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = { if (section != null) section = null else onClose() }) {
+                    IconButton(onClick = { if (section == "speech") section = "player" else if (section != null) section = null else onClose() }) {
                         Icon(Icons.Default.ArrowBack, uiText("Назад", "Back"))
                     }
-                    Text(categories.firstOrNull { it.first == section }?.second ?: uiText("Настройки", "Settings"),
+                    Text(if (section == "speech") uiText("Озвучивание субтитров", "Subtitle speech") else categories.firstOrNull { it.first == section }?.second ?: uiText("Настройки", "Settings"),
                         fontSize = 23.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(start = 12.dp))
                 }
                 when (section) {
@@ -69,7 +69,8 @@ import java.util.Locale
                     "search" -> SearchSettingsPage(options, preferences)
                     "servers" -> ServerSettingsPage(options)
                     "translations" -> TranslationSettingsPage(options, preferences)
-                    "player" -> PlayerSettingsPage(options, preferences)
+                    "player" -> PlayerSettingsPage(options, preferences) { section = "speech" }
+                    "speech" -> SubtitleSpeechSettingsPage(options, preferences)
                     "about" -> Column(Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
                         Text("PeerIche", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
                         Text(uiText("Версия", "Version") + " " + BuildConfig.VERSION_NAME + " · " + BuildConfig.BUILD_DATE)
@@ -159,7 +160,7 @@ import java.util.Locale
     }
 }
 
-@Composable private fun PlayerSettingsPage(options: AppOptions, preferences: AppPreferences) {
+@Composable private fun PlayerSettingsPage(options: AppOptions, preferences: AppPreferences, onSpeech: () -> Unit) {
     LazyColumn(Modifier.fillMaxSize()) {
         item { SettingsToggle(uiText("Автовоспроизведение", "Start playback automatically"), options.autoplay) { value -> preferences.update { it.copy(autoplay = value) } } }
         item { SettingsToggle(uiText("Фоновое воспроизведение", "Background playback"), options.backgroundPlayback) { value -> preferences.update { it.copy(backgroundPlayback = value) } } }
@@ -170,6 +171,7 @@ import java.util.Locale
         item { SettingsChoice(uiText("Масштаб видео", "Video scaling"), options.resizeMode, listOf("fit" to uiText("Вписать", "Fit"), "zoom" to uiText("Заполнить с обрезкой", "Zoom / crop"), "fill" to uiText("Растянуть", "Stretch"))) { value -> preferences.update { it.copy(resizeMode = value) } } }
         item { SettingsChoice(uiText("Формат изображения", "Aspect ratio"), options.videoAspect,
             listOf("auto" to uiText("Исходный", "Original")) + listOf("16:9", "4:3", "1:1", "21:9").map { it to it }) { value -> preferences.update { it.copy(videoAspect = value) } } }
+        item { SettingsRow(uiText("Субтитры → Озвучивание", "Subtitles → Speech"), uiText("Голос, язык, синхронизация и исходный звук", "Voice, language, timing and original audio"), onClick = onSpeech) }
         item { SettingsToggle(uiText("Субтитры по умолчанию", "Subtitles by default"), options.subtitlesEnabled) { value -> preferences.update { it.copy(subtitlesEnabled = value) } } }
         item { SettingsChoice(uiText("Предпочтительный язык субтитров", "Preferred subtitle language"), options.subtitleLanguage,
             listOf("" to uiText("Как на устройстве", "Follow Android")) + translationLanguages()) { value -> preferences.update { it.copy(subtitleLanguage = value) } } }
