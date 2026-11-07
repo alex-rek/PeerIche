@@ -54,10 +54,11 @@ data class VideoCaption(val language: CaptionLanguage? = null, val captionPath: 
 }
 
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
+@OptIn(ExperimentalLayoutApi::class)
 @Composable internal fun BackgroundVideoPlayer(video: Video, server: String, modifier: Modifier,
     compact: Boolean = false, onExpand: () -> Unit = {}, onClose: () -> Unit = {},
     fullscreen: Boolean = false, onFullscreenToggle: () -> Unit = {}, onController: (Player?) -> Unit = {},
-    onBack: () -> Unit = {}, pip: Boolean = false) {
+    onBack: () -> Unit = {}, pip: Boolean = false, onMiniPlayer: () -> Unit = {}) {
     val context = LocalContext.current
     val options by AppPreferences.get(context).options.collectAsState()
     var subtitleCues by remember(video.apiId()) { mutableStateOf<List<Cue>>(emptyList()) }
@@ -76,6 +77,7 @@ data class VideoCaption(val language: CaptionLanguage? = null, val captionPath: 
         onDispose { disposed = true; controller = null; MediaController.releaseFuture(future) }
     }
     val player = controller
+    val controlsBottomInset = if (fullscreen) WindowInsets.systemBarsIgnoringVisibility.getBottom(androidx.compose.ui.platform.LocalDensity.current) else 0
     var playing by remember { mutableStateOf(false) }
     var playRequested by remember { mutableStateOf(false) }
     var nativeAspect by remember { mutableFloatStateOf(16f / 9f) }
@@ -202,8 +204,7 @@ data class VideoCaption(val language: CaptionLanguage? = null, val captionPath: 
     }) {
         var controlsVisible by remember { mutableStateOf(true) }
         var menu by remember { mutableStateOf(false) }
-        var subtitleDialog by remember { mutableStateOf<android.app.Dialog?>(null) }
-        DisposableEffect(Unit) { onDispose { subtitleDialog?.dismiss() } }
+        var subtitleDialog by remember { mutableStateOf(false) }
         AndroidView(factory = { AspectPlayerView(it).apply {
             setBackgroundColor(android.graphics.Color.BLACK)
             useController = true
@@ -226,6 +227,8 @@ data class VideoCaption(val language: CaptionLanguage? = null, val captionPath: 
             }
         } }, update = {
             it.player = player
+            it.findViewById<android.view.View>(androidx.media3.ui.R.id.exo_bottom_bar)?.translationY = -controlsBottomInset.toFloat()
+            it.findViewById<android.view.View>(androidx.media3.ui.R.id.exo_progress)?.translationY = -controlsBottomInset.toFloat()
             it.useController = !pip
             it.setDisplayFormat(options.videoAspect)
             it.subtitleView?.visibility = android.view.View.GONE
@@ -243,25 +246,26 @@ data class VideoCaption(val language: CaptionLanguage? = null, val captionPath: 
             it.resizeMode = when (options.resizeMode) { "zoom" -> AspectRatioFrameLayout.RESIZE_MODE_ZOOM; "fill" -> AspectRatioFrameLayout.RESIZE_MODE_FILL; else -> AspectRatioFrameLayout.RESIZE_MODE_FIT }
         }, onRelease = { it.player = null }, modifier = Modifier.fillMaxSize())
         if (!pip && controlsVisible) {
-            Row(Modifier.align(Alignment.TopCenter).fillMaxWidth().padding(4.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(Modifier.align(Alignment.TopCenter).fillMaxWidth().then(if (fullscreen) Modifier.windowInsetsPadding(WindowInsets.systemBarsIgnoringVisibility.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal)) else Modifier).padding(4.dp), verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, stringResource(R.string.back), tint = Color.White) }
                 Spacer(Modifier.weight(1f))
-                if (pipSupport?.supported == true) IconButton(onClick = { pipSupport.enter() }, modifier = Modifier.size(40.dp)) {
+                IconButton(onClick = onMiniPlayer, modifier = Modifier.size(40.dp)) {
                     Icon(Icons.Default.PictureInPictureAlt, uiText("Картинка в картинке", "Picture in picture"), tint = Color.White)
                 }
                 SpeechQuickControl(transparent = true, showSettings = false)
-                IconButton(onClick = { subtitleDialog?.dismiss(); subtitleDialog = showSubtitleTracks(context, player).also { it.show() } }, modifier = Modifier.size(40.dp)) {
+                IconButton(onClick = { subtitleDialog = true }, modifier = Modifier.size(40.dp)) {
                     Icon(Icons.Default.Subtitles, stringResource(R.string.subtitles), tint = Color.White)
                 }
                 IconButton(onClick = { menu = true }, modifier = Modifier.size(40.dp)) { Icon(Icons.Default.Settings, uiText("Параметры плеера", "Player settings"), tint = Color.White) }
             }
         IconButton(onClick = onFullscreenToggle,
-            modifier = Modifier.align(Alignment.BottomEnd).padding(4.dp)) {
+            modifier = Modifier.align(Alignment.BottomEnd).then(if (fullscreen) Modifier.windowInsetsPadding(WindowInsets.systemBarsIgnoringVisibility.only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal)) else Modifier).padding(4.dp)) {
             Icon(if (fullscreen) Icons.Default.FullscreenExit else Icons.Default.Fullscreen,
                 stringResource(if (fullscreen) R.string.exit_fullscreen else R.string.enter_fullscreen), tint = Color.White)
         }
         }
-        if (menu && !pip) PlayerMenuSheet(player, onPip = { pipSupport?.enter() }, onClose = { menu = false })
+        if (menu && !pip) PlayerMenuSheet(player, onPip = onMiniPlayer, onClose = { menu = false })
+        if (subtitleDialog && !pip) SubtitleTracksDialog(player) { subtitleDialog = false }
     }
     if (!pip && player == null && !failed) LinearProgressIndicator(Modifier.fillMaxWidth())
     if (!pip && captionsFailed) TextButton(onClick = { captionRetry++ }) { Text(stringResource(R.string.retry_captions)) }

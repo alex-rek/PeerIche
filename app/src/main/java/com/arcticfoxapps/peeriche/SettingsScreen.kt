@@ -87,10 +87,10 @@ import java.util.Locale
 @Composable internal fun SettingsRow(title: String, summary: String? = null, icon: ImageVector? = null,
     onClick: (() -> Unit)? = null, trailing: @Composable (() -> Unit)? = null) {
     Row(Modifier.fillMaxWidth().then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
-        .padding(horizontal = 24.dp, vertical = 18.dp).heightIn(min = 44.dp),
+        .padding(horizontal = 24.dp, vertical = 8.dp).heightIn(min = 44.dp),
         verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(20.dp)) {
         if (icon != null) Icon(icon, null, Modifier.size(26.dp))
-        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(title, fontSize = 18.sp)
             if (!summary.isNullOrBlank()) Text(summary, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
@@ -117,7 +117,7 @@ import java.util.Locale
                 label = { Text(uiText("Найти", "Find")) }, modifier = Modifier.fillMaxWidth())
             LazyColumn(Modifier.heightIn(max = 420.dp)) {
                 items(choices.filter { it.second.contains(filter, true) || it.first.contains(filter, true) }, key = { it.first }) { (key, label) ->
-                    Row(Modifier.fillMaxWidth().clickable { onPick(key) }.padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Row(Modifier.fillMaxWidth().clickable { onPick(key) }.heightIn(min = 48.dp), verticalAlignment = Alignment.CenterVertically) {
                         RadioButton(selected == key, onClick = null)
                         Text(label, Modifier.padding(start = 12.dp))
                     }
@@ -129,7 +129,7 @@ import java.util.Locale
 
 @Composable internal fun SettingsSlider(title: String, value: Float, range: ClosedFloatingPointRange<Float>, suffix: String = "", onChange: (Float) -> Unit) {
     var draft by remember(value) { mutableFloatStateOf(value) }
-    Column(Modifier.padding(horizontal = 24.dp, vertical = 12.dp)) {
+    Column(Modifier.padding(horizontal = 24.dp, vertical = 8.dp)) {
         Text("$title: ${draft.toInt()}$suffix", fontSize = 18.sp)
         Slider(draft, { draft = it }, valueRange = range, onValueChangeFinished = { onChange(draft) })
     }

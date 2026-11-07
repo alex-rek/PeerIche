@@ -39,7 +39,7 @@ import java.util.Locale
         }
     }
     LazyColumn(Modifier.fillMaxSize()) {
-        item { SettingsToggle(uiText("Переводить названия и информацию", "Translate video titles and information"), options.translateMetadata) { value -> preferences.update { it.copy(translateMetadata = value) } } }
+        item { SettingsToggle(uiText("Переводить названия, описания и комментарии", "Translate titles, descriptions and comments"), options.translateMetadata) { value -> preferences.update { it.copy(translateMetadata = value) } } }
         item { SettingsToggle(uiText("Переводить субтитры", "Translate subtitles"), options.translateSubtitles) { value -> preferences.update { it.copy(translateSubtitles = value) } } }
         item { SettingsChoice(uiText("Язык перевода", "Translation language"), options.translateTo, languages) { value -> preferences.update { it.copy(translateTo = value) } } }
         item { SettingsToggle(uiText("Загружать модели только по Wi-Fi", "Download models only over Wi-Fi"), options.modelsWifiOnly) { value -> preferences.update { it.copy(modelsWifiOnly = value) } } }

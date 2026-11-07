@@ -190,11 +190,11 @@ internal fun flattenComments(tree: CommentTree): List<VideoComment> {
             if (!busy && !failed && rows.isEmpty() && video.commentsEnabled) Text(uiText("Комментариев пока нет", "No comments yet"), Modifier.padding(20.dp))
             LazyColumn(Modifier.fillMaxWidth().weight(1f), contentPadding = PaddingValues(bottom = 24.dp)) {
                 items(rows, key = { it.id }) { comment ->
-                    Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 12.dp)) {
+                    Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 6.dp)) {
                         Text(comment.account?.displayName ?: comment.account?.name.orEmpty(), fontWeight = FontWeight.SemiBold)
                         val body = if (comment.isDeleted) uiText("Комментарий удалён", "Comment deleted") else
                             HtmlCompat.fromHtml(comment.text.orEmpty(), HtmlCompat.FROM_HTML_MODE_LEGACY).toString().trim()
-                        SelectionContainer { Text(body, Modifier.padding(top = 6.dp)) }
+                        SelectionContainer { Text(translatedMetadata(body), Modifier.padding(top = 4.dp)) }
                         if (thread == null && comment.totalReplies > 0) TextButton(onClick = { thread = comment.id; load(comment.id) }) {
                             Text(uiText("Ответы", "Replies") + " · ${comment.totalReplies}")
                         }

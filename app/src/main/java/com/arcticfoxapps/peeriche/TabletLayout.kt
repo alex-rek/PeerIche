@@ -19,7 +19,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
 import androidx.media3.common.C
 import androidx.media3.common.Player
-import androidx.media3.ui.TrackSelectionDialogBuilder
 import coil.compose.AsyncImage
 
 internal fun tabletColumns(widthDp: Int): Int = if (widthDp >= 1100) 3 else 2
@@ -52,15 +51,7 @@ internal fun tabletColumns(widthDp: Int): Int = if (widthDp >= 1100) 3 else 2
 @Composable internal fun TabletVideoScreen(video: Video, server: String, loading: Boolean, error: String?,
     recommendations: List<Video>, fullscreen: Boolean, favorite: Boolean, subscribed: Boolean,
     onBrowse: () -> Unit, onFullscreen: () -> Unit, onOpen: (Video) -> Unit,
-    onFavorite: () -> Unit, onSubscribe: () -> Unit, onChannel: () -> Unit, onRetry: () -> Unit) {
-    val context = LocalContext.current
-    var controller by remember { mutableStateOf<Player?>(null) }
-    var noSubtitles by remember { mutableStateOf(false) }
-    var subtitleDialog by remember { mutableStateOf<android.app.Dialog?>(null) }
-    DisposableEffect(Unit) { onDispose { subtitleDialog?.dismiss() } }
-    if (noSubtitles) AlertDialog(onDismissRequest = { noSubtitles = false },
-        title = { Text(stringResource(R.string.subtitles)) }, text = { Text(stringResource(R.string.no_subtitles)) },
-        confirmButton = { TextButton(onClick = { noSubtitles = false }) { Text(stringResource(android.R.string.ok)) } })
+    onFavorite: () -> Unit, onSubscribe: () -> Unit, onChannel: () -> Unit, onRetry: () -> Unit, onMiniPlayer: () -> Unit) {
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val sideBySide = maxWidth >= 760.dp
         val colors = MaterialTheme.colorScheme
@@ -69,7 +60,7 @@ internal fun tabletColumns(widthDp: Int): Int = if (widthDp >= 1100) 3 else 2
                 if (loading) LinearProgressIndicator(Modifier.fillMaxWidth())
                 else if (video.playableUrl() != null) BackgroundVideoPlayer(video, server,
                     if (fullscreen) Modifier.weight(1f).fillMaxWidth() else Modifier.fillMaxWidth().aspectRatio(16f / 9f),
-                    fullscreen = fullscreen, onFullscreenToggle = onFullscreen, onController = { controller = it }, onBack = { if (fullscreen) onFullscreen() else onBrowse() })
+                    fullscreen = fullscreen, onFullscreenToggle = onFullscreen, onMiniPlayer = onMiniPlayer, onBack = { if (fullscreen) onFullscreen() else onBrowse() })
                 else {
                     Text(error ?: stringResource(R.string.video_unavailable), color = colors.error)
                     TextButton(onClick = onRetry) { Text(stringResource(R.string.retry)) }

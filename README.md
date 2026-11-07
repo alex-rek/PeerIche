@@ -17,6 +17,7 @@ PeerIche is a continuation of PeerTubeTV by the same author. It is a standalone 
 - Compact header and an original Graphite vector launcher mark.
 - Watch page with collapsible description, channel subscription, public comment threads and Android sharing.
 - Picture-in-Picture on Android 8+, including automatic entry while playing when leaving the app.
+- The player PiP button opens a draggable video window over the previous in-app page; leaving Android opens system PiP. Comments follow the existing metadata translation setting and language.
 
 This is an early implementation. Local channel subscriptions load public channel videos; account sign-in, dedicated channel pages, persistent playlists, advanced search filters, and DeX validation remain to be implemented. Tablet layout has a responsive rail and grid but still needs broader device validation. Room and DataStore files are app-private and not shared with PeerTubeTV.
 

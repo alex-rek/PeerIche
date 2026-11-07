@@ -180,17 +180,18 @@ class MainActivity : ComponentActivity() {
         save = { com.google.gson.Gson().toJson(it) },
         restore = { com.google.gson.Gson().fromJson(it, Video::class.java) }
     )) { mutableStateOf<Video?>(null) }
+    var floatingPlayer by rememberSaveable { mutableStateOf(false) }
     var tabletBrowsing by rememberSaveable { mutableStateOf(false) }
     var tabletFullscreen by rememberSaveable { mutableStateOf(false) }
     var phoneFullscreen by rememberSaveable { mutableStateOf(false) }
     var inlineLandscape by rememberSaveable { mutableStateOf(false) }
-    val phonePlayerFullscreen = !wideLayout && (phoneFullscreen || (landscape && !inlineLandscape))
+    val phonePlayerFullscreen = !floatingPlayer && !wideLayout && (phoneFullscreen || (landscape && !inlineLandscape))
     LaunchedEffect(landscape) { if (!landscape) inlineLandscape = false }
-    val showVideo = selectedVideo != null && (!wideLayout || !tabletBrowsing)
+    val showVideo = selectedVideo != null && !floatingPlayer && (!wideLayout || !tabletBrowsing)
     var loadingVideo by remember { mutableStateOf(false) }
     LaunchedEffect(requestedPlayback) {
         requestedPlayback?.let { requested ->
-            selectedVideo = requested; tabletBrowsing = false
+            selectedVideo = requested; tabletBrowsing = false; floatingPlayer = false
             try {
                 val detail = PeerTubeClients.video(requested.sourceServer(server), requested.apiId())
                 if (selectedVideo?.apiId() == requested.apiId()) selectedVideo = detail
@@ -214,9 +215,9 @@ class MainActivity : ComponentActivity() {
     val subscriptionRows by database.library().observe("subscription").collectAsState(initial = emptyList())
     val favorites = remember(favoriteRows) { favoriteRows.map { it.identity }.toSet() }
 
-    DisposableEffect(showVideo, phonePlayerFullscreen, tabletFullscreen) {
+    DisposableEffect(showVideo, phonePlayerFullscreen, tabletFullscreen, floatingPlayer) {
         val window = (context as? ComponentActivity)?.window
-        if (showVideo) window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        if (showVideo || floatingPlayer) window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         else window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         if (showVideo && (phonePlayerFullscreen || (wideLayout && tabletFullscreen))) {
             window?.let { WindowCompat.getInsetsController(it, it.decorView).hide(WindowInsetsCompat.Type.systemBars()) }
@@ -369,7 +370,15 @@ class MainActivity : ComponentActivity() {
         phoneFullscreen = enabled
         inlineLandscape = !enabled && landscape
     }
+    fun minimizePlayer() {
+        phoneFullscreen = false; inlineLandscape = true; tabletFullscreen = false
+        floatingPlayer = true
+    }
+    fun expandPlayer() {
+        floatingPlayer = false; tabletBrowsing = false; inlineLandscape = false
+    }
     fun closePlayer() {
+        floatingPlayer = false
         context.playerActivity()?.pipSupport?.disable()
         (context as? ComponentActivity)?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
         phoneFullscreen = false
@@ -383,6 +392,7 @@ class MainActivity : ComponentActivity() {
         playerError = null
     }
     fun openVideo(video: Video) {
+        floatingPlayer = false
         phoneFullscreen = false
         inlineLandscape = false
         tabletBrowsing = false
@@ -458,7 +468,7 @@ class MainActivity : ComponentActivity() {
             !wideLayout && showVideo && phonePlayerFullscreen -> setPhoneFullscreen(false)
             wideLayout && tabletFullscreen -> tabletFullscreen = false
             wideLayout && showVideo -> tabletBrowsing = true
-            selectedVideo != null && !wideLayout -> closePlayer()
+            selectedVideo != null && !wideLayout && !floatingPlayer -> closePlayer()
             channelDirectoryServer != null -> { channelDirectoryServer = null; serverChannelList = emptyList(); error = null }
             channelVideosMode -> { channelVideosMode = false; error = null }
             page == "Subscriptions" && subscriptionsTab == "Channels" -> subscriptionsTab = "Subscriptions"
@@ -503,8 +513,9 @@ class MainActivity : ComponentActivity() {
         AppUpdateFeature(updateRequest)
         val colors = MaterialTheme.colorScheme
         CompositionLocalProvider(LocalMetadataTranslationPaused provides settingsOpen) {
+        Box(Modifier.fillMaxSize()) {
         Scaffold(containerColor = colors.background, bottomBar = {
-            if (wideLayout && !showVideo && selectedVideo != null && !loadingVideo) BackgroundVideoPlayer(selectedVideo!!, server, Modifier.fillMaxWidth(), compact = true,
+            if (wideLayout && !showVideo && !floatingPlayer && selectedVideo != null && !loadingVideo) BackgroundVideoPlayer(selectedVideo!!, server, Modifier.fillMaxWidth(), compact = true,
                 onExpand = { tabletBrowsing = false }, onClose = ::closePlayer)
             if (!showVideo && !wideLayout) FeedPanel(feedPanelsVisible, top = false) { NavigationBar(containerColor = colors.surface, tonalElevation = 8.dp) {
                 listOf("Home", "Search", "Subscriptions", "Library").forEach { destination ->
@@ -703,7 +714,7 @@ class MainActivity : ComponentActivity() {
                         onFullscreen = { tabletFullscreen = !tabletFullscreen }, onOpen = ::openVideo,
                         onFavorite = { toggleCurrentVideoFavorite(current) }, onSubscribe = { toggleCurrentVideoSubscription(current) },
                         onChannel = { current.channel?.name?.let { handle -> openChannelVideos(PeerTubeChannel(current.channel.displayName ?: handle, handle, current.sourceServer(server).removePrefix("https://"))); closePlayer() } },
-                        onRetry = { openVideo(current) })
+                        onRetry = { openVideo(current) }, onMiniPlayer = ::minimizePlayer)
                 } else {
                     val video = selectedVideo!!
                     val playUrl = video.playableUrl()
@@ -715,7 +726,7 @@ class MainActivity : ComponentActivity() {
                         playUrl != null -> BackgroundVideoPlayer(video, server,
                             modifier = if (phonePlayerFullscreen) Modifier.fillMaxSize() else Modifier.fillMaxWidth().aspectRatio(16f / 9f),
                             fullscreen = phonePlayerFullscreen, onFullscreenToggle = { setPhoneFullscreen(!phonePlayerFullscreen) },
-                            onBack = { if (phonePlayerFullscreen) setPhoneFullscreen(false) else closePlayer() })
+                            onBack = { if (phonePlayerFullscreen) setPhoneFullscreen(false) else closePlayer() }, onMiniPlayer = ::minimizePlayer)
                         else -> Column(Modifier.fillMaxWidth().padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(playerError ?: stringResource(R.string.video_unavailable), color = colors.onBackground)
                             TextButton(onClick = { openVideo(video) }) { Text(stringResource(R.string.retry)) }
@@ -734,6 +745,8 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+        }
+        if (floatingPlayer && selectedVideo != null && !loadingVideo) FloatingVideoPlayer(selectedVideo!!, server, ::expandPlayer, ::closePlayer)
         }
         if (settingsOpen) SettingsScreen(onClose = { settingsOpen = false; settingsSection = null }, onCheckUpdates = { updateRequest++ }, initialSection = settingsSection)
 
