@@ -7,7 +7,7 @@ internal fun JsonObject.objectAt(vararg path: String): JsonObject? = runCatching
 internal fun JsonObject.longAt(key: String, fallback: Long = -1): Long = runCatching { get(key).asLong }.getOrDefault(fallback)
 internal fun JsonObject.boolAt(key: String): Boolean = runCatching { get(key).asBoolean }.getOrDefault(false)
 internal fun JsonObject.stringAt(key: String): String = runCatching { get(key).asString }.getOrDefault("")
-internal data class CreatorChannel(val id: Long, val title: String)
+internal data class CreatorChannel(val id: Long, val title: String, val name: String = "")
 internal data class CreatorCapabilities(val channels: List<CreatorChannel>, val quota: Long, val dailyQuota: Long, val used: Long, val dailyUsed: Long,
     val extensions: List<String>, val minChunk: Int, val maxChunk: Int, val live: Boolean, val replay: Boolean, val coverMax: Long, val coverExtensions: List<String>) {
     fun validateFile(filename: String, size: Long) {
@@ -30,7 +30,7 @@ internal fun creatorCapabilities(me: JsonObject, config: JsonObject, used: JsonO
     val image = config.objectAt("video", "image")
     val limits = config.objectAt("client", "videos", "resumableUpload")
     val channels = me.getAsJsonArray("videoChannels")?.mapNotNull { item -> item.asJsonObject.let {
-        val id = it.longAt("id", 0); if (id <= 0) null else CreatorChannel(id, it.stringAt("displayName").ifBlank { it.stringAt("name") })
+        val id = it.longAt("id", 0); if (id <= 0) null else CreatorChannel(id, it.stringAt("displayName").ifBlank { it.stringAt("name") }, it.stringAt("name"))
     } }.orEmpty()
     return CreatorCapabilities(channels, me.longAt("videoQuota"), me.longAt("videoQuotaDaily"), used.longAt("videoQuotaUsed", 0), used.longAt("videoQuotaUsedDaily", 0),
         extensions(file), limits?.longAt("minChunkSize", 0)?.coerceIn(0, Int.MAX_VALUE.toLong())?.toInt() ?: 0,
@@ -80,5 +80,13 @@ internal class CreatorRepository(private val accounts: AccountSessionManager) {
         val uri = runCatching { java.net.URI(url) }.getOrNull()
         if (uri?.scheme !in listOf("rtmp", "rtmps") || uri?.host.isNullOrBlank() || uri?.userInfo != null || key.isBlank()) throw AuthFailure("invalid_response")
         return LiveCredentials(url, key, "${account.server}/videos/watch/$uuid")
+    }
+    suspend fun channel(id: String, channel: Long): JsonObject {
+        val own = capabilities(id).channels.firstOrNull { it.id == channel } ?: throw AuthFailure("invalid_channel")
+        return accounts.request(id, AccountOperation.creatorChannel(own.name))
+    }
+    suspend fun updateChannel(id: String, channel: Long, title: String, description: String) {
+        val own = capabilities(id).channels.firstOrNull { it.id == channel } ?: throw AuthFailure("invalid_channel")
+        accounts.request(id, AccountOperation.updateCreatorChannel(own.name, title, description))
     }
 }

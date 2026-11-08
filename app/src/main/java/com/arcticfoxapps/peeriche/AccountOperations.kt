@@ -18,6 +18,15 @@ internal class AccountOperation private constructor(val method: String, val segm
         fun ownChannels() = AccountOperation("GET", path("users", "me"))
         fun creatorConfig() = AccountOperation("GET", path("config"))
         fun quotaUsed() = AccountOperation("GET", path("users", "me", "video-quota-used"))
+        private fun localChannelName(channel: String): String {
+            if (channel in listOf(".", "..") || !channel.matches(Regex("[A-Za-z0-9_.-]{1,200}"))) throw AuthFailure("invalid_channel")
+            return channel
+        }
+        fun creatorChannel(channel: String) = AccountOperation("GET", path("video-channels", localChannelName(channel)))
+        fun updateCreatorChannel(channel: String, title: String, description: String): AccountOperation {
+            if (title.trim().length !in 3..120 || description.length > 1000) throw AuthFailure("invalid_channel_settings")
+            return AccountOperation("PUT", path("video-channels", localChannelName(channel)), body = JsonObject().apply { addProperty("displayName", title.trim()); addProperty("description", description) }, empty = true)
+        }
         fun ownVideos(start: Int) = AccountOperation("GET", path("users", "me", "videos"), mapOf("start" to start.coerceAtLeast(0).toString(), "count" to "20", "sort" to "-createdAt", "includeScheduledLive" to "true"))
         fun live(uuid: String) = AccountOperation("GET", path("videos", "live", id(uuid)))
         fun createLive(metadata: CreatorMetadata, replay: Boolean, permanent: Boolean) = AccountOperation("POST", path("videos", "live"),

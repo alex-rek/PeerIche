@@ -23,14 +23,15 @@ import coil.compose.AsyncImage
 
 internal fun tabletColumns(widthDp: Int): Int = if (widthDp >= 1100) 3 else 2
 
-@Composable internal fun TabletNavigation(page: String, collapsed: Boolean, onNavigate: (String) -> Unit) {
+@Composable internal fun TabletNavigation(page: String, collapsed: Boolean, authorized: Boolean = false, onNavigate: (String) -> Unit) {
     Surface(color = MaterialTheme.colorScheme.surface) {
         Column(Modifier.width(if (collapsed) 76.dp else 184.dp).fillMaxHeight().padding(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            listOf("Home" to R.string.home, "Search" to R.string.search, "Subscriptions" to R.string.subscriptions, "You" to R.string.you).forEach { (destination, label) ->
+            listOf("Home" to R.string.home, "Search" to R.string.search, broadcastMenuDestination(authorized) to if (authorized) R.string.create else R.string.subscriptions, "You" to R.string.you).forEach { (destination, label) ->
                 val icon = when (destination) {
                     "Home" -> R.drawable.ic_nav_home
                     "Search" -> R.drawable.ic_nav_search
                     "Subscriptions" -> R.drawable.ic_nav_subscriptions
+                    "Create" -> R.drawable.ic_nav_create
                     else -> R.drawable.ic_nav_you
                 }
                 Surface(onClick = { onNavigate(destination) }, shape = MaterialTheme.shapes.medium,

@@ -155,7 +155,7 @@ import kotlinx.coroutines.launch
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Composable private fun CreatorEditor(owner: AccountSummary, capabilities: CreatorCapabilities, live: Boolean, uploads: VideoUploadCoordinator,
+@Composable internal fun CreatorEditor(owner: AccountSummary, capabilities: CreatorCapabilities, live: Boolean, uploads: VideoUploadCoordinator,
     repository: CreatorRepository, onCreated: (String?) -> Unit, onClose: () -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()

@@ -10,7 +10,9 @@ import java.util.UUID
 /** Isolated device-side Keystore/AtomicFile integration test, without a real account or new dependencies. */
 class AuthSmokeInstrumentation : Instrumentation() {
     private var creatorUi = false
-    override fun onCreate(arguments: Bundle?) { super.onCreate(arguments); creatorUi = arguments?.getString("creator-ui") == "true"; start() }
+    private var broadcastRtmp = false
+    private var broadcastCamera = false
+    override fun onCreate(arguments: Bundle?) { super.onCreate(arguments); creatorUi = arguments?.getString("creator-ui") == "true"; broadcastRtmp = arguments?.getString("broadcast-rtmp") == "true"; broadcastCamera = arguments?.getString("broadcast-camera") == "true"; start() }
     override fun onStart() {
         if (creatorUi) { creatorUiFixture(this); return }
         val result = Bundle()
@@ -97,10 +99,12 @@ class AuthSmokeInstrumentation : Instrumentation() {
                 check(restored.logout(account.id) && revoked)
                 check(store.load().sessions.isEmpty())
                 creatorSmoke(targetContext)
+                broadcastSmoke(targetContext, broadcastRtmp)
+                if (broadcastCamera) broadcastControllerSmoke(this@AuthSmokeInstrumentation)
             }
-            result.putString("stream", "PASS: Android Keystore, restore, refresh, subscriptions, ratings/comments, tamper/AtomicFile, logout; creator URI upload, lost acknowledgement/resume, cover retry without duplicate, pause, account switch, cancel, own videos and OBS credentials (isolated fixtures).\n")
+            result.putString("stream", "PASS: auth/Keystore, account actions, upload resume/cancel, OBS fixtures; synthetic H.264/AAC encoding and source switching" + (if (broadcastRtmp) ", loopback RTMP publishing" else "") + (if (broadcastCamera) ", camera FGS, virtual-camera switching/release, slate, account-switch stop" else "") + " (no external publication).\n")
         } catch (failure: Throwable) {
-            result.putString("stream", "FAIL: " + failure.javaClass.simpleName + "\n")
+            result.putString("stream", "FAIL: " + failure.javaClass.simpleName + " at " + failure.stackTrace.firstOrNull { it.className.startsWith("com.arcticfoxapps.peeriche") } + " " + if (failure.message?.startsWith("synthetic ") == true) failure.message + "\n" else "\n")
             resultCode = Activity.RESULT_CANCELED
         } finally {
             try { runBlocking { store.clear() } }

@@ -1,4 +1,5 @@
 <resources>
+    <string name="create">Create</string>
     <string name="app_name">PeerIche</string>
     <string name="search_hint">Search across PeerTube</string>
     <string name="home">Home</string>

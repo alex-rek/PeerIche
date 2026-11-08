@@ -128,6 +128,7 @@ class MainActivity : ComponentActivity() {
         super.onStop()
     }
     private var requestedPlayback by mutableStateOf<Video?>(null)
+    private var broadcastRequest by mutableIntStateOf(0)
     private fun restorePlayback(intent: android.content.Intent) {
         val id = intent.getStringExtra("playing_id") ?: return
         val url = intent.getStringExtra("playing_url") ?: return
@@ -139,13 +140,15 @@ class MainActivity : ComponentActivity() {
         super.onNewIntent(intent)
         setIntent(intent)
         restorePlayback(intent)
+        if (intent.action == "peeriche.broadcast") broadcastRequest++
     }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.statusBarColor = android.graphics.Color.rgb(12, 17, 22)
         window.navigationBarColor = android.graphics.Color.rgb(16, 24, 32)
         restorePlayback(intent)
-        setContent { PeerIcheApp(requestedPlayback) }
+        if (intent.action == "peeriche.broadcast") broadcastRequest++
+        setContent { PeerIcheApp(requestedPlayback, broadcastRequest) }
     }
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
@@ -153,7 +156,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @OptIn(ExperimentalLayoutApi::class)
-@Composable private fun PeerIcheApp(requestedPlayback: Video?) {
+@Composable private fun PeerIcheApp(requestedPlayback: Video?, broadcastRequest: Int) {
     val context = LocalContext.current
     val inPip = context.playerActivity()?.pipSupport?.active == true
     val options by AppPreferences.get(context).options.collectAsState()
@@ -507,6 +510,7 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+    LaunchedEffect(broadcastRequest) { if (broadcastRequest > 0) { closePlayer(); navigateTo("Create") } }
     fun toggleCurrentVideoSubscription(video: Video) {
         val row = video.toSubscription(server) ?: return
         val owner = selectedAccount
@@ -641,15 +645,17 @@ class MainActivity : ComponentActivity() {
         Scaffold(containerColor = colors.background, bottomBar = {
             if (wideLayout && !showVideo && !floatingPlayer && selectedVideo != null && !loadingVideo) BackgroundVideoPlayer(selectedVideo!!, server, Modifier.fillMaxWidth(), compact = true,
                 onExpand = { tabletBrowsing = false }, onClose = ::closePlayer)
-            if (!showVideo && !wideLayout) FeedPanel(feedPanelsVisible, top = false) { NavigationBar(containerColor = colors.surface, tonalElevation = 8.dp) {
-                listOf("Home", "Search", "Subscriptions", "You").forEach { destination ->
+            if (!showVideo && !wideLayout && page != "Create") FeedPanel(feedPanelsVisible, top = false) { NavigationBar(containerColor = colors.surface, tonalElevation = 8.dp) {
+                listOf("Home", "Search", broadcastMenuDestination(selectedAccount != null && !selectedAccount.needsLogin), "You").forEach { destination ->
                     val (iconId, labelId) = when (destination) {
                         "Home" -> R.drawable.ic_nav_home to R.string.home
                         "Search" -> R.drawable.ic_nav_search to R.string.search
                         "Subscriptions" -> R.drawable.ic_nav_subscriptions to R.string.subscriptions
+                        "Create" -> R.drawable.ic_nav_create to R.string.create
                         else -> R.drawable.ic_nav_you to R.string.you
                     }
                     NavigationBarItem(selected = page == destination || (destination == "Home" && page in listOf("Server", "Live")), onClick = {
+                        if (destination == "Create") closePlayer()
                         navigateTo(destination)
                     }, icon = { Icon(painterResource(iconId), stringResource(labelId)) }, label = { Text(stringResource(labelId), fontWeight = if (page == destination) FontWeight.SemiBold else FontWeight.Normal) })
                 }
@@ -657,13 +663,14 @@ class MainActivity : ComponentActivity() {
             }
         }) { insets ->
             Row(Modifier.fillMaxSize().padding(insets)) {
-                if (wideLayout && !tabletFullscreen) TabletNavigation(page, collapsed = showVideo || LocalConfiguration.current.screenWidthDp < 840) { destination ->
+                if (wideLayout && !tabletFullscreen) TabletNavigation(page, collapsed = showVideo || LocalConfiguration.current.screenWidthDp < 840, authorized = selectedAccount != null && !selectedAccount.needsLogin) { destination ->
+                    if (destination == "Create") closePlayer()
                     tabletBrowsing = selectedVideo != null
                     navigateTo(destination)
                 }
                 Column(Modifier.weight(1f).fillMaxHeight()) {
                 FeedPanel(wideLayout || feedPanelsVisible, top = true) {
-                if ((!showVideo || wideLayout) && !tabletFullscreen) {
+                if ((!showVideo || wideLayout) && !tabletFullscreen && page != "Create") {
                     Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
                         Image(painterResource(R.drawable.ic_peeriche_mark), contentDescription = null, modifier = Modifier.size(28.dp))
                         Text(stringResource(R.string.app_name), fontWeight = FontWeight.ExtraBold, fontSize = 20.sp, letterSpacing = (-0.6).sp, color = colors.onBackground, modifier = Modifier.weight(1f).padding(start = 8.dp))
@@ -755,7 +762,7 @@ class MainActivity : ComponentActivity() {
                         }
                         else -> videos
                     }
-                    val showFeedStatus = page != "You" || (youSection == YouSection.Channels && (channelVideosMode || channelDirectoryServer != null))
+                    val showFeedStatus = page !in listOf("You", "Create") || (youSection == YouSection.Channels && (channelVideosMode || channelDirectoryServer != null))
                     val serverSubscriptionFeed = page == "Subscriptions" && serverSubscriptions
                     if (showFeedStatus && (if (serverSubscriptionFeed) accountFeedBusy else if (browsingFeed) browseBusy else busy)) LinearProgressIndicator(Modifier.fillMaxWidth().padding(horizontal = 16.dp), color = colors.primary, trackColor = colors.surface)
                     if (serverSubscriptionFeed && accountFeedError != null) {
@@ -770,7 +777,9 @@ class MainActivity : ComponentActivity() {
                         }
                         if (page == "Server") TextButton(onClick = { settingsSection = "servers"; settingsOpen = true }) { Text(stringResource(R.string.choose_peer_server)) }
                     }
-                    if (page == "You" && youSection == YouSection.Menu) {
+                    if (page == "Create") {
+                        CreatePage(onClose = { navigateTo("Home") }, onVideos = { navigateTo("You"); openYouSection(YouSection.Videos) })
+                    } else if (page == "You" && youSection == YouSection.Menu) {
                         YouPage(server, onOpenSection = ::openYouSection, onSettings = { settingsSection = null; settingsOpen = true },
                             onAccountServer = { host -> scope.launch { useAccountServer(context, host) } })
                     } else if (page == "You" && youSection == YouSection.Videos) {

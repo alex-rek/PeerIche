@@ -54,6 +54,7 @@ internal fun creatorUiFixture(instrumentation: Instrumentation) {
                         "config" -> json("""{"video":{"file":{"extensions":[".mp4"]},"image":{"size":{"max":8388608},"extensions":[".jpg",".png"]}},"live":{"enabled":true,"allowReplay":true}}""")
                         "users/me/video-quota-used" -> json("""{"videoQuotaUsed":123456789,"videoQuotaUsedDaily":1234567}""")
                         "users/me/subscriptions", "users/me/subscriptions/videos" -> json("""{"total":0,"data":[]}""")
+                        "video-channels/creator" -> if (operation.method == "PUT") json("{}") else json("""{"id":7,"name":"creator","displayName":"Мой канал","description":"Описание тестового канала"}""")
                         "users/me/videos" -> json("""{"total":${if (created) 3 else 2},"data":[{"uuid":"11111111-1111-4111-8111-111111111111","name":"Поход в горы","privacy":{"id":1},"state":{"id":1}},{"uuid":"22222222-2222-4222-8222-222222222222","name":"Новый ролик — обработка на сервере","privacy":{"id":3},"state":{"id":2}}${if (created) ",{\"uuid\":\"$liveUuid\",\"name\":\"Тестовый эфир\",\"privacy\":{\"id\":2},\"state\":{\"id\":4},\"isLive\":true}" else ""}]}""")
                         "videos/live" -> { created = true; json("""{"video":{"uuid":"$liveUuid"}}""") }
                         "videos/live/$liveUuid" -> json("""{"rtmpsUrl":"rtmps://fixture.invalid:1936/live","streamKey":"test-fixture-key-not-real"}""")
@@ -75,6 +76,7 @@ internal fun creatorUiFixture(instrumentation: Instrumentation) {
             val manager = AccountSessionManager(store, api); manager.initialize()
             replace(PeerTubeAccounts, manager)
             replace(AccountLibraries, AccountLibrary(manager))
+            replace(Broadcasts, BroadcastCoordinator(context, manager))
             fixtureUploads = VideoUploadCoordinator(context, manager, "creator-ui-fixture.json")
             fixtureUploads!!.initialize(); replace(VideoUploads, fixtureUploads!!)
             activity = instrumentation.startActivitySync(Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
@@ -89,6 +91,7 @@ internal fun creatorUiFixture(instrumentation: Instrumentation) {
         runBlocking { fixtureUploads?.discard(); fixtureUploads?.close() }
         replacements.asReversed().forEach { (target, field, original) ->
             if (target === AccountLibraries) (field.get(target) as? AccountLibrary)?.close()
+            if (target === Broadcasts) instrumentation.runOnMainSync { (field.get(target) as? BroadcastCoordinator)?.close() }
             field.set(target, original)
         }
         marker.delete()

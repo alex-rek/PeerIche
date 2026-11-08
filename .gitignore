@@ -11,3 +11,4 @@ signing.properties
 *.p12
 *.pfx
 release-local/
+__pycache__/

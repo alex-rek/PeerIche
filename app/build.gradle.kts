@@ -31,8 +31,8 @@ android {
         applicationId = "com.arcticfoxapps.peeriche"
         minSdk = 23
         targetSdk = 35
-        versionCode = 22
-        versionName = "0.8.0"
+        versionCode = 23
+        versionName = "0.9.0"
         testInstrumentationRunner = "com.arcticfoxapps.peeriche.AuthSmokeInstrumentation"
     }
     compileOptions {
@@ -44,6 +44,7 @@ android {
 }
 
 dependencies {
+    implementation("com.github.pedroSG94.RootEncoder:library:2.5.4")
     implementation("androidx.core:core-ktx:1.15.0")
     implementation("androidx.activity:activity-compose:1.10.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
