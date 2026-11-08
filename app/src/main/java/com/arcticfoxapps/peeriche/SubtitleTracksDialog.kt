@@ -18,6 +18,23 @@ import androidx.media3.common.Tracks
 
 internal data class SubtitleTrackChoice(val group: TrackGroup, val index: Int, val label: String, val selected: Boolean)
 
+// Observe available tracks, not selected cues: disabled subtitles and gaps between
+// cues must keep the controls visible. Ignore tracks left over from another video.
+@Composable internal fun rememberSubtitleAvailability(player: Player?, mediaId: String): Boolean {
+    fun available() = player?.currentMediaItem?.mediaId == mediaId &&
+        subtitleTrackChoices(player.currentTracks).isNotEmpty()
+    var available by remember(player, mediaId) { mutableStateOf(available()) }
+    DisposableEffect(player, mediaId) {
+        val listener = object : Player.Listener {
+            override fun onEvents(player: Player, events: Player.Events) { available = available() }
+        }
+        available = available()
+        player?.addListener(listener)
+        onDispose { player?.removeListener(listener) }
+    }
+    return available
+}
+
 internal fun subtitleTrackChoices(tracks: Tracks): List<SubtitleTrackChoice> = tracks.groups.flatMap { group ->
     if (group.type != C.TRACK_TYPE_TEXT) emptyList() else (0 until group.length).mapNotNull { index ->
         if (!group.isTrackSupported(index)) null else {

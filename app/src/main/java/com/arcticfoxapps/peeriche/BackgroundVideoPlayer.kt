@@ -77,6 +77,7 @@ data class VideoCaption(val language: CaptionLanguage? = null, val captionPath: 
         onDispose { disposed = true; controller = null; MediaController.releaseFuture(future) }
     }
     val player = controller
+    val hasSubtitles = rememberSubtitleAvailability(player, video.sourceServer(server) + "|" + video.apiId())
     val controlsBottomInset = if (fullscreen) WindowInsets.systemBarsIgnoringVisibility.getBottom(androidx.compose.ui.platform.LocalDensity.current) else 0
     var playing by remember { mutableStateOf(false) }
     var playRequested by remember { mutableStateOf(false) }
@@ -252,9 +253,11 @@ data class VideoCaption(val language: CaptionLanguage? = null, val captionPath: 
                 IconButton(onClick = onMiniPlayer, modifier = Modifier.size(40.dp)) {
                     Icon(Icons.Default.PictureInPictureAlt, uiText("Картинка в картинке", "Picture in picture"), tint = Color.White)
                 }
-                SpeechQuickControl(transparent = true, showSettings = false)
-                IconButton(onClick = { subtitleDialog = true }, modifier = Modifier.size(40.dp)) {
-                    Icon(Icons.Default.Subtitles, stringResource(R.string.subtitles), tint = Color.White)
+                if (hasSubtitles) {
+                    SpeechQuickControl(transparent = true, showSettings = false)
+                    IconButton(onClick = { subtitleDialog = true }, modifier = Modifier.size(40.dp)) {
+                        Icon(Icons.Default.Subtitles, stringResource(R.string.subtitles), tint = Color.White)
+                    }
                 }
                 IconButton(onClick = { menu = true }, modifier = Modifier.size(40.dp)) { Icon(Icons.Default.Settings, uiText("Параметры плеера", "Player settings"), tint = Color.White) }
             }
@@ -264,8 +267,9 @@ data class VideoCaption(val language: CaptionLanguage? = null, val captionPath: 
                 stringResource(if (fullscreen) R.string.exit_fullscreen else R.string.enter_fullscreen), tint = Color.White)
         }
         }
-        if (menu && !pip) PlayerMenuSheet(player, onPip = onMiniPlayer, onClose = { menu = false })
-        if (subtitleDialog && !pip) SubtitleTracksDialog(player) { subtitleDialog = false }
+        if (menu && !pip) PlayerMenuSheet(player, hasSubtitles, onPip = onMiniPlayer, onClose = { menu = false })
+        LaunchedEffect(hasSubtitles) { if (!hasSubtitles) subtitleDialog = false }
+        if (subtitleDialog && hasSubtitles && !pip) SubtitleTracksDialog(player) { subtitleDialog = false }
     }
     if (!pip && player == null && !failed) LinearProgressIndicator(Modifier.fillMaxWidth())
     if (!pip && captionsFailed) TextButton(onClick = { captionRetry++ }) { Text(stringResource(R.string.retry_captions)) }

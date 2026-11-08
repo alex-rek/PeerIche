@@ -21,7 +21,7 @@ import androidx.media3.common.Player
 
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Composable internal fun PlayerMenuSheet(player: Player?, onPip: () -> Unit, onClose: () -> Unit) {
+@Composable internal fun PlayerMenuSheet(player: Player?, hasSubtitles: Boolean, onPip: () -> Unit, onClose: () -> Unit) {
     val context = LocalContext.current
     val preferences = AppPreferences.get(context)
     val options by preferences.options.collectAsState()
@@ -33,19 +33,20 @@ import androidx.media3.common.Player
             .verticalScroll(rememberScrollState()).padding(bottom = 12.dp)) {
             CompactPlayerChoice(Icons.Default.Tune, uiText("Качество", "Quality"), options.quality.toString(), listOf("0" to uiText("Авто", "Auto")) +
                 listOf(144, 240, 360, 480, 720, 1080, 2160).map { "$it" to "${it}p" }) { value -> preferences.update { it.copy(quality = value.toInt()) } }
-            CompactPlayerRow(Icons.Default.Subtitles, uiText("Субтитры", "Subtitles"),
+            if (hasSubtitles) CompactPlayerRow(Icons.Default.Subtitles, uiText("Субтитры", "Subtitles"),
                 if (options.subtitlesEnabled) uiText("Включены", "On") else uiText("Выкл", "Off")) { tracks = true }
             CompactPlayerChoice(Icons.Default.Speed, uiText("Скорость воспроизведения", "Playback speed"), options.playbackSpeed.toString(),
                 listOf(.5f, .75f, 1f, 1.25f, 1.5f, 1.75f, 2f).map { "$it" to "${it}×" }) { value -> preferences.update { it.copy(playbackSpeed = value.toFloat()) } }
             CompactPlayerChoice(Icons.Default.AspectRatio, uiText("Формат изображения", "Aspect ratio"), options.videoAspect,
                 listOf("auto" to uiText("Исходный", "Original")) + listOf("16:9", "4:3", "1:1", "21:9").map { it to it }) { value -> preferences.update { it.copy(videoAspect = value) } }
-            CompactPlayerRow(Icons.Default.RecordVoiceOver, uiText("Озвучивание", "Subtitle speech"),
+            if (hasSubtitles) CompactPlayerRow(Icons.Default.RecordVoiceOver, uiText("Озвучивание", "Subtitle speech"),
                 if (options.speech.enabled) uiText("Вкл", "On") else uiText("Выкл", "Off")) { speech = true }
             CompactPlayerRow(Icons.Default.PictureInPictureAlt, uiText("Картинка в картинке", "Picture in picture")) { onClose(); onPip() }
             CompactPlayerRow(Icons.Default.Settings, uiText("Ещё", "More")) { more = true }
         }
     }
-    if (tracks) SubtitleTracksDialog(player) { tracks = false }
+    LaunchedEffect(hasSubtitles) { if (!hasSubtitles) { tracks = false; speech = false } }
+    if (tracks && hasSubtitles) SubtitleTracksDialog(player) { tracks = false }
     if (speech) SpeechSettingsDialog { speech = false }
     if (more) Dialog(onDismissRequest = { more = false }, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Surface(Modifier.fillMaxSize()) {
