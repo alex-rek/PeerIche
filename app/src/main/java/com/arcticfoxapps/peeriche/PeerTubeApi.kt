@@ -56,7 +56,8 @@ data class Video(
     val directStreamUrl: String? = null,
     val channel: Channel? = null, val account: Account? = null, val nsfw: Boolean = false,
     val isLive: Boolean = false, val state: VideoState? = null, val commentsEnabled: Boolean = true,
-    val comments: Int? = null, val likes: Long = 0, val dislikes: Long = 0
+    val comments: Int? = null, val likes: Long = 0, val dislikes: Long = 0,
+    val playbackAccountId: String? = null
 ) {
     fun sourceServer(fallback: String): String {
         val urlHost = runCatching { java.net.URI(url).takeIf { it.scheme == "https" || it.scheme == "http" }?.host }.getOrNull()

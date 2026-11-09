@@ -15,9 +15,13 @@ import kotlin.coroutines.resumeWithException
 internal data class CreatorMetadata(val name: String, val description: String, val channelId: Long, val privacy: Int, val nsfw: Boolean = false) {
     fun validate() {
         if (name.trim().length !in 3..120 || description.length > 10000 || channelId <= 0 || privacy !in 1..3) throw AuthFailure("invalid_publication")
+        if (description.isNotBlank() && description.length < 3) throw AuthFailure("invalid_description")
     }
     fun json() = JsonObject().apply {
-        validate(); addProperty("name", name.trim()); addProperty("description", description); addProperty("channelId", channelId)
+        validate(); addProperty("name", name.trim()); addProperty("channelId", channelId)
+        // PeerTube validates a supplied description as 3..10000 characters.
+        // An optional empty description must be omitted, for both upload and live.
+        if (description.isNotBlank()) addProperty("description", description)
         addProperty("privacy", privacy); addProperty("nsfw", nsfw); addProperty("waitTranscoding", true)
         addProperty("commentsEnabled", true); addProperty("downloadEnabled", true)
     }
@@ -55,8 +59,11 @@ internal class UploadOperation private constructor(val kind: String, val size: L
 }
 
 internal data class UploadReply(val code: Int, val location: String? = null, val offset: Long = 0, val videoUuid: String? = null)
-internal fun uploadOffset(range: String?, total: Long): Long {
+internal fun uploadOffset(range: String?, total: Long, allowEmpty: Boolean = false): Long {
     if (range.isNullOrBlank()) return 0
+    // node-uploadx 7 sends bytesWritten - 1 even for an empty session.
+    // Accept its exact sentinel only for a zero-length status probe.
+    if (allowEmpty && range.trim() == "bytes=0--1") return 0
     val last = Regex("bytes=0-([0-9]+)").matchEntire(range.trim())?.groupValues?.get(1)?.toLongOrNull() ?: throw AuthFailure("invalid_response")
     if (last < 0 || last >= total) throw AuthFailure("invalid_response")
     return last + 1
@@ -93,7 +100,7 @@ internal suspend fun executeUpload(http: OkHttpClient, server: String, token: St
             override fun onResponse(call: Call, response: Response) { continuation.resume(response, onCancellation = { response.close() }) }
         })
     }
-    response.use { result ->
+    try { response.use { result ->
         val source = result.body?.source()
         if (source?.request(1_048_577) == true) throw AuthFailure("invalid_response")
         val text = source?.readUtf8().orEmpty()
@@ -105,10 +112,13 @@ internal suspend fun executeUpload(http: OkHttpClient, server: String, token: St
         }, result.code)
         when {
             operation.kind == "init" && result.code in listOf(200, 201) -> UploadReply(result.code, safeUploadUrl(origin, result.header("Location") ?: throw AuthFailure("invalid_upload_location")))
-            valid308 -> UploadReply(308, offset = uploadOffset(result.header("Range"), operation.size))
+            valid308 -> UploadReply(308, offset = uploadOffset(result.header("Range"), operation.size, allowEmpty = operation.kind == "probe"))
             operation.kind in listOf("probe", "chunk") && result.code == 200 -> UploadReply(200, offset = operation.size, videoUuid = uploadedUuid(json ?: throw AuthFailure("invalid_response")))
             operation.kind in listOf("cancel", "cover") && result.code == 204 -> UploadReply(204)
             else -> throw AuthFailure("invalid_response")
         }
+    } } catch (failure: AuthFailure) {
+        if (failure.reason == "invalid_response") throw AuthFailure("upload_response", failure.status)
+        throw failure
     }
 }

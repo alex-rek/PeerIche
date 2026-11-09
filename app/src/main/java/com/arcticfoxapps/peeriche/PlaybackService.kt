@@ -35,7 +35,15 @@ class PlaybackService : MediaSessionService() {
     override fun onCreate() {
         super.onCreate()
         val settings = AppPreferences.get(this).options.value
+        val dataSource = androidx.media3.datasource.ResolvingDataSource.Factory(
+            androidx.media3.datasource.DefaultDataSource.Factory(this),
+            androidx.media3.datasource.ResolvingDataSource.Resolver { spec ->
+                val grant = AccountVideoPlayback.grant
+                if (grant == null || !grant.accepts(spec.uri.toString())) spec
+                else spec.withUri(android.net.Uri.parse(kotlinx.coroutines.runBlocking { grant.resolve(spec.uri.toString()) }))
+            })
         val player = ExoPlayer.Builder(this).setSeekBackIncrementMs(settings.seekSeconds * 1000L)
+            .setMediaSourceFactory(androidx.media3.exoplayer.source.DefaultMediaSourceFactory(dataSource))
             .setSeekForwardIncrementMs(settings.seekSeconds * 1000L).build().apply {
                 setAudioAttributes(AudioAttributes.Builder().setUsage(C.USAGE_MEDIA)
                     .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE).build(), true)
@@ -43,6 +51,12 @@ class PlaybackService : MediaSessionService() {
                 setWakeMode(C.WAKE_MODE_NETWORK)
             }
         playbackPlayer = player
+        serviceScope.launch {
+            PeerTubeAccounts.get(this@PlaybackService).state.collect {
+                val grant = AccountVideoPlayback.grant
+                if (grant != null && !grant.active()) { player.stop(); player.clearMediaItems(); AccountVideoPlayback.clear() }
+            }
+        }
         pauseSpeech = { subtitleSpeech?.userPause() }
         androidx.core.content.ContextCompat.registerReceiver(this, noisyReceiver,
             android.content.IntentFilter(android.media.AudioManager.ACTION_AUDIO_BECOMING_NOISY), androidx.core.content.ContextCompat.RECEIVER_NOT_EXPORTED)
@@ -99,6 +113,7 @@ class PlaybackService : MediaSessionService() {
                     .putExtra("playing_id", mediaItem.mediaId)
                     .putExtra("playing_title", mediaItem.mediaMetadata.title?.toString())
                     .putExtra("playing_url", mediaItem.localConfiguration?.uri?.toString())
+                    .putExtra("playing_account", mediaItem.mediaMetadata.extras?.getString("playback_account"))
                 session?.setSessionActivity(PendingIntent.getActivity(this@PlaybackService, 0, openPlayer,
                     PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE))
             }
@@ -108,6 +123,7 @@ class PlaybackService : MediaSessionService() {
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? = session
 
     override fun onDestroy() {
+        AccountVideoPlayback.clear()
         subtitleSpeech?.close(resumeVideo = false); subtitleSpeech = null
         unregisterReceiver(noisyReceiver)
         pauseSpeech = null

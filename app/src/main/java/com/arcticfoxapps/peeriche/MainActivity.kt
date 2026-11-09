@@ -134,7 +134,8 @@ class MainActivity : ComponentActivity() {
         val url = intent.getStringExtra("playing_url") ?: return
         requestedPlayback = Video(uuid = id.substringAfter('|'),
             host = id.substringBefore('|').removePrefix("https://"),
-            name = intent.getStringExtra("playing_title").orEmpty(), directStreamUrl = url)
+            name = intent.getStringExtra("playing_title").orEmpty(), directStreamUrl = url,
+            playbackAccountId = intent.getStringExtra("playing_account"))
     }
     override fun onNewIntent(intent: android.content.Intent) {
         super.onNewIntent(intent)
@@ -242,7 +243,9 @@ class MainActivity : ComponentActivity() {
         requestedPlayback?.let { requested ->
             selectedVideo = requested; tabletBrowsing = false; floatingPlayer = false
             try {
-                val detail = PeerTubeClients.video(requested.sourceServer(server), requested.apiId())
+                accountManager.initialize()
+                val detail = requested.playbackAccountId?.let { CreatorRepository(accountManager).playbackVideo(it, requested.apiId()) }
+                    ?: PeerTubeClients.video(requested.sourceServer(server), requested.apiId())
                 if (selectedVideo?.apiId() == requested.apiId()) selectedVideo = detail
             } catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled }
             catch (_: Exception) { }
@@ -489,6 +492,12 @@ class MainActivity : ComponentActivity() {
         loadingVideo = false
         playerError = null
     }
+    LaunchedEffect(accountState.ready, selectedAccount?.id, selectedAccount?.needsLogin, selectedVideo?.playbackAccountId) {
+        if (!accountState.ready) return@LaunchedEffect
+        selectedVideo?.playbackAccountId?.let { id ->
+            if (selectedAccount?.id != id || selectedAccount.needsLogin) closePlayer()
+        }
+    }
     fun openVideo(video: Video) {
         floatingPlayer = false
         phoneFullscreen = false
@@ -501,7 +510,22 @@ class MainActivity : ComponentActivity() {
         playerError = null
         scope.launch {
             val id = video.apiId()
-            val details = if (id.isNotBlank()) runCatching { PeerTubeClients.video(video.sourceServer(server), id) }.getOrNull() else null
+            val details = if (id.isNotBlank()) try {
+                val playbackOwner = video.playbackAccountId
+                if (playbackOwner != null) CreatorRepository(accountManager).playbackVideo(playbackOwner, id)
+                else try { PeerTubeClients.video(video.sourceServer(server), id) }
+                catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled }
+                catch (failure: Exception) {
+                    val owner = accountManager.state.value.active?.takeIf { !it.needsLogin && it.server == video.sourceServer(server) } ?: throw failure
+                    CreatorRepository(accountManager).playbackVideo(owner.id, id)
+                }
+            } catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled }
+            catch (failure: Exception) {
+                if (generation == videoLoadGeneration && video.playbackAccountId != null) {
+                    playerError = context.getString(R.string.video_unavailable)
+                }
+                null
+            } else null
             val ready = details?.takeIf { it.playableUrl() != null } ?: video
             if (generation == videoLoadGeneration) {
                 selectedVideo = ready

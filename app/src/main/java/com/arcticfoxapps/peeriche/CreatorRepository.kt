@@ -60,10 +60,20 @@ internal class CreatorRepository(private val accounts: AccountSessionManager) {
         val rows = json.getAsJsonArray("data") ?: throw AuthFailure("invalid_response")
         return CreatorPage(rows.map { item ->
             val raw = item.asJsonObject
-            val video = gson.fromJson(raw, Video::class.java).copy(host = java.net.URI(account.server).authority)
+            val video = gson.fromJson(raw, Video::class.java).copy(host = java.net.URI(account.server).authority, playbackAccountId = id)
             CreatorVideo(video, raw.objectAt("privacy")?.longAt("id", 0)?.toInt() ?: 0,
                 raw.objectAt("state")?.longAt("id", 0)?.toInt() ?: 0, raw.objectAt("state")?.stringAt("label").orEmpty())
         }, json.longAt("total", rows.size().toLong()).toInt())
+    }
+    suspend fun playbackVideo(id: String, uuid: String): Video {
+        val account = owner(id)
+        val raw = accounts.request(id, AccountOperation.video(uuid))
+        owner(id)
+        val video = gson.fromJson(raw, Video::class.java)
+        if (video.apiId() != uuid) throw AuthFailure("invalid_response")
+        val restricted = raw.objectAt("privacy")?.longAt("id", 3) !in listOf(1L, 2L)
+        return video.copy(host = java.net.URI(account.server).authority,
+            url = "${account.server}/videos/watch/$uuid", playbackAccountId = id.takeIf { restricted })
     }
     suspend fun createLive(id: String, metadata: CreatorMetadata, replay: Boolean, permanent: Boolean): String {
         val capabilities = capabilities(id)

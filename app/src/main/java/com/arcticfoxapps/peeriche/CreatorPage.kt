@@ -11,6 +11,7 @@ import android.os.PersistableBundle
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -131,10 +132,12 @@ import kotlinx.coroutines.launch
         if (!busy && rows.isEmpty() && error == null) item { Text(uiText("На сервере пока нет ваших видео.", "You have no videos on this server yet.")) }
         items(rows, key = { it.video.apiId() }) { item ->
             OutlinedCard(Modifier.fillMaxWidth()) { Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                VideoThumbnail(item.video, owner.server, Modifier.fillMaxWidth().aspectRatio(16f / 9f)
+                    .clickable(enabled = item.state == 1) { onOpenVideo(item.video) })
                 Text(item.video.name, style = MaterialTheme.typography.titleMedium)
                 Text(creatorVideoStatus(item), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    if (item.privacy in 1..2 && item.state == 1) TextButton(onClick = { onOpenVideo(item.video) }) { Text(uiText("Смотреть", "Watch")) }
+                    if (item.state == 1) TextButton(onClick = { onOpenVideo(item.video) }) { Text(uiText("Смотреть", "Watch")) }
                     TextButton(onClick = {
                         context.playerActivity()?.pipSupport?.suspendForExternalUi()
                         context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("${owner.server}/videos/watch/${item.video.apiId()}")))
@@ -328,6 +331,12 @@ internal fun formatBytes(value: Long): String = when {
     "cancelling" -> uiText("Отмена", "Cancelling"); else -> uiText("Загрузка остановлена", "Upload stopped")
 }
 @Composable internal fun creatorErrorText(reason: String): String = when (reason) {
+    "upload_response", "invalid_response" -> uiText("Не удалось прочитать ответ сервера на запрос публикации. Повторите проверку кнопкой «Продолжить» или обновите список видео.", "Could not read the server publication response. Resume to check progress or refresh your videos.")
+    "invalid_description", "publication_description" -> uiText("Оставьте описание пустым или введите от 3 до 10 000 символов.", "Leave the description empty or enter 3 to 10,000 characters.")
+    "publication_parameters" -> uiText("Сервер отклонил параметры публикации. Проверьте название, описание, канал и доступность.", "The server rejected the publication parameters. Check the title, description, channel and privacy.")
+    "max_instance_lives_limit_reached" -> uiText("На сервере достигнут предел одновременных эфиров.", "The server has reached its simultaneous live stream limit.")
+    "max_user_lives_limit_reached" -> uiText("Достигнут предел эфиров аккаунта. Выберите ранее созданный ожидающий эфир или завершите ненужные эфиры на сервере.", "Your account has reached its live stream limit. Choose an existing waiting live or end unused streams on the server.")
+    "live_not_enabled", "live_not_allowing_replay" -> uiText("Сервер не разрешает эфир или сохранение записи с выбранными параметрами.", "The server does not allow these live or replay settings.")
     "upload_storage" -> uiText("Не удалось прочитать или сохранить задание загрузки. Можно сбросить только это задание; аккаунты и опубликованные видео сохранятся.", "The upload task could not be read or saved. You can reset this task without removing accounts or published videos.")
     "invalid_publication" -> uiText("Проверьте название (3–120 символов), описание (до 10 000) и канал.", "Check the title (3–120 characters), description (up to 10,000) and channel.")
     "invalid_file", "file_unavailable", "file_changed" -> uiText("Не удалось прочитать исходный файл. Он должен оставаться доступным и неизменным до завершения загрузки.", "The original file must remain accessible and unchanged until upload finishes.")

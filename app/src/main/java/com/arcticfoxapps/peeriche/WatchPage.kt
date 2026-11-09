@@ -58,7 +58,8 @@ internal fun Video.shareText(server: String): String = name + "\n" + publicWatch
     }
     LaunchedEffect(video.apiId(), expanded) {
         if (expanded && !descriptionLoaded) try {
-            val loaded = PeerTubeClients.server(video.sourceServer(server)).description(video.apiId()).description
+            val loaded = video.playbackAccountId?.let { id -> manager.request(id, AccountOperation.videoDescription(video.apiId())).stringAt("description") }
+                ?: PeerTubeClients.server(video.sourceServer(server)).description(video.apiId()).description
             if (loaded.isNotBlank()) fullDescription = loaded
             descriptionLoaded = true
         }

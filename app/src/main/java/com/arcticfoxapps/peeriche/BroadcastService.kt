@@ -171,7 +171,8 @@ internal class BroadcastCoordinator(private val context: Context, private val ac
     fun begin(metadata: CreatorMetadata, replay: Boolean, existingUuid: String?) {
         if (state.value.phase != "preview" || engine == null || !permissionGranted()) return
         val account = owner ?: return
-        metadata.validate()
+        try { metadata.validate() }
+        catch (failure: AuthFailure) { mutable.value = state.value.copy(error = failure.reason); return }
         mutable.value = state.value.copy(phase = "creating", error = null, title = metadata.name, privacy = metadata.privacy, uuid = existingUuid)
         pending = PendingBroadcast(account.id, metadata, replay, existingUuid)
         try { ContextCompat.startForegroundService(context, Intent(context, BroadcastService::class.java).setAction("start")) }

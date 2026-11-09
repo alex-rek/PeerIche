@@ -107,19 +107,31 @@ data class VideoCaption(val language: CaptionLanguage? = null, val captionPath: 
             .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, !options.subtitlesEnabled && !options.speech.enabled)
             .setPreferredTextLanguage(language).build()
     }
-    LaunchedEffect(player, video.apiId(), video.playableUrl(), captionRetry, options.quality, options.translateSubtitles, options.translateTo) {
+    LaunchedEffect(player, video.apiId(), video.playableUrl(), video.playbackAccountId, captionRetry, options.quality, options.translateSubtitles, options.translateTo) {
         if (player == null) return@LaunchedEffect
         if (video.playableUrl() == null) return@LaunchedEffect
         val identity = video.sourceServer(server) + "|" + video.apiId()
         val desiredTranslation = if (options.translateSubtitles) options.translateTo else ""
         if (player.currentMediaItem?.mediaId == identity && captionRetry == 0 &&
+            player.currentMediaItem?.mediaMetadata?.extras?.getString("playback_account") == video.playbackAccountId &&
             player.currentMediaItem?.mediaMetadata?.extras?.getInt("quality", -1) == options.quality &&
             player.currentMediaItem?.mediaMetadata?.extras?.getString("translation", "") == desiredTranslation) return@LaunchedEffect
         val previousPosition = if (player.currentMediaItem?.mediaId == identity) player.currentPosition else 0L
         val wasPlaying = if (player.currentMediaItem?.mediaId == identity) player.playWhenReady else options.autoplay
+        val accounts = PeerTubeAccounts.get(context)
+        val playbackAccount = video.playbackAccountId
+        if (playbackAccount != null) try { accounts.initialize() }
+        catch (cancelled: CancellationException) { throw cancelled }
+        catch (_: Exception) { failed = true; return@LaunchedEffect }
+        if (playbackAccount != null && accounts.state.value.active?.let { it.id == playbackAccount && !it.needsLogin } != true) {
+            failed = true; return@LaunchedEffect
+        }
         val captions = try {
             captionsFailed = false
-            withTimeoutOrNull(8000) { PeerTubeClients.server(video.sourceServer(server)).captions(video.apiId()).data }
+            withTimeoutOrNull(8000) {
+                if (playbackAccount == null) PeerTubeClients.server(video.sourceServer(server)).captions(video.apiId()).data
+                else com.google.gson.Gson().fromJson(accounts.request(playbackAccount, AccountOperation.videoCaptions(video.apiId())), CaptionPage::class.java).data
+            }
                 ?: run { captionsFailed = true; emptyList() }
         } catch (cancelled: CancellationException) { throw cancelled }
         catch (_: Exception) { captionsFailed = true; emptyList() }
@@ -136,8 +148,11 @@ data class VideoCaption(val language: CaptionLanguage? = null, val captionPath: 
                     putInt("quality", options.quality)
                     putString("translation", if (nativeTranslation) options.translateTo else "")
                     putString("history", com.google.gson.Gson().toJson(video.toSavedVideo(server, "history")))
+                    putString("playback_account", playbackAccount)
                 }).build())
             .setSubtitleConfigurations(tracks).build()
+        if (playbackAccount != null && accounts.state.value.active?.let { it.id == playbackAccount && !it.needsLogin } != true) return@LaunchedEffect
+        AccountVideoPlayback.grant = playbackAccount?.let { AccountVideoGrant(it, video, accounts) }
         player.setMediaItem(item, previousPosition)
         player.prepare()
         player.playWhenReady = wasPlaying

@@ -35,6 +35,9 @@ internal class AccountOperation private constructor(val method: String, val segm
         fun subscribe(handle: String) = AccountOperation("POST", path("users", "me", "subscriptions"), body = JsonObject().apply { addProperty("uri", validSubscriptionHandle(handle)) }, empty = true)
         fun unsubscribe(handle: String) = AccountOperation("DELETE", path("users", "me", "subscriptions", validSubscriptionHandle(handle)), empty = true)
         fun video(uuid: String) = AccountOperation("GET", path("videos", id(uuid)))
+        fun videoToken(uuid: String) = AccountOperation("POST", path("videos", id(uuid), "token"), body = JsonObject())
+        fun videoDescription(uuid: String) = AccountOperation("GET", path("videos", id(uuid), "description"))
+        fun videoCaptions(uuid: String) = AccountOperation("GET", path("videos", id(uuid), "captions"))
         fun resolve(url: String) = AccountOperation("GET", path("search", "videos"), mapOf("search" to url, "count" to "10"))
         fun rating(uuid: String) = AccountOperation("GET", path("users", "me", "videos", id(uuid), "rating"))
         fun rate(uuid: String, rating: String): AccountOperation {

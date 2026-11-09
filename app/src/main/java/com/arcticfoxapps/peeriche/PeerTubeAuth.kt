@@ -60,9 +60,17 @@ internal interface AuthTransport {
 internal fun authErrorReason(status: Int, json: JsonObject?): String {
     fun field(name: String) = runCatching { json?.get(name)?.asString }.getOrNull().orEmpty()
     val known = setOf("missing_two_factor", "invalid_two_factor", "account_blocked", "email_not_verified",
-        "account_waiting_for_approval", "account_approval_rejected", "invalid_grant", "invalid_client", "invalid_token", "too_long_password")
+        "account_waiting_for_approval", "account_approval_rejected", "invalid_grant", "invalid_client", "invalid_token", "too_long_password",
+        "live_not_enabled", "live_not_allowing_replay", "max_instance_lives_limit_reached", "max_user_lives_limit_reached")
     for (value in listOf(field("code"), field("error"), field("type").substringAfterLast('/').substringAfterLast('#'))) {
         if (value in known) return value
+    }
+    // Do not expose server-supplied values (which may include private metadata).
+    // Only recognize field names in the structured validation response.
+    val invalid = runCatching { json?.getAsJsonObject("invalid-params") }.getOrNull()
+    if (status == 400 && invalid != null) {
+        if (invalid.has("description")) return "publication_description"
+        if (listOf("name", "channelId", "privacy", "saveReplay", "permanentLive", "filename", "commentsPolicy").any(invalid::has)) return "publication_parameters"
     }
     // Older PeerTube versions predate the machine-readable problem codes.
     val legacy = (field("error") + " " + field("error_description") + " " + field("detail")).lowercase(Locale.ROOT)

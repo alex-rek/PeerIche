@@ -44,6 +44,42 @@ class CreatorProtocolTest {
         failure("invalid_file") { UploadOperation.init(1, "video/mp4\r\nX: bad", "file.mp4", metadata) }
         failure("invalid_file") { UploadOperation.init(0, "video/mp4", "file.mp4", metadata) }
     }
+    @Test fun optionalDescriptionIsOmittedForUploadAndLiveOnPeerTube83() = runBlocking {
+        for (description in listOf("", "   ")) {
+            val draft = metadata.copy(description = description)
+            val http = client { request ->
+                val body = Buffer().also { request.body!!.writeTo(it) }.readUtf8()
+                if (request.url.encodedPath == UPLOAD_PATH) {
+                    val supplied = json(body)
+                    assertFalse(supplied.has("description"))
+                    assertEquals("video.mp4", supplied.get("filename").asString)
+                    response(request, 201, headers = mapOf("Location" to location))
+                } else {
+                    assertEquals("/api/v1/videos/live", request.url.encodedPath)
+                    assertTrue(request.body!!.contentType().toString().startsWith("multipart/form-data"))
+                    assertFalse(body.contains("name=\"description\""))
+                    assertTrue(body.contains("name=\"saveReplay\""))
+                    response(request, 200, """{"video":{"uuid":"$uuid"}}""")
+                }
+            }
+            executeUpload(http, server, "fixture", UploadOperation.init(123, "video/mp4", "video.mp4", draft))
+            val live = PeerTubeAuthTransport(http).accountRequest(server, "fixture", AccountOperation.createLive(draft, false, false))
+            assertEquals(uuid, uploadedUuid(live))
+        }
+    }
+    @Test fun nonEmptyDescriptionMustMeetServerMinimumAndIsPreserved() {
+        for (description in listOf("a", "ab")) failure("invalid_description") { metadata.copy(description = description).json() }
+        assertEquals("abc", metadata.copy(description = "abc").json().get("description").asString)
+        assertEquals(metadata.description, metadata.json().get("description").asString)
+    }
+    @Test fun publicationErrorsRecognizeFieldsAndLiveLimitsWithoutLeakingValues() {
+        assertEquals("publication_description", authErrorReason(400, json("""{"invalid-params":{"description":{"value":"private-text","msg":"Invalid value"}}}""")))
+        assertEquals("publication_parameters", authErrorReason(400, json("""{"invalid-params":{"channelId":{"value":999}}}""")))
+        assertEquals("request_failed", authErrorReason(400, json("""{"invalid-params":{"unknownSecret":{"value":"secret"}}}""")))
+        for (code in listOf("max_user_lives_limit_reached", "max_instance_lives_limit_reached", "live_not_enabled", "live_not_allowing_replay")) {
+            assertEquals(code, authErrorReason(403, json("""{"type":"https://docs.joinpeertube.org/api-rest-reference.html#section/Errors/$code"}""")))
+        }
+    }
     @Test fun quotasAreCheckedIndependentlyAndUnlimitedIsSupported() {
         caps().validateFile("VIDEO.MP4", Long.MAX_VALUE)
         caps(100, 100, 40, 40).validateFile("v.mp4", 60)
@@ -94,6 +130,39 @@ class CreatorProtocolTest {
         }
         assertEquals(4L, executeUpload(http, server, "t", UploadOperation.probe(location, 10)).offset)
         assertEquals(7L, executeUpload(http, server, "t", UploadOperation.chunk(location, 10, 4, byteArrayOf(4, 5, 6))).offset)
+    }
+    @Test fun emptyNodeUploadxSessionCanProceedFromInitThroughProbeToCompletedVideo() = runBlocking {
+        var calls = 0
+        val http = client { request ->
+            when (calls++) {
+                0 -> { assertEquals("POST", request.method); response(request, 201, headers = mapOf("Location" to location)) }
+                1 -> {
+                    assertEquals("bytes */4", request.header("Content-Range"))
+                    assertEquals(0L, request.body!!.contentLength())
+                    response(request, 308, headers = mapOf("Range" to "bytes=0--1"))
+                }
+                2 -> { assertEquals("bytes 0-1/4", request.header("Content-Range")); response(request, 308, headers = mapOf("Range" to "bytes=0-1")) }
+                else -> { assertEquals("bytes 2-3/4", request.header("Content-Range")); response(request, 200, """{"video":{"uuid":"$uuid"}}""") }
+            }
+        }
+        val created = executeUpload(http, server, "fixture", UploadOperation.init(4, "video/mp4", "video.mp4", metadata))
+        val empty = executeUpload(http, server, "fixture", UploadOperation.probe(created.location!!, 4))
+        assertEquals(0L, empty.offset)
+        val partial = executeUpload(http, server, "fixture", UploadOperation.chunk(created.location, 4, empty.offset, byteArrayOf(1, 2)))
+        assertEquals(2L, partial.offset)
+        val complete = executeUpload(http, server, "fixture", UploadOperation.chunk(created.location, 4, partial.offset, byteArrayOf(3, 4)))
+        assertEquals(uuid, complete.videoUuid); assertEquals(4L, complete.offset); assertEquals(4, calls)
+    }
+    @Test fun emptyRangeSentinelIsNotAcceptedAfterSendingAChunk() = runBlocking {
+        val http = client { response(it, 308, headers = mapOf("Range" to "bytes=0--1")) }
+        failure("upload_response") { runBlocking { executeUpload(http, server, "fixture", UploadOperation.chunk(location, 4, 0, byteArrayOf(1))) } }
+        for (range in listOf("bytes=0--2", "bytes=1--1", "bytes=0-4")) {
+            failure("invalid_response") { uploadOffset(range, 4, allowEmpty = true) }
+        }
+    }
+    @Test fun malformedUploadResponseIsReportedAsUploadErrorNotSignInIncompatibility() = runBlocking {
+        val http = client { response(it, 200, "not-json") }
+        failure("upload_response") { runBlocking { executeUpload(http, server, "fixture", UploadOperation.chunk(location, 1, 0, byteArrayOf(1))) } }
     }
     @Test fun actualRedirectIsNeverFollowedForAnUpload() = runBlocking {
         var calls = 0
