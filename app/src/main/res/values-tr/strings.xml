@@ -559,4 +559,5 @@
     <string name="video_meta">"%1$d Görüntüleme · %2$s"</string>
     <string name="video_unavailable" formatted="false">"Oynanabilir bir akış yüklenemedi. Tekrar deneyin veya başka bir sunucu seçin."</string>
     <string name="you" formatted="false">"Siz"</string>
+    <string name="translation_follow_interface">"Arayüz diliyle aynı"</string>
 </resources>

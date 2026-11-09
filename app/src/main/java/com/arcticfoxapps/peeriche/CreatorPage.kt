@@ -172,7 +172,7 @@ import kotlinx.coroutines.launch
     var channel by remember { mutableStateOf(capabilities.channels.firstOrNull()) }
     var privacy by remember { mutableIntStateOf(3) }
     var nsfw by remember { mutableStateOf(false) }
-    var replay by remember { mutableStateOf(false) }
+    var replay by remember { mutableStateOf(capabilities.replay) }
     var permanent by remember { mutableStateOf(false) }
     var busy by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }

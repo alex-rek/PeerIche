@@ -41,7 +41,10 @@ import java.util.Locale
     LazyColumn(Modifier.fillMaxSize()) {
         item { SettingsToggle(uiText(R.string.ui_translate_titles_descriptions_and_comments_234bae), options.translateMetadata) { value -> preferences.update { it.copy(translateMetadata = value) } } }
         item { SettingsToggle(uiText(R.string.ui_translate_subtitles_92ac18), options.translateSubtitles) { value -> preferences.update { it.copy(translateSubtitles = value) } } }
-        item { SettingsChoice(uiText(R.string.ui_translation_language_401967), options.translateTo, languages) { value -> preferences.update { it.copy(translateTo = value) } } }
+        item { SettingsChoice(uiText(R.string.ui_translation_language_401967), if (options.translationFollowsInterface) "" else options.translateTo,
+            listOf("" to uiText(R.string.translation_follow_interface)) + languages) { value ->
+            preferences.update { it.copy(translateTo = value.ifBlank { it.translateTo }, translationFollowsInterface = value.isBlank()) }
+        } }
         item { SettingsToggle(uiText(R.string.ui_download_models_only_over_wi_fi_b739a9), options.modelsWifiOnly) { value -> preferences.update { it.copy(modelsWifiOnly = value) } } }
         item { Text(uiText(R.string.ui_translation_runs_on_your_device_both_langu_bebcf9), Modifier.padding(24.dp), color = MaterialTheme.colorScheme.onSurfaceVariant) }
         if (status == "downloading" || status == "translating") item { Text(uiText(R.string.ui_preparing_models_or_translating_a98b86), Modifier.padding(horizontal = 24.dp)) }

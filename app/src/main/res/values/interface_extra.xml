@@ -6,4 +6,5 @@
     <string name="notification_upload">PeerIche · Video upload</string>
     <string name="notification_broadcast">PeerIche · Broadcast</string>
     <string name="notification_end">End</string>
+    <string name="translation_follow_interface">"Follow interface language"</string>
 </resources>

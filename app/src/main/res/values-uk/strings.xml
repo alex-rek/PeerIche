@@ -559,4 +559,5 @@
     <string name="video_meta">"%1$d Переглядів · %2$s"</string>
     <string name="video_unavailable" formatted="false">"Не вдалося завантажити відтворений потік. Повторіть спробу або виберіть інший сервер."</string>
     <string name="you" formatted="false">"Ви"</string>
+    <string name="translation_follow_interface">"Як мова інтерфейсу"</string>
 </resources>

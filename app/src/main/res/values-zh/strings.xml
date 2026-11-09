@@ -559,4 +559,5 @@
     <string name="video_meta">"%1$d 意见· %2$s"</string>
     <string name="video_unavailable" formatted="false">"无法加载可播放的流。 再试一次或选择另一台服务器。"</string>
     <string name="you" formatted="false">"我"</string>
+    <string name="translation_follow_interface">"跟随界面语言"</string>
 </resources>

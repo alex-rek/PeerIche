@@ -559,4 +559,5 @@
     <string name="video_meta">"%1$d Vistas · %2$s"</string>
     <string name="video_unavailable" formatted="false">"No se pudo cargar un flujo jugable. Inténtalo de nuevo o elige otro servidor."</string>
     <string name="you" formatted="false">"Tú"</string>
+    <string name="translation_follow_interface">"Como el idioma de la interfaz"</string>
 </resources>

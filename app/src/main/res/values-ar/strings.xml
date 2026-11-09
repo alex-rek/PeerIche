@@ -559,4 +559,5 @@
     <string name="video_meta">"%1$d المشاهدات %2$s"</string>
     <string name="video_unavailable" formatted="false">"لا يمكن تحميل دفق قابل للعب. حاول مرة أخرى أو اختيار خادم آخر."</string>
     <string name="you" formatted="false">"أنت"</string>
+    <string name="translation_follow_interface">"حسب لغة الواجهة"</string>
 </resources>

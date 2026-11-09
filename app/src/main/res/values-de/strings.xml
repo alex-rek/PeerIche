@@ -559,4 +559,5 @@
     <string name="video_meta">"%1$d Ansichten · %2$s"</string>
     <string name="video_unavailable" formatted="false">"Konnte keinen spielbaren Strom laden. Versuchen Sie es erneut oder wählen Sie einen anderen Server aus."</string>
     <string name="you" formatted="false">"Du"</string>
+    <string name="translation_follow_interface">"Wie die Sprache der Benutzeroberfläche"</string>
 </resources>

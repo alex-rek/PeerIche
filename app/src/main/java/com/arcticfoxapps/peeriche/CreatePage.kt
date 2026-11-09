@@ -132,13 +132,12 @@ import kotlinx.coroutines.launch
     var title by rememberSaveable(owner.id) { mutableStateOf((owner.displayName + titleSuffix).take(120)) }
     var description by rememberSaveable(owner.id) { mutableStateOf("") }
     var privacy by rememberSaveable(owner.id) { mutableIntStateOf(3) }
-    var replay by rememberSaveable(owner.id) { mutableStateOf(false) }
+    var replay by rememberSaveable(owner.id) { mutableStateOf(true) }
     var channelId by rememberSaveable(owner.id) { mutableLongStateOf(preferences.get(owner.id).channelId) }
     var selectedUuid by rememberSaveable(owner.id) { mutableStateOf<String?>(null) }
     var details by remember { mutableStateOf(false) }
     var confirmStop by remember { mutableStateOf(false) }
     var expanded by remember { mutableStateOf(false) }
-    var practice by remember { mutableStateOf(false) }
     var lives by remember { mutableStateOf(emptyList<CreatorVideo>()) }
     var livesError by remember { mutableStateOf<String?>(null) }
     var refreshLives by remember { mutableIntStateOf(0) }
@@ -225,8 +224,6 @@ import kotlinx.coroutines.launch
                         controller.begin(CreatorMetadata(title, description, channelId, privacy), replay && capabilities?.replay == true, selectedUuid)
                     }
                 }, modifier = Modifier.fillMaxWidth()) { Text(uiText(if (stream.phase == "preview") R.string.ui_start_broadcast_ca85c4 else R.string.ui_enable_preview_5b929b)) }
-                if (!compact) TextButton(onClick = { practice = !practice; if (allowed && stream.phase != "preview") controller.preview(owner) }, modifier = Modifier.fillMaxWidth()) { Text(uiText(R.string.ui_practice_mode_b4c403), color = Color.White) }
-                if (practice) Text(uiText(R.string.ui_preview_stays_on_this_device_nothing_is_tr_578f58), color = Color.White, style = MaterialTheme.typography.bodySmall)
             }
         }
     }
@@ -252,7 +249,7 @@ import kotlinx.coroutines.launch
 @Composable private fun BroadcastDetails(caps: CreatorCapabilities, lives: List<CreatorVideo>, loadError: String?, title: String, description: String, channel: Long, privacy: Int, replay: Boolean, uuid: String?,
     onRefresh: () -> Unit, onSave: (String, String, Long, Int, Boolean, String?) -> Unit, onClose: () -> Unit) {
     var name by remember { mutableStateOf(title) }; var desc by remember { mutableStateOf(description) }; var selectedChannel by remember { mutableLongStateOf(channel) }
-    var access by remember { mutableIntStateOf(privacy) }; var saveReplay by remember { mutableStateOf(replay) }; var selectedLive by remember { mutableStateOf(uuid) }
+    var access by remember { mutableIntStateOf(privacy) }; var saveReplay by remember { mutableStateOf(replay && caps.replay) }; var selectedLive by remember { mutableStateOf(uuid) }
     ModalBottomSheet(onDismissRequest = onClose, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
         Column(Modifier.fillMaxWidth().heightIn(max = 650.dp).imePadding().verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text(uiText(R.string.ui_broadcast_details_fb7ead), style = MaterialTheme.typography.titleLarge)

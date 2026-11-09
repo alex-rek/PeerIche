@@ -49,7 +49,7 @@ Signed APKs are published on the [GitHub Releases page](https://github.com/alex-
 
 ## In-app updates
 
-Version 0.1.1 checks public GitHub Releases on launch, at most once every six hours after a successful check. Settings also has a manual check. Published numeric version tags (including preview releases) with a named PeerIche-VERSION.apk and SHA-256 digest or sidecar are supported. Beta/RC tags are ignored. Downloading requires confirmation. The app validates the checksum, package, higher version code and identical signing certificate before opening the Android installer. Android requires installation approval and may ask to allow installs from PeerIche. No GitHub token is stored in the app. Install 0.1.1 manually once to enable future checks.
+The app checks public GitHub Releases on every launch and offers available updates. Settings also has a manual check. Published numeric version tags (including preview releases) with a named PeerIche-VERSION.apk and SHA-256 digest or sidecar are supported. Beta/RC tags are ignored. Downloading requires confirmation. The app validates the checksum, package, higher version code and identical signing certificate before opening the Android installer. Android requires installation approval and may ask to allow installs from PeerIche. No GitHub token is stored in the app. Install 0.1.1 manually once to enable future checks.
 
 ## Background playback and captions (0.1.2)
 

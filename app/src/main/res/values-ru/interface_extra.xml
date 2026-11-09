@@ -6,4 +6,5 @@
     <string name="notification_upload">PeerIche · Загрузка видео</string>
     <string name="notification_broadcast">PeerIche · Трансляция</string>
     <string name="notification_end">Завершить</string>
+    <string name="translation_follow_interface">"Как язык интерфейса"</string>
 </resources>

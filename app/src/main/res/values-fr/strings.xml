@@ -559,4 +559,5 @@
     <string name="video_meta">"%1$d Vues · %2$s"</string>
     <string name="video_unavailable" formatted="false">"Ne pouvait pas charger un flux jouable. Réessayez ou choisissez un autre serveur."</string>
     <string name="you" formatted="false">"Vous"</string>
+    <string name="translation_follow_interface">"Comme la langue de l’interface"</string>
 </resources>

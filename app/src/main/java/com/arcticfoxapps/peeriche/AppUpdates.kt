@@ -33,7 +33,7 @@ internal fun newerVersion(candidate: String, current: String): Boolean {
     return next.zip(old).firstOrNull { it.first != it.second }?.let { it.first > it.second } ?: false
 }
 
-private data class AppRelease(val version: String, val url: String, val checksum: String)
+internal data class AppRelease(val version: String, val url: String, val checksum: String)
 
 private object GitHubUpdates {
     private val client = OkHttpClient.Builder().connectTimeout(20, TimeUnit.SECONDS)
@@ -107,19 +107,17 @@ private object GitHubUpdates {
     }
 }
 
-@Composable internal fun AppUpdateFeature(manualRequest: Int) {
+@Composable internal fun AppUpdateFeature(manualRequest: Int, checkForUpdate: suspend (Context) -> AppRelease? = { GitHubUpdates.check(it) }) {
     val context = LocalContext.current
+    val check by rememberUpdatedState(checkForUpdate)
     var available by remember { mutableStateOf<AppRelease?>(null) }
     var ready by remember { mutableStateOf<File?>(null) }
     var downloading by remember { mutableStateOf(false) }
     var message by remember { mutableStateOf<Int?>(null) }
     var downloadRequest by remember { mutableIntStateOf(0) }
-    val preferences = remember { context.getSharedPreferences("updates", Context.MODE_PRIVATE) }
     LaunchedEffect(manualRequest) {
-        if (manualRequest == 0 && System.currentTimeMillis() - preferences.getLong("last_check", 0) < 6 * 60 * 60 * 1000) return@LaunchedEffect
         try {
-            val release = GitHubUpdates.check(context)
-            preferences.edit().putLong("last_check", System.currentTimeMillis()).apply()
+            val release = check(context)
             available = release
             if (release == null && manualRequest > 0) message = R.string.update_current
         } catch (cancelled: CancellationException) { throw cancelled }

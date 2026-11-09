@@ -559,4 +559,5 @@
     <string name="video_meta">"%1$d צפיות · %2$s"</string>
     <string name="video_unavailable" formatted="false">"לא ניתן לטעון זרם playable. נסה שוב או לבחור שרת אחר."</string>
     <string name="you" formatted="false">"אתם"</string>
+    <string name="translation_follow_interface">"לפי שפת הממשק"</string>
 </resources>
