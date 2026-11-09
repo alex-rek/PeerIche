@@ -202,7 +202,6 @@ internal fun creationModeIcon(mode: String) = when (mode) {
         val rotated = fixedPhone && !stream.options.portrait
         val contentWidth = if (rotated) maxHeight else maxWidth
         val contentHeight = if (rotated) maxWidth else maxHeight
-        Box(Modifier.requiredSize(contentWidth, contentHeight).align(Alignment.Center).graphicsLayer { rotationZ = if (rotated) 90f else 0f }) {
         if (allowed) AndroidView(factory = { ctx -> android.view.TextureView(ctx).apply {
             surfaceTextureListener = object : android.view.TextureView.SurfaceTextureListener {
                 private var output: android.view.Surface? = null
@@ -214,6 +213,7 @@ internal fun creationModeIcon(mode: String) = when (mode) {
                 override fun onSurfaceTextureUpdated(texture: android.graphics.SurfaceTexture) {}
             }
         } }, modifier = Modifier.fillMaxSize())
+        Box(Modifier.requiredSize(contentWidth, contentHeight).align(Alignment.Center).graphicsLayer { rotationZ = if (rotated) 90f else 0f }) {
         if (!allowed) Column(Modifier.align(Alignment.Center).padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Icon(Icons.Default.Videocam, null, Modifier.size(56.dp), tint = Color.White)
             Text(uiText(R.string.ui_camera_and_microphone_access_384ace), color = Color.White, style = MaterialTheme.typography.titleLarge)

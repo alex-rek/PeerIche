@@ -145,6 +145,7 @@ internal class BroadcastCoordinator(private val context: Context, private val ac
             // of the chosen encoded aspect ratio. changeVideoSource applies it.
             val options = state.value.options.copy(cameraOff = hidden)
             mutable.value = state.value.copy(options = options, torch = false); saveOptions(options); stream.requestKeyframe()
+            owner?.let { refreshLogo(it) }
         } catch (_: Exception) { stop("broadcast_camera") }
     }
     fun orientation() {
@@ -193,7 +194,15 @@ internal class BroadcastCoordinator(private val context: Context, private val ac
                     finally { image?.recycle() }
                 }
                 if (token != generation || engine !== stream) return@launch
-                stream.getGlInterface().setFilter(filter ?: com.pedro.encoder.input.gl.render.filters.NoFilterRender())
+                val gl = stream.getGlInterface()
+                gl.clearFilters()
+                if (stream.videoSource is Camera2Source) {
+                    val portraitDisplay = context.resources.configuration.orientation != android.content.res.Configuration.ORIENTATION_LANDSCAPE
+                    val short = minOf(width, height).toFloat(); val long = maxOf(width, height).toFloat()
+                    val sourceAspect = if (portraitDisplay) short / long else long / short
+                    gl.addFilter(BroadcastCameraFit(sourceAspect, width.toFloat() / height))
+                }
+                if (filter != null) gl.addFilter(filter)
             } catch (cancelled: CancellationException) { throw cancelled }
             catch (_: Exception) { if (token == generation) mutable.value = state.value.copy(error = "invalid_cover") }
         }
