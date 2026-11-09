@@ -38,7 +38,7 @@ import kotlinx.coroutines.launch
     val state by accounts.state.collectAsState()
     val owner = state.active?.takeUnless { it.needsLogin }
     if (owner == null) {
-        Text(uiText("Войдите в аккаунт на странице «Вы».", "Sign in on the You page."), Modifier.padding(20.dp)); return
+        Text(uiText(R.string.ui_sign_in_on_the_you_page_15ac8e), Modifier.padding(20.dp)); return
     }
     key(owner.id) { CreatorAccountPage(owner, accounts, onOpenVideo) }
 }
@@ -93,18 +93,18 @@ import kotlinx.coroutines.launch
         item {
             Text("${owner.username}@${java.net.URI(owner.server).authority}", style = MaterialTheme.typography.bodySmall)
             Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                Button(enabled = capabilities != null && transfer == null, onClick = { editor = "upload" }) { Text(uiText("Загрузить видео", "Upload video")) }
-                OutlinedButton(enabled = capabilities?.live == true, onClick = { editor = "live" }) { Text(uiText("Создать эфир", "Create live")) }
-                IconButton(enabled = !busy, onClick = { reload++ }) { Icon(Icons.Default.Refresh, uiText("Обновить", "Refresh")) }
+                Button(enabled = capabilities != null && transfer == null, onClick = { editor = "upload" }) { Text(uiText(R.string.ui_upload_video_a6dd28)) }
+                OutlinedButton(enabled = capabilities?.live == true, onClick = { editor = "live" }) { Text(uiText(R.string.ui_create_live_2cf7bd)) }
+                IconButton(enabled = !busy, onClick = { reload++ }) { Icon(Icons.Default.Refresh, uiText(R.string.ui_refresh_3526ad)) }
             }
             capabilities?.let { caps ->
-                Text(uiText("Хранилище: ", "Storage: ") + formatBytes(caps.used) + " / " + if (caps.quota < 0) uiText("без ограничений", "unlimited") else formatBytes(caps.quota), style = MaterialTheme.typography.bodySmall)
-                Text(uiText("За сутки: ", "Today: ") + formatBytes(caps.dailyUsed) + " / " + if (caps.dailyQuota < 0) uiText("без ограничений", "unlimited") else formatBytes(caps.dailyQuota), style = MaterialTheme.typography.bodySmall)
-                if (!caps.live) Text(uiText("Прямые эфиры отключены на этом сервере.", "Live streaming is disabled on this server."), style = MaterialTheme.typography.bodySmall)
+                Text(uiText(R.string.ui_storage_ecf1de) + formatBytes(caps.used) + " / " + if (caps.quota < 0) uiText(R.string.ui_unlimited_2b3fb9) else formatBytes(caps.quota), style = MaterialTheme.typography.bodySmall)
+                Text(uiText(R.string.ui_today_db20e6) + formatBytes(caps.dailyUsed) + " / " + if (caps.dailyQuota < 0) uiText(R.string.ui_unlimited_2b3fb9) else formatBytes(caps.dailyQuota), style = MaterialTheme.typography.bodySmall)
+                if (!caps.live) Text(uiText(R.string.ui_live_streaming_is_disabled_on_this_server_d8fe5d), style = MaterialTheme.typography.bodySmall)
             }
             if (transfer != null && draft == null) {
-                Text(uiText("Есть задание загрузки другого аккаунта. Для продолжения переключитесь на него; ненужное локальное задание можно убрать.", "Another account has an upload task. Switch to it to resume, or remove the local task if no longer needed."))
-                TextButton(onClick = { discard = true }) { Text(uiText("Убрать локальное задание", "Remove local task")) }
+                Text(uiText(R.string.ui_another_account_has_an_upload_task_switch_dadf08))
+                TextButton(onClick = { discard = true }) { Text(uiText(R.string.ui_remove_local_task_66ebd2)) }
             }
         }
         if (draft != null) item {
@@ -112,25 +112,25 @@ import kotlinx.coroutines.launch
                 Text(draft.metadata.name, fontWeight = FontWeight.SemiBold)
                 Text(uploadStatus(draft.status) + " · ${formatBytes(draft.offset)} / ${formatBytes(draft.file.size)}")
                 LinearProgressIndicator(progress = { (draft.offset.toDouble() / draft.file.size).toFloat().coerceIn(0f, 1f) }, modifier = Modifier.fillMaxWidth())
-                if (draft.videoUuid != null && draft.status != "done") Text(uiText("Видео уже загружено. Осталось применить обложку.", "The video has been uploaded. Its cover still needs to be applied."))
+                if (draft.videoUuid != null && draft.status != "done") Text(uiText(R.string.ui_the_video_has_been_uploaded_its_cover_stil_d841b6))
                 draft.error?.let { Text(creatorErrorText(it), color = MaterialTheme.colorScheme.error) }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    if (draft.active) TextButton(onClick = { uploads.pause() }) { Text(uiText("Пауза", "Pause")) }
+                    if (draft.active) TextButton(onClick = { uploads.pause() }) { Text(uiText(R.string.ui_pause_d19299)) }
                     else if (draft.status !in listOf("done", "cancelled")) {
-                        TextButton(onClick = { action { uploads.resume() } }) { Text(uiText("Продолжить", "Resume")) }
-                        if (draft.videoUuid == null) TextButton(onClick = { action { uploads.cancel() } }) { Text(uiText("Отменить", "Cancel")) }
+                        TextButton(onClick = { action { uploads.resume() } }) { Text(uiText(R.string.ui_resume_44eb04)) }
+                        if (draft.videoUuid == null) TextButton(onClick = { action { uploads.cancel() } }) { Text(uiText(R.string.ui_cancel_8afaa2)) }
                     }
-                    if (!draft.active) TextButton(onClick = { discard = true }) { Text(uiText("Убрать задание", "Remove task")) }
+                    if (!draft.active) TextButton(onClick = { discard = true }) { Text(uiText(R.string.ui_remove_task_e9224e)) }
                 }
             } }
         }
         if (uploadStorageError) item {
             Text(creatorErrorText("upload_storage"), color = MaterialTheme.colorScheme.error)
-            TextButton(onClick = { discard = true }) { Text(uiText("Сбросить задание загрузки", "Reset upload task")) }
+            TextButton(onClick = { discard = true }) { Text(uiText(R.string.ui_reset_upload_task_322db7)) }
         }
         if (busy) item { LinearProgressIndicator(Modifier.fillMaxWidth()) }
-        error?.let { reason -> item { Text(creatorErrorText(reason), color = MaterialTheme.colorScheme.error); TextButton(onClick = { reload++ }) { Text(uiText("Повторить", "Retry")) } } }
-        if (!busy && rows.isEmpty() && error == null) item { Text(uiText("На сервере пока нет ваших видео.", "You have no videos on this server yet.")) }
+        error?.let { reason -> item { Text(creatorErrorText(reason), color = MaterialTheme.colorScheme.error); TextButton(onClick = { reload++ }) { Text(uiText(R.string.ui_retry_e8368b)) } } }
+        if (!busy && rows.isEmpty() && error == null) item { Text(uiText(R.string.ui_you_have_no_videos_on_this_server_yet_74102c)) }
         items(rows, key = { it.video.apiId() }) { item ->
             OutlinedCard(Modifier.fillMaxWidth()) { Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 VideoThumbnail(item.video, owner.server, Modifier.fillMaxWidth().aspectRatio(16f / 9f)
@@ -138,21 +138,21 @@ import kotlinx.coroutines.launch
                 Text(item.video.name, style = MaterialTheme.typography.titleMedium)
                 Text(creatorVideoStatus(item), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    if (item.state == 1) TextButton(onClick = { onOpenVideo(item.video) }) { Text(uiText("Смотреть", "Watch")) }
+                    if (item.state == 1) TextButton(onClick = { onOpenVideo(item.video) }) { Text(uiText(R.string.ui_watch_5f1a41)) }
                     TextButton(onClick = {
                         context.playerActivity()?.pipSupport?.suspendForExternalUi()
                         context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("${owner.server}/videos/watch/${item.video.apiId()}")))
-                    }) { Text(uiText("На сайте", "Website")) }
-                    if (item.video.isLive) TextButton(onClick = { credentialsFor = item.video.apiId() }) { Text(uiText("Параметры эфира", "Stream settings")) }
+                    }) { Text(uiText(R.string.ui_website_633681)) }
+                    if (item.video.isLive) TextButton(onClick = { credentialsFor = item.video.apiId() }) { Text(uiText(R.string.ui_stream_settings_16c86b)) }
                 }
             } }
         }
-        if (start < total && error == null) item { TextButton(enabled = !busy, onClick = { load(true) }, modifier = Modifier.fillMaxWidth()) { Text(uiText("Загрузить ещё", "Load more")) } }
+        if (start < total && error == null) item { TextButton(enabled = !busy, onClick = { load(true) }, modifier = Modifier.fillMaxWidth()) { Text(uiText(R.string.ui_load_more_b9d06f)) } }
     }
-    if (discard) AlertDialog(onDismissRequest = { discard = false }, title = { Text(uiText("Убрать задание?", "Remove task?")) },
-        text = { Text(uiText("Опубликованное видео останется на сервере. Незавершённую передачу сначала можно отменить кнопкой «Отменить»; после удаления задания продолжить её не получится.", "Published videos will remain on the server. You can cancel an incomplete transfer first; removing the task discards its resume information.")) },
-        confirmButton = { TextButton(onClick = { discard = false; action { uploads.discard(); uploadStorageError = false; reload++ } }) { Text(uiText("Убрать", "Remove")) } },
-        dismissButton = { TextButton(onClick = { discard = false }) { Text(uiText("Оставить", "Keep")) } })
+    if (discard) AlertDialog(onDismissRequest = { discard = false }, title = { Text(uiText(R.string.ui_remove_task_cf3ba9)) },
+        text = { Text(uiText(R.string.ui_published_videos_will_remain_on_the_server_f6e568)) },
+        confirmButton = { TextButton(onClick = { discard = false; action { uploads.discard(); uploadStorageError = false; reload++ } }) { Text(uiText(R.string.ui_remove_32d0b3)) } },
+        dismissButton = { TextButton(onClick = { discard = false }) { Text(uiText(R.string.ui_keep_7058e4)) } })
     if (editor != null && capabilities != null) CreatorEditor(owner, capabilities!!, live = editor == "live", uploads, repository,
         onCreated = { uuid -> editor = null; reload++; if (uuid != null) credentialsFor = uuid }, onClose = { editor = null })
     credentialsFor?.let { uuid -> LiveCredentialsDialog(owner.id, uuid, repository) { credentialsFor = null } }
@@ -202,32 +202,32 @@ import kotlinx.coroutines.launch
     } }
     ModalBottomSheet(onDismissRequest = { if (!busy) onClose() }, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
         Column(Modifier.align(Alignment.CenterHorizontally).widthIn(max = 720.dp).fillMaxWidth().fillMaxHeight(.94f).imePadding().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text(uiText(if (live) "Создать эфир для OBS" else "Загрузить видео", if (live) "Create live for OBS" else "Upload video"), style = MaterialTheme.typography.titleLarge)
+            Text(uiText(if (live) R.string.ui_create_live_for_obs_3e8e4f else R.string.ui_upload_video_a6dd28), style = MaterialTheme.typography.titleLarge)
             Text("${owner.username}@${java.net.URI(owner.server).authority}", style = MaterialTheme.typography.bodySmall)
             if (!live) {
-                OutlinedButton(enabled = !busy, onClick = { picker.launch(arrayOf("video/*")) }) { Text(file?.name ?: uiText("Выбрать видео", "Choose video")) }
+                OutlinedButton(enabled = !busy, onClick = { picker.launch(arrayOf("video/*")) }) { Text(file?.name ?: uiText(R.string.ui_choose_video_71bb7b)) }
                 file?.let { Text(formatBytes(it.size), style = MaterialTheme.typography.bodySmall) }
-                OutlinedButton(enabled = !busy, onClick = { coverPicker.launch(arrayOf("image/jpeg", "image/png", "image/webp")) }) { Text(cover?.name ?: uiText("Выбрать обложку (необязательно)", "Choose cover (optional)")) }
-                if (cover != null) TextButton(enabled = !busy, onClick = { releaseUploadFile(context, cover); cover = null }) { Text(uiText("Без обложки", "No cover")) }
+                OutlinedButton(enabled = !busy, onClick = { coverPicker.launch(arrayOf("image/jpeg", "image/png", "image/webp")) }) { Text(cover?.name ?: uiText(R.string.ui_choose_cover_optional_9a60e9)) }
+                if (cover != null) TextButton(enabled = !busy, onClick = { releaseUploadFile(context, cover); cover = null }) { Text(uiText(R.string.ui_no_cover_564f04)) }
             }
-            OutlinedTextField(title, { title = it }, enabled = !busy, label = { Text(uiText("Название · 3–120 символов", "Title · 3–120 characters")) }, isError = title.length > 120, modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(description, { description = it }, enabled = !busy, label = { Text(uiText("Описание", "Description")) }, minLines = 2, maxLines = 5, isError = description.length > 10000, modifier = Modifier.fillMaxWidth())
+            OutlinedTextField(title, { title = it }, enabled = !busy, label = { Text(uiText(R.string.ui_title_3_120_characters_205170)) }, isError = title.length > 120, modifier = Modifier.fillMaxWidth())
+            OutlinedTextField(description, { description = it }, enabled = !busy, label = { Text(uiText(R.string.ui_description_70bc2e)) }, minLines = 2, maxLines = 5, isError = description.length > 10000, modifier = Modifier.fillMaxWidth())
             var chooseChannel by remember { mutableStateOf(false) }
             Box {
-                OutlinedButton(enabled = !busy, onClick = { chooseChannel = true }) { Text(channel?.title ?: uiText("Нет собственного канала", "No channel available")) }
+                OutlinedButton(enabled = !busy, onClick = { chooseChannel = true }) { Text(channel?.title ?: uiText(R.string.ui_no_channel_available_f2ae51)) }
                 DropdownMenu(chooseChannel, onDismissRequest = { chooseChannel = false }) {
                     capabilities.channels.forEach { item -> DropdownMenuItem(text = { Text(item.title) }, onClick = { channel = item; chooseChannel = false }) }
                 }
             }
-            Text(uiText("Доступность", "Visibility"), style = MaterialTheme.typography.titleSmall)
-            listOf(3 to uiText("Личное", "Private"), 2 to uiText("По ссылке", "Unlisted"), 1 to uiText("Публичное", "Public")).forEach { (id, label) ->
+            Text(uiText(R.string.ui_visibility_613511), style = MaterialTheme.typography.titleSmall)
+            listOf(3 to uiText(R.string.ui_private_b83206), 2 to uiText(R.string.ui_unlisted_689d94), 1 to uiText(R.string.ui_public_5fe491)).forEach { (id, label) ->
                 Row(verticalAlignment = Alignment.CenterVertically) { RadioButton(privacy == id, enabled = !busy, onClick = { privacy = id }); Text(label) }
             }
-            Row(verticalAlignment = Alignment.CenterVertically) { Checkbox(nsfw, { nsfw = it }, enabled = !busy); Text(uiText("Контент для взрослых", "Sensitive content")) }
+            Row(verticalAlignment = Alignment.CenterVertically) { Checkbox(nsfw, { nsfw = it }, enabled = !busy); Text(uiText(R.string.ui_sensitive_content_3d5344)) }
             if (live) {
-                Row(verticalAlignment = Alignment.CenterVertically) { Checkbox(replay, { replay = it }, enabled = !busy && capabilities.replay); Text(uiText("Сохранять запись эфира", "Save replay")) }
-                Row(verticalAlignment = Alignment.CenterVertically) { Checkbox(permanent, { permanent = it }, enabled = !busy); Text(uiText("Повторно используемый эфир", "Recurring live")) }
-                Text(uiText("После создания появятся адрес сервера и ключ для OBS. Камера телефона будет добавлена следующим этапом.", "After creation, use the server URL and stream key in OBS. Phone broadcasting will be added separately."), style = MaterialTheme.typography.bodySmall)
+                Row(verticalAlignment = Alignment.CenterVertically) { Checkbox(replay, { replay = it }, enabled = !busy && capabilities.replay); Text(uiText(R.string.ui_save_replay_6cbd4e)) }
+                Row(verticalAlignment = Alignment.CenterVertically) { Checkbox(permanent, { permanent = it }, enabled = !busy); Text(uiText(R.string.ui_recurring_live_526a88)) }
+                Text(uiText(R.string.ui_after_creation_use_the_server_url_and_stre_1eddbc), style = MaterialTheme.typography.bodySmall)
             }
             error?.let { Text(creatorErrorText(it), color = MaterialTheme.colorScheme.error) }
             if (busy) LinearProgressIndicator(Modifier.fillMaxWidth())
@@ -257,8 +257,8 @@ import kotlinx.coroutines.launch
                         catch (failure: Exception) { error = if (live && (failure !is AuthFailure || failure.status >= 500 || failure.reason == "invalid_response")) "live_create_unknown" else accountErrorCode(failure) }
                         finally { busy = false }
                     }
-                }) { Text(uiText(if (live) "Создать эфир" else "Загрузить", if (live) "Create live" else "Upload")) }
-                TextButton(enabled = !busy, onClick = onClose) { Text(uiText("Закрыть", "Close")) }
+                }) { Text(uiText(if (live) R.string.ui_create_live_2cf7bd else R.string.ui_upload_b4fcd7)) }
+                TextButton(enabled = !busy, onClick = onClose) { Text(uiText(R.string.ui_close_641636)) }
             }
             Spacer(Modifier.height(16.dp))
         }
@@ -284,24 +284,24 @@ import kotlinx.coroutines.launch
     Dialog(onDismissRequest = onClose, properties = DialogProperties(securePolicy = SecureFlagPolicy.SecureOn, usePlatformDefaultWidth = false)) {
         Surface(Modifier.widthIn(max = 680.dp).fillMaxWidth().padding(16.dp), shape = MaterialTheme.shapes.large) {
             Column(Modifier.verticalScroll(rememberScrollState()).padding(20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Text(uiText("Параметры эфира для OBS", "OBS stream settings"), style = MaterialTheme.typography.titleLarge)
+                Text(uiText(R.string.ui_obs_stream_settings_a35ef7), style = MaterialTheme.typography.titleLarge)
                 data?.let { value ->
-                    Text(uiText("Сервис OBS: «Пользовательский»", "OBS service: Custom"))
-                    Text(uiText("Сервер", "Server"), fontWeight = FontWeight.SemiBold); Text(value.url)
-                    TextButton(onClick = { copy(value.url) }) { Text(uiText("Копировать адрес", "Copy URL")) }
+                    Text(uiText(R.string.ui_obs_service_custom_257d44))
+                    Text(uiText(R.string.ui_server_dedf58), fontWeight = FontWeight.SemiBold); Text(value.url)
+                    TextButton(onClick = { copy(value.url) }) { Text(uiText(R.string.ui_copy_url_4f5c50)) }
                     var visible by remember { mutableStateOf(false) }
-                    Text(uiText("Ключ трансляции", "Stream key"), fontWeight = FontWeight.SemiBold)
+                    Text(uiText(R.string.ui_stream_key_8d248e), fontWeight = FontWeight.SemiBold)
                     Text(if (visible) value.key else "••••••••••••")
                     Row {
-                        TextButton(onClick = { visible = !visible }) { Text(uiText(if (visible) "Скрыть" else "Показать", if (visible) "Hide" else "Show")) }
-                        TextButton(onClick = { copy(value.key, true) }) { Text(uiText("Копировать ключ", "Copy key")) }
+                        TextButton(onClick = { visible = !visible }) { Text(uiText(if (visible) R.string.ui_hide_c7431d else R.string.ui_show_bd4eeb)) }
+                        TextButton(onClick = { copy(value.key, true) }) { Text(uiText(R.string.ui_copy_key_8b55c7)) }
                     }
-                    Text(uiText("Ключ позволяет вести эфир от вашего имени. Не публикуйте его.", "The key allows broadcasting as you. Keep it private."), style = MaterialTheme.typography.bodySmall)
-                    TextButton(onClick = { copy(value.watchUrl) }) { Text(uiText("Копировать ссылку на эфир", "Copy watch link")) }
+                    Text(uiText(R.string.ui_the_key_allows_broadcasting_as_you_keep_it_45f0a6), style = MaterialTheme.typography.bodySmall)
+                    TextButton(onClick = { copy(value.watchUrl) }) { Text(uiText(R.string.ui_copy_watch_link_52e6ac)) }
                 }
                 if (data == null && error == null) LinearProgressIndicator(Modifier.fillMaxWidth())
-                error?.let { Text(creatorErrorText(it)); TextButton(onClick = { retry++ }) { Text(uiText("Повторить", "Retry")) } }
-                TextButton(onClick = onClose) { Text(uiText("Закрыть", "Close")) }
+                error?.let { Text(creatorErrorText(it)); TextButton(onClick = { retry++ }) { Text(uiText(R.string.ui_retry_e8368b)) } }
+                TextButton(onClick = onClose) { Text(uiText(R.string.ui_close_641636)) }
             }
         }
     }
@@ -315,45 +315,45 @@ internal fun formatBytes(value: Long): String = when {
 }
 
 @Composable private fun creatorVideoStatus(item: CreatorVideo): String {
-    val privacy = when (item.privacy) { 1 -> uiText("Публичное", "Public"); 2 -> uiText("По ссылке", "Unlisted"); 3 -> uiText("Личное", "Private"); else -> uiText("Ограниченный доступ", "Restricted") }
+    val privacy = when (item.privacy) { 1 -> uiText(R.string.ui_public_5fe491); 2 -> uiText(R.string.ui_unlisted_689d94); 3 -> uiText(R.string.ui_private_b83206); else -> uiText(R.string.ui_restricted_5746bb) }
     val status = when (item.state) {
-        1 -> if (item.video.isLive) uiText("В эфире", "Live") else uiText("Опубликовано", "Published")
-        2 -> uiText("Обработка видео", "Processing video"); 3 -> uiText("Импорт видео", "Importing video")
-        4 -> uiText("Ожидает начала эфира", "Waiting for live"); 5 -> uiText("Эфир завершён", "Live ended")
-        6, 10 -> uiText("Перемещение видео", "Moving video"); 7 -> uiText("Ошибка обработки", "Processing failed")
-        8, 11 -> uiText("Ошибка перемещения", "Moving failed"); 9 -> uiText("Редактирование видео", "Editing video"); 12 -> uiText("Ошибка импорта", "Import failed")
-        else -> item.stateLabel.ifBlank { uiText("Обработка на сервере", "Server processing") }
+        1 -> if (item.video.isLive) uiText(R.string.ui_live_4a340c) else uiText(R.string.ui_published_b4e8f8)
+        2 -> uiText(R.string.ui_processing_video_967d3f); 3 -> uiText(R.string.ui_importing_video_978518)
+        4 -> uiText(R.string.ui_waiting_for_live_fc9024); 5 -> uiText(R.string.ui_live_ended_4704f1)
+        6, 10 -> uiText(R.string.ui_moving_video_98925c); 7 -> uiText(R.string.ui_processing_failed_423bf1)
+        8, 11 -> uiText(R.string.ui_moving_failed_0aec63); 9 -> uiText(R.string.ui_editing_video_99ff81); 12 -> uiText(R.string.ui_import_failed_6ca1a5)
+        else -> item.stateLabel.ifBlank { uiText(R.string.ui_server_processing_726797) }
     }
     return "$privacy · $status"
 }
 @Composable private fun uploadStatus(status: String): String = when (status) {
-    "starting" -> uiText("Подготовка", "Preparing"); "uploading" -> uiText("Загрузка", "Uploading"); "paused" -> uiText("Приостановлено", "Paused")
-    "cover" -> uiText("Обложка", "Cover"); "done" -> uiText("Передано на сервер", "Uploaded to server"); "cancelled" -> uiText("Отменено", "Cancelled")
-    "cancelling" -> uiText("Отмена", "Cancelling"); else -> uiText("Загрузка остановлена", "Upload stopped")
+    "starting" -> uiText(R.string.ui_preparing_6e055d); "uploading" -> uiText(R.string.ui_uploading_9da15d); "paused" -> uiText(R.string.ui_paused_5d65a6)
+    "cover" -> uiText(R.string.ui_cover_686522); "done" -> uiText(R.string.ui_uploaded_to_server_825d5e); "cancelled" -> uiText(R.string.ui_cancelled_36a6b0)
+    "cancelling" -> uiText(R.string.ui_cancelling_6a8032); else -> uiText(R.string.ui_upload_stopped_86c348)
 }
 @Composable internal fun creatorErrorText(reason: String): String = when (reason) {
-    "upload_response", "invalid_response" -> uiText("Не удалось прочитать ответ сервера на запрос публикации. Повторите проверку кнопкой «Продолжить» или обновите список видео.", "Could not read the server publication response. Resume to check progress or refresh your videos.")
-    "invalid_description", "publication_description" -> uiText("Оставьте описание пустым или введите от 3 до 10 000 символов.", "Leave the description empty or enter 3 to 10,000 characters.")
-    "publication_parameters" -> uiText("Сервер отклонил параметры публикации. Проверьте название, описание, канал и доступность.", "The server rejected the publication parameters. Check the title, description, channel and privacy.")
-    "max_instance_lives_limit_reached" -> uiText("На сервере достигнут предел одновременных эфиров.", "The server has reached its simultaneous live stream limit.")
-    "max_user_lives_limit_reached" -> uiText("Достигнут предел эфиров аккаунта. Выберите ранее созданный ожидающий эфир или завершите ненужные эфиры на сервере.", "Your account has reached its live stream limit. Choose an existing waiting live or end unused streams on the server.")
-    "live_not_enabled", "live_not_allowing_replay" -> uiText("Сервер не разрешает эфир или сохранение записи с выбранными параметрами.", "The server does not allow these live or replay settings.")
-    "upload_storage" -> uiText("Не удалось прочитать или сохранить задание загрузки. Можно сбросить только это задание; аккаунты и опубликованные видео сохранятся.", "The upload task could not be read or saved. You can reset this task without removing accounts or published videos.")
-    "invalid_publication" -> uiText("Проверьте название (3–120 символов), описание (до 10 000) и канал.", "Check the title (3–120 characters), description (up to 10,000) and channel.")
-    "invalid_file", "file_unavailable", "file_changed" -> uiText("Не удалось прочитать исходный файл. Он должен оставаться доступным и неизменным до завершения загрузки.", "The original file must remain accessible and unchanged until upload finishes.")
-    "invalid_cover" -> uiText("Недопустимая обложка: проверьте размер и формат JPG, PNG или WebP.", "Invalid cover: check its size and JPG, PNG or WebP format.")
-    "upload_format" -> uiText("Сервер не поддерживает этот формат файла.", "The server does not support this file format.")
-    "upload_quota" -> uiText("Недостаточно квоты или превышен максимальный размер файла на сервере.", "Insufficient quota or the server file size limit was exceeded.")
-    "upload_expired" -> uiText("Сессия загрузки недоступна. Сначала обновите «Ваши видео»: файл мог уже загрузиться. Если его нет, уберите задание и выберите файл заново.", "The upload session is unavailable. Refresh Your videos first: it may already be uploaded. If absent, remove the task and select the file again.")
-    "upload_interrupted" -> uiText("Передача прервалась. Нажмите «Продолжить» для сверки с сервером.", "Transfer was interrupted. Resume to check progress with the server.")
-    "upload_range", "upload_processing" -> uiText("Сверьте состояние кнопкой «Продолжить», затем обновите список видео. Не создавайте повторную загрузку, пока результат не известен.", "Resume to check the transfer, then refresh your videos before starting another upload.")
-    "upload_chunk_limit" -> uiText("Параметры блоков сервера не поддерживаются для этого размера файла.", "The server chunk limits are incompatible with this file size.")
-    "upload_unreadable" -> uiText("Сервер не смог обработать видеофайл.", "The server could not read the video file.")
-    "upload_exists" -> uiText("Сначала завершите или уберите существующее задание.", "Finish or remove the existing task first.")
-    "upload_service" -> uiText("Android не разрешил запустить фоновую загрузку. Вернитесь в приложение и нажмите «Продолжить».", "Android could not start the upload service. Return to the app and resume.")
-    "upload_already_complete" -> uiText("Видео уже передано на сервер. Отмена загрузки не удаляет опубликованное видео.", "The video has already been uploaded. Cancelling does not delete published videos.")
-    "live_disabled" -> uiText("Сервер не разрешает эфир или сохранение записи с выбранными параметрами.", "The server does not allow these live or replay settings.")
-    "live_create_unknown" -> uiText("Создание эфира не подтверждено. Закройте окно и обновите «Ваши видео» перед повторной попыткой.", "Live creation could not be confirmed. Refresh Your videos before trying again.")
-    "invalid_upload_location" -> uiText("Сервер вернул недопустимый адрес продолжения загрузки.", "The server returned an invalid upload URL.")
+    "upload_response", "invalid_response" -> uiText(R.string.ui_could_not_read_the_server_publication_resp_afcf21)
+    "invalid_description", "publication_description" -> uiText(R.string.ui_leave_the_description_empty_or_enter_3_to_b7e8f0)
+    "publication_parameters" -> uiText(R.string.ui_the_server_rejected_the_publication_parame_022749)
+    "max_instance_lives_limit_reached" -> uiText(R.string.ui_the_server_has_reached_its_simultaneous_li_7e7ab4)
+    "max_user_lives_limit_reached" -> uiText(R.string.ui_your_account_has_reached_its_live_stream_l_fdf60d)
+    "live_not_enabled", "live_not_allowing_replay" -> uiText(R.string.ui_the_server_does_not_allow_these_live_or_re_b8bb40)
+    "upload_storage" -> uiText(R.string.ui_the_upload_task_could_not_be_read_or_saved_803c41)
+    "invalid_publication" -> uiText(R.string.ui_check_the_title_3_120_characters_descripti_42321d)
+    "invalid_file", "file_unavailable", "file_changed" -> uiText(R.string.ui_the_original_file_must_remain_accessible_a_f44e10)
+    "invalid_cover" -> uiText(R.string.ui_invalid_cover_check_its_size_and_jpg_png_o_f819b9)
+    "upload_format" -> uiText(R.string.ui_the_server_does_not_support_this_file_form_0ebd3a)
+    "upload_quota" -> uiText(R.string.ui_insufficient_quota_or_the_server_file_size_b79de3)
+    "upload_expired" -> uiText(R.string.ui_the_upload_session_is_unavailable_refresh_c1a973)
+    "upload_interrupted" -> uiText(R.string.ui_transfer_was_interrupted_resume_to_check_p_77ca35)
+    "upload_range", "upload_processing" -> uiText(R.string.ui_resume_to_check_the_transfer_then_refresh_2ca5ab)
+    "upload_chunk_limit" -> uiText(R.string.ui_the_server_chunk_limits_are_incompatible_w_055ddc)
+    "upload_unreadable" -> uiText(R.string.ui_the_server_could_not_read_the_video_file_c95cf8)
+    "upload_exists" -> uiText(R.string.ui_finish_or_remove_the_existing_task_first_2d4084)
+    "upload_service" -> uiText(R.string.ui_android_could_not_start_the_upload_service_6cfdee)
+    "upload_already_complete" -> uiText(R.string.ui_the_video_has_already_been_uploaded_cancel_006471)
+    "live_disabled" -> uiText(R.string.ui_the_server_does_not_allow_these_live_or_re_b8bb40)
+    "live_create_unknown" -> uiText(R.string.ui_live_creation_could_not_be_confirmed_refre_523650)
+    "invalid_upload_location" -> uiText(R.string.ui_the_server_returned_an_invalid_upload_url_d03771)
     else -> accountErrorText(reason)
 }

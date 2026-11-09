@@ -225,19 +225,20 @@ internal object Broadcasts {
 }
 
 class BroadcastService : Service() {
+    override fun attachBaseContext(newBase: Context) { super.attachBaseContext(localizedAppContext(newBase)) }
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private lateinit var coordinator: BroadcastCoordinator
     private var wakeLock: PowerManager.WakeLock? = null
     override fun onCreate() {
         super.onCreate(); coordinator = Broadcasts.get(this)
-        if (Build.VERSION.SDK_INT >= 26) getSystemService(NotificationManager::class.java).createNotificationChannel(NotificationChannel("broadcast", "PeerIche · Трансляция", NotificationManager.IMPORTANCE_LOW))
+        if (Build.VERSION.SDK_INT >= 26) getSystemService(NotificationManager::class.java).createNotificationChannel(NotificationChannel("broadcast", getString(R.string.notification_broadcast), NotificationManager.IMPORTANCE_LOW))
     }
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (intent?.action == "stop") { coordinator.stop(); finishService(); return START_NOT_STICKY }
         val stop = PendingIntent.getService(this, 901, Intent(this, BroadcastService::class.java).setAction("stop"), PendingIntent.FLAG_IMMUTABLE)
         val open = PendingIntent.getActivity(this, 902, Intent(this, MainActivity::class.java).setAction("peeriche.broadcast").addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
-        val notification = NotificationCompat.Builder(this, "broadcast").setSmallIcon(android.R.drawable.presence_video_busy).setContentTitle("PeerIche · Трансляция")
-            .setContentText(coordinator.state.value.title).setContentIntent(open).setOngoing(true).setOnlyAlertOnce(true).addAction(0, "Завершить", stop).build()
+        val notification = NotificationCompat.Builder(this, "broadcast").setSmallIcon(android.R.drawable.presence_video_busy).setContentTitle(getString(R.string.notification_broadcast))
+            .setContentText(coordinator.state.value.title).setContentIntent(open).setOngoing(true).setOnlyAlertOnce(true).addAction(0, getString(R.string.notification_end), stop).build()
         try {
             val types = if (Build.VERSION.SDK_INT >= 30) android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA or android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE else 0
             ServiceCompat.startForeground(this, 903, notification, types)

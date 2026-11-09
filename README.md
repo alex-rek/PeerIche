@@ -14,6 +14,7 @@ PeerIche is a continuation of PeerTubeTV by the same author. It is a standalone 
 - Room-backed favorites, watch history and channel subscriptions; DataStore-backed server and theme settings.
 - Full screen destination with Media3 playback when a playable URL is provided.
 - Graphite, Light and blue Aurora themes, plus automatic Android theme switching.
+- Static interface translations in English, Russian, Spanish, French, German, Portuguese, Turkish, Ukrainian, Simplified Chinese, Arabic and Hebrew, with RTL layouts, automatic Android language selection and Android 13+ per-app language settings.
 - Compact header and an original Graphite vector launcher mark.
 - Watch page with collapsible description, channel subscription, public comment threads and Android sharing.
 - You page with PeerTube OAuth account sign-in, two-factor codes, multiple accounts, followed channels, favorites, history and settings. Tokens use Android Keystore AES-GCM; passwords are not saved.

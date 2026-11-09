@@ -69,12 +69,12 @@ internal fun subtitleTrackChoices(tracks: Tracks): List<SubtitleTrackChoice> = t
         preferences.update { it.copy(subtitlesEnabled = choice != null) }
         onClose()
     }
-    AlertDialog(onDismissRequest = onClose, title = { Text(uiText("Субтитры", "Subtitles")) }, text = {
+    AlertDialog(onDismissRequest = onClose, title = { Text(uiText(R.string.ui_subtitles_4b389d)) }, text = {
         Column(Modifier.heightIn(max = 360.dp).verticalScroll(rememberScrollState())) {
             Row(Modifier.fillMaxWidth().clickable { select(null) }.heightIn(min = 48.dp), verticalAlignment = Alignment.CenterVertically) {
-                RadioButton(!options.subtitlesEnabled, onClick = null); Spacer(Modifier.width(12.dp)); Text(uiText("Выключены", "Off"))
+                RadioButton(!options.subtitlesEnabled, onClick = null); Spacer(Modifier.width(12.dp)); Text(uiText(R.string.ui_off_135883))
             }
-            if (choices.isEmpty()) Text(uiText("Доступных субтитров пока нет", "No subtitles available yet"), Modifier.padding(vertical = 12.dp))
+            if (choices.isEmpty()) Text(uiText(R.string.ui_no_subtitles_available_yet_71da63), Modifier.padding(vertical = 12.dp))
             choices.forEach { choice ->
                 Row(Modifier.fillMaxWidth().clickable { select(choice) }.heightIn(min = 48.dp), verticalAlignment = Alignment.CenterVertically) {
                     RadioButton(options.subtitlesEnabled && choice.selected, onClick = null)
@@ -83,5 +83,5 @@ internal fun subtitleTrackChoices(tracks: Tracks): List<SubtitleTrackChoice> = t
                 }
             }
         }
-    }, confirmButton = { TextButton(onClick = onClose) { Text(uiText("Закрыть", "Close")) } })
+    }, confirmButton = { TextButton(onClick = onClose) { Text(uiText(R.string.ui_close_641636)) } })
 }

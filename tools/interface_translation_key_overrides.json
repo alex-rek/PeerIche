@@ -1,0 +1,101 @@
+{
+  "ui_light_bc799a": [
+    "Claro",
+    "Clair",
+    "Hell",
+    "Claro",
+    "Açık",
+    "Світла",
+    "浅色",
+    "فاتح",
+    "בהיר"
+  ],
+  "ui_light_ce5d5c": [
+    "Luz",
+    "Éclairage",
+    "Licht",
+    "Luz",
+    "Işık",
+    "Світло",
+    "补光",
+    "إضاءة",
+    "תאורה"
+  ],
+  "theme_light": [
+    "Claro",
+    "Clair",
+    "Hell",
+    "Claro",
+    "Açık",
+    "Світла",
+    "浅色",
+    "فاتح",
+    "בהיר"
+  ],
+  "ui_account_server_mismatch": [
+    "Los vídeos proceden de %1$s. Esta cuenta pertenece a %2$s.",
+    "Les vidéos proviennent de %1$s. Ce compte appartient à %2$s.",
+    "Die Videos stammen von %1$s. Dieses Konto gehört zu %2$s.",
+    "Os vídeos vêm de %1$s. Esta conta pertence a %2$s.",
+    "Videolar şu anda %1$s sunucusundan geliyor. Bu hesap %2$s sunucusuna bağlı.",
+    "Відео зараз із сервера %1$s. Цей обліковий запис пов’язаний із %2$s.",
+    "当前视频来自 %1$s，此账号属于 %2$s。",
+    "الفيديوهات الحالية من %1$s. هذا الحساب تابع لـ %2$s.",
+    "הסרטונים כעת מגיעים מ־%1$s. החשבון הזה שייך ל־%2$s."
+  ],
+  "ui_voice_test_language": [
+    "Idioma: %1$s. El vídeo se pausará.",
+    "Langue : %1$s. La vidéo sera mise en pause.",
+    "Sprache: %1$s. Das Video wird pausiert.",
+    "Idioma: %1$s. O vídeo será pausado.",
+    "Dil: %1$s. Video duraklatılacak.",
+    "Мова: %1$s. Відео буде призупинено.",
+    "语言：%1$s。视频将暂停。",
+    "اللغة: %1$s. سيُوقف الفيديو مؤقتًا.",
+    "שפה: %1$s. הסרטון יושהה."
+  ],
+  "ui_reply_to": [
+    "Respuesta a: %1$s",
+    "Réponse à : %1$s",
+    "Antwort an: %1$s",
+    "Resposta a: %1$s",
+    "Yanıt: %1$s",
+    "Відповідь: %1$s",
+    "回复：%1$s",
+    "رد على: %1$s",
+    "תגובה אל: %1$s"
+  ],
+  "ui_account_subscription": [
+    "Suscripción de la cuenta: %1$s",
+    "Abonnement du compte : %1$s",
+    "Konto-Abo: %1$s",
+    "Inscrição da conta: %1$s",
+    "Hesap aboneliği: %1$s",
+    "Підписка облікового запису: %1$s",
+    "账号订阅：%1$s",
+    "اشتراك الحساب: %1$s",
+    "מינוי של החשבון: %1$s"
+  ],
+  "update_ready": [
+    "El APK se ha verificado. Pulsa Instalar. Si Android lo solicita, permite las actualizaciones desde PeerIche, vuelve aquí y pulsa Instalar de nuevo.",
+    "L’APK a été vérifié. Appuyez sur Installer. Si Android le demande, autorisez les mises à jour depuis PeerIche, revenez ici et appuyez de nouveau sur Installer.",
+    "Die APK wurde überprüft. Tippe auf Installieren. Falls Android danach fragt, erlaube Updates von PeerIche, kehre hierher zurück und tippe erneut auf Installieren.",
+    "O APK foi verificado. Toque em Instalar. Se o Android solicitar, permita atualizações pelo PeerIche, volte aqui e toque em Instalar novamente.",
+    "APK doğrulandı. Yükle’ye dokunun. Android isterse PeerIche üzerinden güncellemelere izin verin, buraya dönün ve tekrar Yükle’ye dokunun.",
+    "APK перевірено. Натисніть «Установити». Якщо Android попросить, дозвольте оновлення з PeerIche, поверніться сюди й знову натисніть «Установити».",
+    "APK 已通过验证。请点按“安装”。如果 Android 提示，请允许 PeerIche 安装更新，然后返回此处再次点按“安装”。",
+    "تم التحقق من ملف APK. اضغط على «تثبيت». إذا طلب Android ذلك، اسمح بالتحديثات من PeerIche، ثم ارجع إلى هنا واضغط على «تثبيت» مجددًا.",
+    "קובץ ה־APK אומת. יש להקיש על התקנה. אם Android מבקש זאת, יש לאפשר עדכונים מ־PeerIche, לחזור לכאן ולהקיש שוב על התקנה."
+  ],
+  "notification_end": [
+    "Finalizar",
+    "Terminer",
+    "Beenden",
+    "Encerrar",
+    "Bitir",
+    "Завершити",
+    "结束",
+    "إنهاء",
+    "סיום"
+  ]
+}

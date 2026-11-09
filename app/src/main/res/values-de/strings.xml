@@ -1,0 +1,562 @@
+<resources>
+    <string name="about_independent" formatted="false">"PeerIche ist ein unabhängiger Kunde und ist nicht mit Framasoft verbunden."</string>
+    <string name="add_favorite" formatted="false">"Zu Favoriten hinzufügen"</string>
+    <string name="add_server" formatted="false">"Hinzufügen"</string>
+    <string name="app_theme" formatted="false">"Aussehen"</string>
+    <string name="app_updates" formatted="false">"Überprüfen Sie nach Updates"</string>
+    <string name="back" formatted="false">"Zurück"</string>
+    <string name="cancel" formatted="false">"Abbrechen"</string>
+    <string name="channel_column" formatted="false">"Kanal"</string>
+    <string name="channel_videos" formatted="false">"Kanalvideos"</string>
+    <string name="channels" formatted="false">"Kanäle"</string>
+    <string name="channels_load_failed" formatted="false">"Kanäle konnte nicht von diesem Server geladen werden."</string>
+    <string name="channels_on_server" formatted="false">"Kanäle auf dem Server"</string>
+    <string name="choose_peer_server" formatted="false">"Wählen Sie den Server"</string>
+    <string name="clear_search" formatted="false">"Löschen"</string>
+    <string name="create" formatted="false">"Erstellen"</string>
+    <string name="dark_theme" formatted="false">"Dunkles Thema"</string>
+    <string name="discover_servers" formatted="false">"Server entdecken"</string>
+    <string name="discover_videos" formatted="false">"Videos entdecken"</string>
+    <string name="discovered_servers">"Zusätzlich %1$d Server"</string>
+    <string name="discovering_servers" formatted="false">"Verzeichnis wird geprüft…"</string>
+    <string name="enter_fullscreen" formatted="false">"Ganzer Bildschirm"</string>
+    <string name="exit_fullscreen" formatted="false">"Vollbild verlassen"</string>
+    <string name="favorites" formatted="false">"Favoriten"</string>
+    <string name="find_more_live" formatted="false">"Weitere Streams finden"</string>
+    <string name="followed_channels" formatted="false">"Folgte Kanäle"</string>
+    <string name="from_subscriptions" formatted="false">"Neu von den Kanälen folgen Sie"</string>
+    <string name="go" formatted="false">"Gehen"</string>
+    <string name="hide_description" formatted="false">"Ausblenden"</string>
+    <string name="history" formatted="false">"Verlauf"</string>
+    <string name="home" formatted="false">"Startseite"</string>
+    <string name="home_sort_label">"Sortieren: %1$s"</string>
+    <string name="home_sort_newest" formatted="false">"Neueste zuerst"</string>
+    <string name="home_sort_oldest" formatted="false">"Älteste zuerst"</string>
+    <string name="home_sort_sections" formatted="false">"Nach Sammlungen"</string>
+    <string name="home_sort_views" formatted="false">"Meistgesehen"</string>
+    <string name="invalid_server_address" formatted="false">"Geben Sie eine gültige HTTPS-PeerTube-Adresse ein."</string>
+    <string name="latest_videos" formatted="false">"Neueste Videos"</string>
+    <string name="library" formatted="false">"Bibliothek"</string>
+    <string name="live_feed_failed" formatted="false">"Konnte keine Live-Streams laden. Überprüfen Sie Ihre Verbindung und versuchen Sie es erneut."</string>
+    <string name="live_more_results" formatted="false">"Keine aktiven Streams in der geprüften Auswahl. Suchen Sie die nächsten Seiten."</string>
+    <string name="live_now" formatted="false">"Live"</string>
+    <string name="load_more" formatted="false">"Mehr laden"</string>
+    <string name="loading_more" formatted="false">"Wird geladen ..."</string>
+    <string name="loading_video" formatted="false">"Video von seinem PeerTube-Server laden ..."</string>
+    <string name="manual_server_address" formatted="false">"Geben Sie eine Serveradresse ein"</string>
+    <string name="next_videos" formatted="false">"Nächste Videos"</string>
+    <string name="no_channels" formatted="false">"Auf diesem Server wurden keine Kanäle gefunden."</string>
+    <string name="no_live_videos" formatted="false">"Keine aktiven Live-Streams gefunden. Versuchen Sie, später aufzufragen."</string>
+    <string name="no_playable_stream" formatted="false">"In diesem Server ist kein spielbarer Strom verfügbar."</string>
+    <string name="no_results" formatted="false">"Keine Videos gefunden. Versuchen Sie es mit einer anderen Abfrage oder einem anderen Server."</string>
+    <string name="no_subscribed_channels" formatted="false">"Keine Kanäle noch. Abonnieren einer Grafikkarte."</string>
+    <string name="no_subtitles" formatted="false">"Für dieses Video stehen keine Untertitel zur Verfügung."</string>
+    <string name="notification_broadcast" formatted="false">"PeerIche · Übertragung"</string>
+    <string name="notification_end" formatted="false">"Beenden"</string>
+    <string name="notification_upload" formatted="false">"PeerIche · Video-Upload"</string>
+    <string name="on_server" formatted="false">"Auf dem Server"</string>
+    <string name="pause_playback" formatted="false">"Pausieren"</string>
+    <string name="pip_unavailable" formatted="false">"Bild im Bild ist nicht verfügbar. Überprüfen Sie die App-Berechtigung in Android-Einstellungen."</string>
+    <string name="popular_now" formatted="false">"Beliebt auf diesem Server"</string>
+    <string name="recommended_for_you" formatted="false">"Empfohlen von Ihrer Watch-Geschichte"</string>
+    <string name="remove_favorite" formatted="false">"Aus Favoriten entfernen"</string>
+    <string name="resume_playback" formatted="false">"Wiedergeben"</string>
+    <string name="retry" formatted="false">"Erneut versuchen"</string>
+    <string name="retry_captions" formatted="false">"Wiederholungsuntertitel wiederholen"</string>
+    <string name="save" formatted="false">"Speichern"</string>
+    <string name="search" formatted="false">"Suche"</string>
+    <string name="search_failed" formatted="false">"Die Suche konnte nicht die ausgewählten Quellen erreichen."</string>
+    <string name="search_hint" formatted="false">"Suche nach PeerTube"</string>
+    <string name="select_server" formatted="false">"Suchserver"</string>
+    <string name="server" formatted="false">"PeerTube-Server"</string>
+    <string name="server_column" formatted="false">"Server"</string>
+    <string name="server_feed_failed" formatted="false">"Videos konnte nicht von diesem Server geladen werden. Überprüfen Sie Ihre Verbindung oder wählen Sie einen anderen Server aus."</string>
+    <string name="server_list" formatted="false">"PeerTube-Server"</string>
+    <string name="server_not_peertube" formatted="false">"Diese Adresse unterstützt die PeerTube-API nicht. Wählen Sie in den Servern ein PeerTube-Server aus."</string>
+    <string name="servers" formatted="false">"Server"</string>
+    <string name="servers_help" formatted="false">"Eine HTTPS-PeerTube-Adresse pro Zeile. Suchen Sie nach Prüfungen Sepia-Suche und bis zu fünf Servern."</string>
+    <string name="settings" formatted="false">"Einstellungen"</string>
+    <string name="show_description" formatted="false">"Beschreibung der Beschreibung anzeigen"</string>
+    <string name="stop_playback" formatted="false">"Schließen"</string>
+    <string name="subscribe_button" formatted="false">"Abonnieren"</string>
+    <string name="subscribe_channel" formatted="false">"Kanal abonnieren"</string>
+    <string name="subscriptions" formatted="false">"Abos"</string>
+    <string name="subtitles" formatted="false">"Untertitel"</string>
+    <string name="theme_aurora" formatted="false">"Aurora · blau"</string>
+    <string name="theme_graphite" formatted="false">"Graphit"</string>
+    <string name="theme_light" formatted="false">"Hell"</string>
+    <string name="theme_system" formatted="false">"Wie in Android"</string>
+    <string name="translated_track" formatted="false">"Übersetzt"</string>
+    <string name="ui_a_comment_must_contain_1_to_10_000_charact_1bbc71" formatted="false">"Ein Kommentar muss 1 bis 10.000 Zeichen enthalten."</string>
+    <string name="ui_about_9a8919" formatted="false">"Über die App"</string>
+    <string name="ui_account_avatar_or_user_initials_a1dfdc" formatted="false">"Konto-Avatar- oder Benutzerinitialen"</string>
+    <string name="ui_account_server_mismatch">"Die Videos stammen von %1$s. Dieses Konto gehört zu %2$s."</string>
+    <string name="ui_account_subscription">"Konto-Abo: %1$s"</string>
+    <string name="ui_account_subscriptions_5aa21c" formatted="false">"Konto-Abonnements"</string>
+    <string name="ui_account_subscriptions_come_from_its_server_4cb70b" formatted="false">"Konto-Abonnements stammen von seinem Server. Geräteabonnements, Favoriten und -geschichte bleiben separat und werden nicht automatisch übertragen."</string>
+    <string name="ui_active_account_7ead88" formatted="false">"Active-Konto"</string>
+    <string name="ui_add_account_240e92" formatted="false">"Aufrechnen"</string>
+    <string name="ui_after_creation_use_the_server_url_and_stre_1eddbc" formatted="false">"Verwenden Sie nach der Erstellung die Server-URL- und Stream-Taste in der Obs. Die Telefonübertragung wird separat hinzugefügt."</string>
+    <string name="ui_all_countries_719a89" formatted="false">"Alle Länder"</string>
+    <string name="ui_all_results_069caf" formatted="false">"Alle Ergebnisse"</string>
+    <string name="ui_allow_camera_and_microphone_access_98d95e" formatted="false">"Erlaube den Zugriff auf Kamera und Mikrofon."</string>
+    <string name="ui_allow_ea9723" formatted="false">"Erlauben"</string>
+    <string name="ui_android_could_not_start_the_upload_service_6cfdee" formatted="false">"Android konnte den Upload-Dienst nicht starten. Kehren Sie zur App zurück und setzen Sie den Lebenslauf."</string>
+    <string name="ui_android_permission_settings_d74962" formatted="false">"Android-Berechtigungen"</string>
+    <string name="ui_android_stopped_broadcasting_return_to_the_c7f063" formatted="false">"Android hörte auf, Rundfunk zu bringen. Kehren Sie zur Kameraseite zurück, um neu zu starten."</string>
+    <string name="ui_another_account_has_an_upload_task_ce4ce5" formatted="false">"Ein anderes Konto hat eine Upload-Aufgabe"</string>
+    <string name="ui_another_account_has_an_upload_task_switch_dadf08" formatted="false">"Ein anderes Konto hat eine Upload-Aufgabe. Wechseln Sie darauf, um fortzufahren, oder entfernen Sie die lokale Aufgabe, wenn Sie nicht mehr benötigt werden."</string>
+    <string name="ui_app_theme_610976" formatted="false">"App-Design"</string>
+    <string name="ui_aspect_ratio_47bc1a" formatted="false">"Seitenverhältnis"</string>
+    <string name="ui_aurora_blue_a5d4ab" formatted="false">"Aurora · blau"</string>
+    <string name="ui_auto_cbb079" formatted="false">"Auto"</string>
+    <string name="ui_automatic_00a8ae" formatted="false">"Automatische"</string>
+    <string name="ui_automatic_mode_is_recommended_speak_subtit_b9ef26" formatted="false">"Der Automatikmodus wird empfohlen: Untertitel in der ausgewählten Übersetzungssprache mit der vorhandenen Übersetzung bei Bedarf sprechen. Sie können den Modus in den Einstellungen ändern."</string>
+    <string name="ui_automatic_selection_f4cc61" formatted="false">"Automatische Auswahl"</string>
+    <string name="ui_back_02b74f" formatted="false">"Zurück"</string>
+    <string name="ui_background_playback_364de7" formatted="false">"Hintergrundwiedergabe"</string>
+    <string name="ui_bitrate_654ba4" formatted="false">"Bitrate"</string>
+    <string name="ui_blur_thumbnails_1c7734" formatted="false">"Unschärfe-Miniaturbilder"</string>
+    <string name="ui_broadcast_84c258" formatted="false">"Übertragung"</string>
+    <string name="ui_broadcast_details_fb7ead" formatted="false">"Übertragungsdetails"</string>
+    <string name="ui_broadcast_stopped_the_server_rejected_the_42e89f" formatted="false">"Broadcast-Anlage: Der Server wurde die Verbindung abgelehnt oder das Netzwerk wurde unterbrochen. Verbinden Sie sich wieder an den vorhandenen Live-Stream."</string>
+    <string name="ui_camera_and_microphone_access_384ace" formatted="false">"Kamera- und Mikrofonzugriff"</string>
+    <string name="ui_camera_and_microphone_transmission_will_st_82b4a0" formatted="false">"Kamera- und Mikrofonübertragung stoppt."</string>
+    <string name="ui_cancel_28fb55" formatted="false">"Abbrechen"</string>
+    <string name="ui_cancel_8afaa2" formatted="false">"Abbrechen"</string>
+    <string name="ui_cancelled_36a6b0" formatted="false">"Annulliert"</string>
+    <string name="ui_cancelling_6a8032" formatted="false">"Abbrechen"</string>
+    <string name="ui_channel_c07a24" formatted="false">"Kanal"</string>
+    <string name="ui_channel_description_9a5a40" formatted="false">"Kanalbeschreibung"</string>
+    <string name="ui_channel_name_e9c0fd" formatted="false">"Kanalname"</string>
+    <string name="ui_channel_saved_7a1980" formatted="false">"Kanal gespeichert"</string>
+    <string name="ui_channel_settings_079a60" formatted="false">"Kanaleinstellungen"</string>
+    <string name="ui_channel_videos_db019b" formatted="false">"Kanalvideos"</string>
+    <string name="ui_channels_a38998" formatted="false">"Kanäle"</string>
+    <string name="ui_check_and_connect_a891d1" formatted="false">"Prüfen und verbinden"</string>
+    <string name="ui_check_availability_db0909" formatted="false">"Verfügbarkeit prüfen"</string>
+    <string name="ui_check_for_updates_a3997c" formatted="false">"Überprüfen Sie nach Updates"</string>
+    <string name="ui_check_session_5531bc" formatted="false">"Sitzung prüfen"</string>
+    <string name="ui_check_the_https_addresses_5a8051" formatted="false">"Überprüfen Sie die HTTPS-Adressen."</string>
+    <string name="ui_check_the_title_3_120_characters_descripti_42321d" formatted="false">"Überprüfen Sie den Titel (3-120 Zeichen), Beschreibung (bis zu 10.000) und Kanal."</string>
+    <string name="ui_choose_a_video_on_your_device_its_channel_7a7d31" formatted="false">"Wählen Sie ein Video auf Ihrem Gerät, seinen Kanal und die Sichtbarkeit."</string>
+    <string name="ui_choose_cover_optional_9a60e9" formatted="false">"Vorschaubild wählen (optional)"</string>
+    <string name="ui_choose_image_4cd057" formatted="false">"Wähle ein Bild"</string>
+    <string name="ui_choose_the_frame_orientation_before_starti_6979da" formatted="false">"Wählen Sie die Rahmenorientierung vor dem Start. Beenden Sie die aktuelle Sendung, um sie zu ändern."</string>
+    <string name="ui_choose_video_71bb7b" formatted="false">"Video auswählen"</string>
+    <string name="ui_close_641636" formatted="false">"Schließen"</string>
+    <string name="ui_close_video_74d1e9" formatted="false">"Video schließen"</string>
+    <string name="ui_comment_b40722" formatted="false">"Kommentar"</string>
+    <string name="ui_comment_deleted_b96457" formatted="false">"Kommentar gelöscht"</string>
+    <string name="ui_comment_sent_1b95cd" formatted="false">"Kommentar gesendet"</string>
+    <string name="ui_comment_sent_for_moderation_59d0cc" formatted="false">"Kommentar für Moderation gesendet"</string>
+    <string name="ui_comments_08c5c0" formatted="false">"Kommentare"</string>
+    <string name="ui_comments_are_disabled_by_the_author_41ba4a" formatted="false">"Kommentare sind vom Autor deaktiviert"</string>
+    <string name="ui_connect_53bb39" formatted="false">"Schließen"</string>
+    <string name="ui_connected_2fcbe2" formatted="false">"Verbunden"</string>
+    <string name="ui_connected_servers_search_f61604" formatted="false">"Suche auf verbundenen Servern"</string>
+    <string name="ui_connecting_6da59b" formatted="false">"Verbinden ..."</string>
+    <string name="ui_connection_failed_check_the_https_address_f92ec9" formatted="false">"Verbindung fehlgeschlagen Überprüfen Sie die HTTPS-Adresse, Netzwerk- und PeerTube-API. Ihr vorheriger Server wird zurückgehalten."</string>
+    <string name="ui_control_labels_e1ef00" formatted="false">"Labelsysteme"</string>
+    <string name="ui_copy_key_8b55c7" formatted="false">"Kopieren"</string>
+    <string name="ui_copy_url_4f5c50" formatted="false">"URL kopieren"</string>
+    <string name="ui_copy_watch_link_52e6ac" formatted="false">"Wiedergabelink kopieren"</string>
+    <string name="ui_could_not_determine_the_channel_address_b19cce" formatted="false">"Konnte die Kanaladresse nicht ermitteln."</string>
+    <string name="ui_could_not_load_retry_17aae5" formatted="false">"Konnte nicht laden. Wiederholen"</string>
+    <string name="ui_could_not_open_or_save_protected_sign_in_d_f64e67" formatted="false">"Konnte nicht geöffnet oder speichert geschützte Anmeldedaten. Wiederholen oder entfernen Sie gespeicherte Zeichen, wenn nötig."</string>
+    <string name="ui_could_not_prepare_the_camera_or_encoder_tr_322eab" formatted="false">"Konnte die Kamera oder den Codierer nicht herstellen. Versuchen Sie es mit 480p oder einer anderen Kamera."</string>
+    <string name="ui_could_not_read_subtitles_8fc073" formatted="false">"Untertitel konnte nicht lesen"</string>
+    <string name="ui_could_not_read_the_server_publication_resp_afcf21" formatted="false">"Die Antwort der Server-Publikation konnte nicht gelesen werden. Lebenslauf, um den Fortschritt zu überprüfen oder Ihre Videos zu aktualisieren."</string>
+    <string name="ui_could_not_switch_the_camera_d211fd" formatted="false">"Konnte die Kamera nicht wechseln."</string>
+    <string name="ui_could_not_verify_the_secure_server_connect_1a1995" formatted="false">"Die sichere Serververbindung konnte nicht bestätigt werden. Überprüfen Sie das Adresse und das Gerätetag."</string>
+    <string name="ui_country_0db877" formatted="false">"Land"</string>
+    <string name="ui_cover_686522" formatted="false">"Abdeckung"</string>
+    <string name="ui_create_514e39" formatted="false">"Erstellen"</string>
+    <string name="ui_create_live_2cf7bd" formatted="false">"Live erstellen"</string>
+    <string name="ui_create_live_for_obs_3e8e4f" formatted="false">"Live für OBS erstellen"</string>
+    <string name="ui_created_live_7a0340" formatted="false">"Live erstellt"</string>
+    <string name="ui_custom_image_selected_5d7182" formatted="false">"Eigenes Bild ausgewählt"</string>
+    <string name="ui_custom_indexes_one_https_address_per_line_84c995" formatted="false">"Benutzerdefinierte Indizes - eine HTTPS-Adresse pro Zeile"</string>
+    <string name="ui_custom_search_indexes_33a8cb" formatted="false">"Benutzerdefinierte Suchindizes"</string>
+    <string name="ui_cyan_335685" formatted="false">"Cyan"</string>
+    <string name="ui_default_quality_424975" formatted="false">"Standardqualität"</string>
+    <string name="ui_delete_423009" formatted="false">"Löschen"</string>
+    <string name="ui_delivery_could_not_be_confirmed_refresh_co_ddf9ab" formatted="false">"Die Lieferung konnte nicht bestätigt werden. Aktualisieren Sie Kommentare, bevor Sie erneut senden."</string>
+    <string name="ui_description_70bc2e" formatted="false">"Beschreibung"</string>
+    <string name="ui_developer_arctic_fox_apps_fa73f2" formatted="false">"Entwickler: Arctic Fox Apps"</string>
+    <string name="ui_discover_servers_f44c73" formatted="false">"Server entdecken"</string>
+    <string name="ui_dislike_c74b31" formatted="false">"Gefällt mir nicht"</string>
+    <string name="ui_distance_from_bottom_ae3e60" formatted="false">"Abstand von unten"</string>
+    <string name="ui_done_76ab9d" formatted="false">"Fertig"</string>
+    <string name="ui_download_eac11a" formatted="false">"Herunterladen"</string>
+    <string name="ui_download_models_only_over_wi_fi_b739a9" formatted="false">"Laden Sie die Modelle nur über WLAN herunter"</string>
+    <string name="ui_downloaded_8b6faf" formatted="false">"Heruntergeladen"</string>
+    <string name="ui_duck_during_speech_62dee3" formatted="false">"Beim Vorlesen leiser stellen"</string>
+    <string name="ui_editing_video_99ff81" formatted="false">"Video bearbeiten"</string>
+    <string name="ui_enable_automatic_mode_6c85a3" formatted="false">"Automatischen Modus aktivieren"</string>
+    <string name="ui_enable_camera_3b9a3f" formatted="false">"Kamera einschalten"</string>
+    <string name="ui_enable_microphone_79e3a9" formatted="false">"Aktivieren Sie das Mikrofon"</string>
+    <string name="ui_enable_preview_5b929b" formatted="false">"Vorschau aktivieren"</string>
+    <string name="ui_enable_subtitle_speech_a576df" formatted="false">"Untertitelrede aktivieren?"</string>
+    <string name="ui_end_18118d" formatted="false">"Ende"</string>
+    <string name="ui_end_broadcast_4e87f9" formatted="false">"Übertragung beenden"</string>
+    <string name="ui_end_broadcast_6bfccc" formatted="false">"Ende Sendung?"</string>
+    <string name="ui_enter_a_peertube_https_server_address_with_f7f124" formatted="false">"Geben Sie eine PeerTube-HTTPS-Serveradresse ohne Pfad, Abfrage oder Anmeldeinformationen ein."</string>
+    <string name="ui_enter_a_username_and_password_d3c026" formatted="false">"Geben Sie einen Benutzernamen und ein Passwort ein."</string>
+    <string name="ui_enter_your_two_factor_code_and_sign_in_aga_11ed14" formatted="false">"Geben Sie Ihren Zwei-Faktor-Code ein und melden Sie sich erneut an."</string>
+    <string name="ui_existing_live_selected_b99798" formatted="false">"Vorhandene live ausgewählt"</string>
+    <string name="ui_existing_live_streams_keep_their_server_se_ece468" formatted="false">"Bestehende Live-Streams halten ihre Servereinstellungen."</string>
+    <string name="ui_favorites_d4c059" formatted="false">"Favoriten"</string>
+    <string name="ui_find_90925b" formatted="false">"Finden"</string>
+    <string name="ui_find_by_name_or_address_b99f1e" formatted="false">"Suche nach Namen oder Anschrift"</string>
+    <string name="ui_finish_or_remove_the_existing_task_first_2d4084" formatted="false">"Beenden oder entfernen Sie die vorhandene Aufgabe zuerst."</string>
+    <string name="ui_fit_dc1e4e" formatted="false">"Einpassen"</string>
+    <string name="ui_follow_android_9652ce" formatted="false">"Wie in Android"</string>
+    <string name="ui_follow_translation_language_5b9919" formatted="false">"Übersetzungssprache verwenden"</string>
+    <string name="ui_followers_1c1d35" formatted="false">"wird verfolgt von"</string>
+    <string name="ui_frame_rate_3345f0" formatted="false">"Bildrate"</string>
+    <string name="ui_frame_size_and_quality_can_be_changed_befo_eeda5d" formatted="false">"Rahmengröße und -qualität können vor der nächsten Sendung geändert werden."</string>
+    <string name="ui_general_4d7c8e" formatted="false">"Allgemein"</string>
+    <string name="ui_graphite_7c3294" formatted="false">"Graphit"</string>
+    <string name="ui_green_3fb852" formatted="false">"Grün"</string>
+    <string name="ui_hide_929379" formatted="false">"Ausblenden"</string>
+    <string name="ui_hide_c7431d" formatted="false">"Ausblenden"</string>
+    <string name="ui_hide_camera_0122c1" formatted="false">"Kamera ausblenden"</string>
+    <string name="ui_hide_controls_after_5aa971" formatted="false">"Kontrollen danach ausblenden"</string>
+    <string name="ui_hide_known_unavailable_videos_615b8f" formatted="false">"Verstecken Sie unbekannte nicht verfügbare Videos"</string>
+    <string name="ui_history_4d3d0c" formatted="false">"Verlauf"</string>
+    <string name="ui_home_9dd0b3" formatted="false">"Startseite"</string>
+    <string name="ui_horizontal_position_1439c5" formatted="false">"Horizontale Position"</string>
+    <string name="ui_https_server_address_102d29" formatted="false">"HTTPS-Serveradresse"</string>
+    <string name="ui_i_use_two_factor_authentication_68d856" formatted="false">"Ich verwende die Authentifizierung mit zwei Faktoren"</string>
+    <string name="ui_if_translation_is_unavailable_f4e52f" formatted="false">"Wenn die Übersetzung nicht verfügbar ist"</string>
+    <string name="ui_image_when_camera_is_off_e4eb6f" formatted="false">"Bild, wenn die Kamera ausgeschaltet ist"</string>
+    <string name="ui_import_failed_6ca1a5" formatted="false">"Import fehlgeschlagen"</string>
+    <string name="ui_importing_video_978518" formatted="false">"Video importieren"</string>
+    <string name="ui_include_sensitive_content_9b8651" formatted="false">"Sensible Inhalte einschließen"</string>
+    <string name="ui_independent_peertube_client_not_affiliated_8ece4c" formatted="false">"Unabhängiger PeerTube-Kunde. Nicht mit Framasoft verbunden."</string>
+    <string name="ui_install_tts_language_data_03de98" formatted="false">"TTS-Sprachdaten installieren"</string>
+    <string name="ui_insufficient_quota_or_the_server_file_size_b79de3" formatted="false">"Unzureichende Quote oder das SEVER-Dateigrößengrenze wurde überschritten."</string>
+    <string name="ui_interface_language_88df3c" formatted="false">"Sprache der Benutzeroberfläche"</string>
+    <string name="ui_invalid_cover_check_its_size_and_jpg_png_o_f819b9" formatted="false">"Ungültige Abdeckung: Überprüfen Sie die Größe und das JPG-, PNG- oder WebP-Format."</string>
+    <string name="ui_is_live_20cabe" formatted="false">" live"</string>
+    <string name="ui_keep_7058e4" formatted="false">"Halten"</string>
+    <string name="ui_keep_streaming_f81bca" formatted="false">"Weitermachen"</string>
+    <string name="ui_keep_visible_63e256" formatted="false">"Sichtbar halten"</string>
+    <string name="ui_landscape_69a703" formatted="false">"Querformat"</string>
+    <string name="ui_landscape_frame_36005f" formatted="false">"Querformat"</string>
+    <string name="ui_language_and_translations_29d99b" formatted="false">"Sprache und Übersetzungen"</string>
+    <string name="ui_language_models_6ecbd3" formatted="false">"Sprachmodelle"</string>
+    <string name="ui_leave_the_description_empty_or_enter_3_to_b7e8f0" formatted="false">"Lassen Sie die Beschreibung leer oder geben Sie 3 bis 10.000 Zeichen ein."</string>
+    <string name="ui_light_bc799a" formatted="false">"Hell"</string>
+    <string name="ui_light_ce5d5c" formatted="false">"Licht"</string>
+    <string name="ui_light_is_unavailable_for_this_camera_673dc4" formatted="false">"Licht ist für diese Kamera nicht verfügbar."</string>
+    <string name="ui_like_95fa84" formatted="false">"Gefällt mir"</string>
+    <string name="ui_live_13cd53" formatted="false">"Live"</string>
+    <string name="ui_live_4a340c" formatted="false">"Live"</string>
+    <string name="ui_live_creation_could_not_be_confirmed_refre_523650" formatted="false">"Live-Erstellung konnte nicht bestätigt werden. Erfrischen Sie Ihre Videos, bevor Sie erneut versuchen."</string>
+    <string name="ui_live_ended_4704f1" formatted="false">"Live endete"</string>
+    <string name="ui_live_streaming_is_disabled_on_this_server_d8fe5d" formatted="false">"Live-Streaming ist auf diesem Server deaktiviert."</string>
+    <string name="ui_load_more_b9d06f" formatted="false">"Mehr laden"</string>
+    <string name="ui_local_search_cache_213967" formatted="false">"Lokaler Suchcache"</string>
+    <string name="ui_long_utterances_e0af43" formatted="false">"Lange Äußerungen"</string>
+    <string name="ui_more_81555a" formatted="false">"Mehr"</string>
+    <string name="ui_more_servers_7b0fae" formatted="false">"Weitere Server"</string>
+    <string name="ui_move_down_a0544c" formatted="false">"Sich abwärts bewegen"</string>
+    <string name="ui_move_up_cdf16d" formatted="false">"Aufschieben"</string>
+    <string name="ui_moving_failed_0aec63" formatted="false">"Verschieben"</string>
+    <string name="ui_moving_video_98925c" formatted="false">"Video bewegt"</string>
+    <string name="ui_mute_during_speech_669ae8" formatted="false">"Stumm während der Rede"</string>
+    <string name="ui_mute_microphone_877493" formatted="false">"MUTE-Mikrofon"</string>
+    <string name="ui_my_channels_350cbf" formatted="false">"Meine Kanäle"</string>
+    <string name="ui_name_3_120_characters_description_up_to_1_f6f55f" formatted="false">"Name: 3-120 Zeichen; Beschreibung: Bis zu 1.000."</string>
+    <string name="ui_network_a37c44" formatted="false">" · Netzwerk"</string>
+    <string name="ui_new_live_57d293" formatted="false">"Neues Leben"</string>
+    <string name="ui_newest_first_a4f3b2" formatted="false">"Neueste zuerst"</string>
+    <string name="ui_no_channel_available_f2ae51" formatted="false">"Kein Kanal verfügbar"</string>
+    <string name="ui_no_comments_yet_c91050" formatted="false">"Noch keine Kommentare"</string>
+    <string name="ui_no_cover_564f04" formatted="false">"Kein Cover"</string>
+    <string name="ui_no_description_aff1cf" formatted="false">"Keine Beschreibung"</string>
+    <string name="ui_no_installed_voice_for_this_language_insta_087db8" formatted="false">"Keine installierte Stimme für diese Sprache. Installieren Sie TTS-Sprachdaten."</string>
+    <string name="ui_no_local_subscriptions_yet_aa8224" formatted="false">"Noch keine lokalen Abonnements"</string>
+    <string name="ui_no_saved_videos_yet_7311d4" formatted="false">"Keine gespeicherten Videos noch"</string>
+    <string name="ui_no_subscriptions_on_the_server_yet_d1abd5" formatted="false">"Noch keine Abonnements auf dem Server"</string>
+    <string name="ui_no_subtitles_available_yet_71da63" formatted="false">"Noch keine Untertitel verfügbar"</string>
+    <string name="ui_no_text_subtitles_available_f53567" formatted="false">"Keine Textuntertitel verfügbar"</string>
+    <string name="ui_no_videos_in_this_account_s_subscriptions_5d5d6a" formatted="false">"Noch keine Videos in den Abonnements dieses Kontos"</string>
+    <string name="ui_no_watch_history_yet_c9ff6c" formatted="false">"Kein Uhrengeschichte noch nicht"</string>
+    <string name="ui_not_checked_30ef8c" formatted="false">"nicht geprüft"</string>
+    <string name="ui_not_downloaded_1af9b2" formatted="false">"Nicht heruntergeladen"</string>
+    <string name="ui_obs_service_custom_257d44" formatted="false">"OBS-Dienst: Benutzerdefiniert"</string>
+    <string name="ui_obs_stream_settings_a35ef7" formatted="false">"OBS-Streaming-Einstellungen"</string>
+    <string name="ui_off_135883" formatted="false">"Aus"</string>
+    <string name="ui_off_7f197c" formatted="false">"Aus"</string>
+    <string name="ui_off_b8a9e9" formatted="false">"Aus"</string>
+    <string name="ui_on_c10791" formatted="false">"Ein"</string>
+    <string name="ui_on_device_e0756a" formatted="false">" · Auf dem Gerät"</string>
+    <string name="ui_on_e3afd0" formatted="false">"Ein"</string>
+    <string name="ui_on_this_device_8d14b3" formatted="false">"Auf diesem Gerät"</string>
+    <string name="ui_online_5fb239" formatted="false">"Online"</string>
+    <string name="ui_online_first_fc7de2" formatted="false">"Online zuerst"</string>
+    <string name="ui_only_sign_in_data_on_this_device_will_be_r_167f36" formatted="false">"Nur Anmeldedaten auf diesem Gerät werden entfernt. Favoriten, Geschichte und lokale Abonnements bleiben erhalten."</string>
+    <string name="ui_open_server_website_5cc079" formatted="false">"Server-Webseite öffnen"</string>
+    <string name="ui_open_video_26c029" formatted="false">"Ein Video öffnen"</string>
+    <string name="ui_orientation_ae6af6" formatted="false">"Orientierung: "</string>
+    <string name="ui_original_77bed0" formatted="false">"Original"</string>
+    <string name="ui_original_audio_2d2547" formatted="false">"Originalton"</string>
+    <string name="ui_original_speech_follows_the_subtitle_langu_90034f" formatted="false">"Originalrede folgt der Untertitelsprache. Installierte Offline-Voices sind bevorzugt. Übersetzung verwendet PeerIche bestehende Modelle und Cache."</string>
+    <string name="ui_original_subtitles_8c6f16" formatted="false">"Ursprüngliche Untertitel"</string>
+    <string name="ui_original_translation_18e287" formatted="false">"Original + Übersetzung"</string>
+    <string name="ui_original_volume_during_speech_e135a9" formatted="false">"Originallautstärke beim Vorlesen"</string>
+    <string name="ui_parallel_563423" formatted="false">"Parallel"</string>
+    <string name="ui_parallel_requests_34a8a3" formatted="false">"Parallele Anfragen"</string>
+    <string name="ui_password_367eb8" formatted="false">"Passwort"</string>
+    <string name="ui_pause_d19299" formatted="false">"Pausieren"</string>
+    <string name="ui_pause_video_until_speech_ends_898fb7" formatted="false">"Pause-Video, bis die Sprache endet"</string>
+    <string name="ui_paused_5d65a6" formatted="false">"Pausierte"</string>
+    <string name="ui_peertube_accounts_8d748a" formatted="false">"PeerTube-Konten"</string>
+    <string name="ui_peertube_server_f36de6" formatted="false">"PeerTube-Server"</string>
+    <string name="ui_pending_moderation_9cd027" formatted="false">"Moderation"</string>
+    <string name="ui_picture_in_picture_481ea8" formatted="false">"Bild im Bild"</string>
+    <string name="ui_play_016c52" formatted="false">"Wiedergeben"</string>
+    <string name="ui_playback_speed_cd9e90" formatted="false">"Wiedergabegeschwindigkeit"</string>
+    <string name="ui_player_cd0260" formatted="false">"Player"</string>
+    <string name="ui_player_settings_2989d1" formatted="false">"Player-Einstellungen"</string>
+    <string name="ui_portrait_c5160e" formatted="false">"Hochformat"</string>
+    <string name="ui_portrait_frame_6adb4d" formatted="false">"Hochformat"</string>
+    <string name="ui_posting_as_bba67f" formatted="false">"Posting als"</string>
+    <string name="ui_practice_mode_b4c403" formatted="false">"Praktikum"</string>
+    <string name="ui_preferred_subtitle_language_5e7c1c" formatted="false">"Bevorzugte Untertitelsprache"</string>
+    <string name="ui_preparing_6e055d" formatted="false">"Vorbereitung"</string>
+    <string name="ui_preparing_existing_translation_4a6aba" formatted="false">"Vorbereiten der vorhandenen Übersetzung ..."</string>
+    <string name="ui_preparing_live_adb70d" formatted="false">"Live aufbereiten ..."</string>
+    <string name="ui_preparing_models_or_translating_a98b86" formatted="false">"Modelle vorbereiten oder übersetzen ..."</string>
+    <string name="ui_preview_not_live_b602f3" formatted="false">"Vorschau · Nicht leben"</string>
+    <string name="ui_preview_stays_on_this_device_nothing_is_tr_578f58" formatted="false">"Die Vorschau bleibt auf diesem Gerät. Nichts wird übertragen, bis Sie Startsendung drücken."</string>
+    <string name="ui_private_b83206" formatted="false">"Privat"</string>
+    <string name="ui_processing_failed_423bf1" formatted="false">"Verarbeitung fehlgeschlagen"</string>
+    <string name="ui_processing_video_967d3f" formatted="false">"Video bearbeiten"</string>
+    <string name="ui_public_5fe491" formatted="false">"Öffentlich"</string>
+    <string name="ui_published_b4e8f8" formatted="false">"Veröffentlicht"</string>
+    <string name="ui_published_videos_will_remain_on_the_server_f6e568" formatted="false">"Veröffentlichte Videos bleiben auf dem Server. Sie können zuerst eine unvollständige Übertragung stornieren; Entfernen der Task verwirft seine Resume-Informationen."</string>
+    <string name="ui_quality_ca3d7b" formatted="false">"Qualität"</string>
+    <string name="ui_ready_a518f4" formatted="false">"Bereit"</string>
+    <string name="ui_recurring_live_526a88" formatted="false">"Wiederkehrend"</string>
+    <string name="ui_refresh_3526ad" formatted="false">"Aktualisieren"</string>
+    <string name="ui_refresh_comments_e472e7" formatted="false">"Kommentare aktualisieren"</string>
+    <string name="ui_refresh_subscriptions_343f9b" formatted="false">"Abonnements aktualisieren"</string>
+    <string name="ui_refresh_waiting_lives_e1b4e8" formatted="false">"Wartende Livestreams aktualisieren"</string>
+    <string name="ui_relevance_5278a3" formatted="false">"Relevanz"</string>
+    <string name="ui_remove_32d0b3" formatted="false">"Entfernen"</string>
+    <string name="ui_remove_ffcdea" formatted="false">"Entfernen"</string>
+    <string name="ui_remove_local_task_66ebd2" formatted="false">"Lokale Aufgabe entfernen"</string>
+    <string name="ui_remove_saved_sign_ins_812055" formatted="false">"Entfernen Sie gespeicherte Sign-Ins?"</string>
+    <string name="ui_remove_saved_sign_ins_824597" formatted="false">"Entfernen Sie gespeicherte Zeichen"</string>
+    <string name="ui_remove_task_cf3ba9" formatted="false">"Aufgabe entfernen?"</string>
+    <string name="ui_remove_task_e9224e" formatted="false">"Aufgabe entfernen"</string>
+    <string name="ui_replace_thumbnail_with_warning_9eae35" formatted="false">"Ersetzen Sie die Miniaturansicht durch Warnung"</string>
+    <string name="ui_replies_7f615f" formatted="false">"Antworten"</string>
+    <string name="ui_reply_6de9d9" formatted="false">"Antworten"</string>
+    <string name="ui_reply_to">"Antwort an: %1$s"</string>
+    <string name="ui_reset_upload_task_322db7" formatted="false">"Upload-Aufgabe zurücksetzen"</string>
+    <string name="ui_restricted_5746bb" formatted="false">"Eingeschränkt"</string>
+    <string name="ui_result_order_0b1c23" formatted="false">"Ergebnisreihenfolge"</string>
+    <string name="ui_resume_44eb04" formatted="false">"Fortsetzen"</string>
+    <string name="ui_resume_to_check_the_transfer_then_refresh_2ca5ab" formatted="false">"Lebenslauf, um die Übertragung zu überprüfen, und aktualisieren Sie Ihre Videos, bevor Sie einen anderen Upload starten."</string>
+    <string name="ui_retry_e8368b" formatted="false">"Erneut versuchen"</string>
+    <string name="ui_retry_subtitle_translation_377fcd" formatted="false">"Untertitel wiederholen Übersetzung"</string>
+    <string name="ui_return_to_broadcast_fef56e" formatted="false">"Rückkehr zur Sendung"</string>
+    <string name="ui_save_channel_on_server_87bc4e" formatted="false">"Kanal auf dem Server speichern"</string>
+    <string name="ui_save_efb7cc" formatted="false">"Speichern"</string>
+    <string name="ui_save_indexes_a883b9" formatted="false">"Index speichern"</string>
+    <string name="ui_save_replay_6cbd4e" formatted="false">"Wiederholung speichern"</string>
+    <string name="ui_save_replay_on_server_c7d724" formatted="false">"REPLAY auf dem Server speichern"</string>
+    <string name="ui_saved_197dc1" formatted="false">"Gespeichert"</string>
+    <string name="ui_saved_account_46c390" formatted="false">"Gespeicherte Konto"</string>
+    <string name="ui_search_c2faca" formatted="false">"Suche"</string>
+    <string name="ui_search_mode_083d38" formatted="false">"Suchmodus"</string>
+    <string name="ui_search_sources_and_priority_295e1b" formatted="false">"Suchquellen und Priorität"</string>
+    <string name="ui_sec_563e48" formatted="false">"SEC"</string>
+    <string name="ui_sec_56737f" formatted="false">" SEC"</string>
+    <string name="ui_seek_increment_8f8898" formatted="false">"Aufsuchen"</string>
+    <string name="ui_selected_af7b83" formatted="false">"Ausgewählt"</string>
+    <string name="ui_selected_server_search_ff8be3" formatted="false">"Suche auf dem ausgewählten Server"</string>
+    <string name="ui_send_697d7f" formatted="false">"Senden"</string>
+    <string name="ui_sending_c8b200" formatted="false">"Wird gesendet ..."</string>
+    <string name="ui_sensitive_content_3d5344" formatted="false">"Inhalt"</string>
+    <string name="ui_sensitive_content_576e42" formatted="false">"Inhalt"</string>
+    <string name="ui_sensitive_content_display_dc3750" formatted="false">"Anzeige sensibler Inhalte"</string>
+    <string name="ui_sequential_8e675b" formatted="false">"Sequentielle"</string>
+    <string name="ui_server_channels_639d6c" formatted="false">"Serverkanäle"</string>
+    <string name="ui_server_dedf58" formatted="false">"Server"</string>
+    <string name="ui_server_error_try_again_later_c789a0" formatted="false">"Serverfehler. Versuchen Sie es später erneut."</string>
+    <string name="ui_server_processing_726797" formatted="false">"Serververarbeitung"</string>
+    <string name="ui_servers_d9002c" formatted="false">"Server"</string>
+    <string name="ui_settings_23de1b" formatted="false">"Einstellungen"</string>
+    <string name="ui_settings_2bca56" formatted="false">"Einstellungen"</string>
+    <string name="ui_share_0e2e41" formatted="false">"Teilen"</string>
+    <string name="ui_share_live_23cbbf" formatted="false">"Live teilen"</string>
+    <string name="ui_show_ab515c" formatted="false">"Anzeigen"</string>
+    <string name="ui_show_bd4eeb" formatted="false">"Anzeigen"</string>
+    <string name="ui_show_or_hide_password_51b918" formatted="false">"Passwort anzeigen oder ausblenden"</string>
+    <string name="ui_sign_in_again_75f938" formatted="false">"Sich wieder anmelden"</string>
+    <string name="ui_sign_in_again_770ace" formatted="false">"Sich wieder anmelden"</string>
+    <string name="ui_sign_in_again_bd741c" formatted="false">"Sich wieder anmelden"</string>
+    <string name="ui_sign_in_f39424" formatted="false">"Anmelden"</string>
+    <string name="ui_sign_in_failed_check_your_username_passwor_23a85e" formatted="false">"Anmelden fehlgeschlagen. Überprüfen Sie Ihren Benutzernamen, ein Kennwort und Ihren Server."</string>
+    <string name="ui_sign_in_fe4740" formatted="false">"Anmelden"</string>
+    <string name="ui_sign_in_on_the_you_page_15ac8e" formatted="false">"Melden Sie sich auf der Seite an."</string>
+    <string name="ui_sign_in_on_the_you_page_to_upload_videos_a_38f091" formatted="false">"Melden Sie sich auf der Seite \"Seite an, um Videos hochzuladen und live zu gehen."</string>
+    <string name="ui_sign_in_to_a_server_85e839" formatted="false">"Melden Sie sich bei einem Server an"</string>
+    <string name="ui_sign_in_was_removed_from_this_device_the_s_7a170f" formatted="false">"Anmeldung wurde aus diesem Gerät entfernt. Die Serversitzung konnte nicht widerrufen werden. Sie können es auf der PeerTube-Website widerrufen."</string>
+    <string name="ui_sign_out_2f12bc" formatted="false">"Abmelden"</string>
+    <string name="ui_signing_in_34c5a1" formatted="false">"Unterzeichnung in ..."</string>
+    <string name="ui_skip_outdated_speech_f1fffa" formatted="false">"Veraltete Sprachausgabe überspringen"</string>
+    <string name="ui_skip_utterance_4e9d44" formatted="false">"Äußerung überspringen"</string>
+    <string name="ui_sort_servers_f2aae1" formatted="false">"Sortieren serienten"</string>
+    <string name="ui_source_timeout_b4e594" formatted="false">"Quellzeit"</string>
+    <string name="ui_speak_original_381a76" formatted="false">"Originell sprechen"</string>
+    <string name="ui_speak_subtitles_8f45b6" formatted="false">"Untertitel sprechen"</string>
+    <string name="ui_speaking_737906" formatted="false">"Sprechen"</string>
+    <string name="ui_speech_b0f924" formatted="false">"Sprachausgabe"</string>
+    <string name="ui_speech_mode_21b9ce" formatted="false">"Sprachmodus"</string>
+    <string name="ui_speech_rate_7cb6d9" formatted="false">"Sprechgeschwindigkeit"</string>
+    <string name="ui_speech_settings_8ae8a1" formatted="false">"Spracheinstellungen"</string>
+    <string name="ui_speech_synthesis_failed_video_playback_is_03ff7c" formatted="false">"Sprachsynthese ist fehlgeschlagen. Die Videowiedergabe ist nicht betroffen."</string>
+    <string name="ui_speed_up_speech_up_to_2_5_b97e49" formatted="false">"Speed Up Rede (bis zu 2,5 ×)"</string>
+    <string name="ui_start_broadcast_ca85c4" formatted="false">"Übertragung starten"</string>
+    <string name="ui_start_playback_automatically_61d054" formatted="false">"Starten Sie die Wiedergabe automatisch"</string>
+    <string name="ui_status_b60505" formatted="false">"Status"</string>
+    <string name="ui_stop_test_d2ea2c" formatted="false">"Aufhalten"</string>
+    <string name="ui_storage_ecf1de" formatted="false">"Lagerung: "</string>
+    <string name="ui_stream_key_8d248e" formatted="false">"Stream-Schlüssel"</string>
+    <string name="ui_stream_settings_16c86b" formatted="false">"Streaming-Einstellungen"</string>
+    <string name="ui_stretch_6f9bc7" formatted="false">"Strecken"</string>
+    <string name="ui_subscribe_7a95fd" formatted="false">"Abonnieren"</string>
+    <string name="ui_subscribed_b31c7d" formatted="false">"Abonniert"</string>
+    <string name="ui_subscription_on_this_device_97636d" formatted="false">"Abonnement auf diesem Gerät"</string>
+    <string name="ui_subtitle_color_ee2bd3" formatted="false">"Untertitelfarbe"</string>
+    <string name="ui_subtitle_preview_73219c" formatted="false">"Untertitelvorschau"</string>
+    <string name="ui_subtitle_size_f492b3" formatted="false">"Untertitelgröße"</string>
+    <string name="ui_subtitle_speech_4f7011" formatted="false">"Untertitel vorlesen"</string>
+    <string name="ui_subtitle_speech_ffd472" formatted="false">"Untertitel vorlesen"</string>
+    <string name="ui_subtitles_4b389d" formatted="false">"Untertitel"</string>
+    <string name="ui_subtitles_by_default_007b19" formatted="false">"Untertitel standardmäßig"</string>
+    <string name="ui_subtitles_speech_ab081c" formatted="false">"Untertitel → Sprache"</string>
+    <string name="ui_sufficient_results_64a8a1" formatted="false">"Ausreichende Ergebnisse"</string>
+    <string name="ui_switch_camera_515854" formatted="false">"Kopieren"</string>
+    <string name="ui_system_default_00d48c" formatted="false">"System Standard"</string>
+    <string name="ui_test_voice_9c6b87" formatted="false">"Teststimme"</string>
+    <string name="ui_the_account_changed_retry_using_the_intend_338ec1" formatted="false">"Das Konto wurde geändert. Wiederholen Sie das Versuch mit dem beabsichtigten Konto."</string>
+    <string name="ui_the_account_is_blocked_on_the_server_05ab34" formatted="false">"Das Konto ist auf dem Server gesperrt."</string>
+    <string name="ui_the_account_is_waiting_for_server_administ_f422c2" formatted="false">"Das Konto wartet auf die Genehmigung des Serveradministrators."</string>
+    <string name="ui_the_account_server_could_not_find_this_vid_90b052" formatted="false">"Der Kontoserver konnte dieses Video nicht finden. Überprüfen Sie die Verfügbarkeit dort und versuchen Sie es erneut."</string>
+    <string name="ui_the_directory_prefers_servers_from_this_co_c7856f" formatted="false">"Das Verzeichnis bevorzugt Server aus diesem Land. Andere Länder bleiben verfügbar."</string>
+    <string name="ui_the_key_allows_broadcasting_as_you_keep_it_45f0a6" formatted="false">"Der Schlüssel ermöglicht das Rundfunk wie Sie. Behalte es privat."</string>
+    <string name="ui_the_microphone_is_unavailable_check_permis_69f097" formatted="false">"Das Mikrofon ist nicht verfügbar. Überprüfen Sie die Erlaubnis und andere Apps."</string>
+    <string name="ui_the_original_file_must_remain_accessible_a_f44e10" formatted="false">"Die Originaldatei muss bis zum Hochladen der Oberzettel verfügbar und unverändert bleiben."</string>
+    <string name="ui_the_server_changed_its_sign_in_configurati_bcd296" formatted="false">"Der Server hat seine Anmeldekonfiguration geändert. Melden Sie sich wieder an."</string>
+    <string name="ui_the_server_chunk_limits_are_incompatible_w_055ddc" formatted="false">"Die Server-Chunk-Grenzwerte sind mit dieser Dateigröße nicht kompatibel."</string>
+    <string name="ui_the_server_could_not_read_the_video_file_c95cf8" formatted="false">"Der Server konnte die Videodatei nicht lesen."</string>
+    <string name="ui_the_server_denied_this_action_check_your_a_d471c9" formatted="false">"Der Server verweigerte diese Aktion. Überprüfen Sie Ihr Konto auf seiner Website."</string>
+    <string name="ui_the_server_does_not_accept_this_password_l_96ca66" formatted="false">"Der Server akzeptiert diese Passwortlänge nicht."</string>
+    <string name="ui_the_server_does_not_allow_these_live_or_re_b8bb40" formatted="false">"Der Server erlaubt diese Live- oder Wiedergabeeinstellungen nicht."</string>
+    <string name="ui_the_server_does_not_support_this_file_form_0ebd3a" formatted="false">"Der Server unterstützt dieses Dateiformat nicht."</string>
+    <string name="ui_the_server_has_reached_its_simultaneous_li_7e7ab4" formatted="false">"Der Server hat das gleichzeitige Live-Stream-Limit erreicht."</string>
+    <string name="ui_the_server_is_unavailable_check_your_netwo_c773e7" formatted="false">"Der Server ist nicht verfügbar. Überprüfen Sie Ihr Netzwerk und versuchen Sie es erneut."</string>
+    <string name="ui_the_server_redirects_this_request_enter_it_d8d57d" formatted="false">"Der Server leitet diese Anforderung um. Geben Sie die endgültige HTTPS-Adresse ein; Anmeldeinformationen wurden nicht weitergeleitet."</string>
+    <string name="ui_the_server_rejected_the_publication_parame_022749" formatted="false">"Der Server lehnte die Publikationsparameter ab. Überprüfen Sie den Titel, Beschreibung, Kanal und Privatsphäre."</string>
+    <string name="ui_the_server_rejected_the_request_check_the_afc910" formatted="false">"Der Server wurde die Anfrage abgelehnt. Überprüfen Sie die Daten- und Kontoberechtigungen."</string>
+    <string name="ui_the_server_rejected_this_account_registrat_1f9f3b" formatted="false">"Der Server wurde diese Kontoregistrierung abgelehnt."</string>
+    <string name="ui_the_server_returned_an_invalid_upload_url_d03771" formatted="false">"Der Server kehrte eine ungültige Upload-URL zurück."</string>
+    <string name="ui_the_server_returned_an_unsupported_stream_0cfcba" formatted="false">"Der Server kehrte eine nicht unterstützte Stream-URL oder -taste zurück."</string>
+    <string name="ui_the_session_expired_or_was_revoked_sign_in_2b6a69" formatted="false">"Die Session abgelaufen oder wurde widerrufen. Melden Sie sich wieder an."</string>
+    <string name="ui_the_two_factor_code_was_rejected_enter_a_n_e749c0" formatted="false">"Der Zwei-Faktor-Code wurde abgelehnt. Geben Sie einen neuen Code ein."</string>
+    <string name="ui_the_upload_session_is_unavailable_refresh_c1a973" formatted="false">"Die Upload-Sitzung ist nicht verfügbar. Aktualisieren Sie Ihre Videos zuerst: Es kann bereits hochgeladen werden. Wenn Sie nicht vorhanden sind, entfernen Sie die Task und wählen Sie die Datei erneut aus."</string>
+    <string name="ui_the_upload_task_could_not_be_read_or_saved_803c41" formatted="false">"Die Upload-Task konnte nicht gelesen oder gespeichert werden. Sie können diese Aufgabe zurücksetzen, ohne Konten oder veröffentlichte Videos zu entfernen."</string>
+    <string name="ui_the_video_channel_or_comment_was_not_found_56ee2c" formatted="false">"Das Video, der Kanal oder das Kommentar wurde auf dem Kontoserver nicht gefunden."</string>
+    <string name="ui_the_video_has_already_been_uploaded_cancel_006471" formatted="false">"Das Video wurde bereits hochgeladen. Das Abbrechen löscht veröffentlichte Videos nicht."</string>
+    <string name="ui_the_video_has_been_uploaded_its_cover_stil_d841b6" formatted="false">"Das Video wurde hochgeladen. Seine Abdeckung muss noch angewendet werden."</string>
+    <string name="ui_this_account_has_no_channels_90d173" formatted="false">"Dieses Konto hat keine Kanäle"</string>
+    <string name="ui_this_address_does_not_provide_a_compatible_702d33" formatted="false">"Diese Adresse bietet keine kompatible PeerTube-Anmelde-API."</string>
+    <string name="ui_this_server_disables_live_streaming_local_fcce38" formatted="false">"Dieser Server deaktiviert das Live-Streaming. Lokale Vorschau ist verfügbar."</string>
+    <string name="ui_this_website_does_not_support_the_peertube_3f0625" formatted="false">"Diese Website unterstützt die PeerTube-API nicht. Wählen Sie einen PeerTube-Server. Ihr vorheriger Server wird zurückgehalten."</string>
+    <string name="ui_thumbnail_unavailable_1a08a4" formatted="false">"Miniaturansicht nicht verfügbar"</string>
+    <string name="ui_title_1b6233" formatted="false">"Titel"</string>
+    <string name="ui_title_3_120_characters_205170" formatted="false">"Titel · 3-120 Zeichen"</string>
+    <string name="ui_title_and_visibility_b072fd" formatted="false">"Titel und Sichtbarkeit"</string>
+    <string name="ui_today_db20e6" formatted="false">"Heute: "</string>
+    <string name="ui_too_many_attempts_wait_before_trying_again_a0ffae" formatted="false">"Zu viele Versuche. Warten Sie, bevor Sie es erneut versuchen."</string>
+    <string name="ui_transfer_was_interrupted_resume_to_check_p_77ca35" formatted="false">"Transfer wurde unterbrochen. Lebenslauf, um den Fortschritt mit dem Server zu überprüfen."</string>
+    <string name="ui_translate_subtitles_92ac18" formatted="false">"Untertitel übersetzen"</string>
+    <string name="ui_translate_titles_descriptions_and_comments_234bae" formatted="false">"Übersetzen Sie Titel, Beschreibungen und Kommentare"</string>
+    <string name="ui_translated_speech_language_fb3e9d" formatted="false">"Übersetzte Sprachsprache"</string>
+    <string name="ui_translated_subtitles_01ecb4" formatted="false">"Übersetzte Untertitel"</string>
+    <string name="ui_translation_could_not_be_prepared_check_yo_180ecc" formatted="false">"Die Übersetzung konnte nicht vorbereitet werden. Überprüfen Sie Ihre Verbindung und heruntergeladene Modelle; Originaltext bleibt verfügbar."</string>
+    <string name="ui_translation_language_401967" formatted="false">"Übersetzungssprache"</string>
+    <string name="ui_translation_runs_on_your_device_both_langu_bebcf9" formatted="false">"Übersetzung läuft auf Ihrem Gerät. Beide Sprachmodelle sind erforderlich. Neue Modelle können jeweils etwa 30 MB betragen. Videotentext wird nicht an einen Cloud-Übersetzungsdienst gesendet."</string>
+    <string name="ui_translation_unavailable_using_fallback_604641" formatted="false">"Nicht verfügbar - Verwenden von Fallback"</string>
+    <string name="ui_tts_engine_6d87fc" formatted="false">"TTS-Motor"</string>
+    <string name="ui_tts_engine_unavailable_check_system_speech_1ff563" formatted="false">"TTS-Motor nicht verfügbar. Überprüfen Sie die SYSTEM-Spracheinstellungen."</string>
+    <string name="ui_two_factor_code_2d51c2" formatted="false">"Zwei-Faktor-Code"</string>
+    <string name="ui_unavailable_abcd43" formatted="false">"nicht verfügbar"</string>
+    <string name="ui_unchanged_dc2c08" formatted="false">"Unverändert"</string>
+    <string name="ui_unlimited_2b3fb9" formatted="false">"unbegrenzte"</string>
+    <string name="ui_unlisted_689d94" formatted="false">"Nicht gelistet"</string>
+    <string name="ui_unsubscribe_c612d7" formatted="false">"Abo beenden"</string>
+    <string name="ui_until_enough_results_dfbe89" formatted="false">"Bis genug Ergebnisse"</string>
+    <string name="ui_up_next_b0dfbd" formatted="false">"Als nächstes"</string>
+    <string name="ui_up_to_20_accounts_can_be_saved_remove_an_u_32727c" formatted="false">"Bis zu 20 Konten können gespeichert werden. Entfernen Sie ein ungenutztes Anmelden."</string>
+    <string name="ui_upload_b4fcd7" formatted="false">"Hochladen"</string>
+    <string name="ui_upload_stopped_86c348" formatted="false">"Upload gestoppt"</string>
+    <string name="ui_upload_video_504c7b" formatted="false">"Video hochladen"</string>
+    <string name="ui_upload_video_a6dd28" formatted="false">"Video hochladen"</string>
+    <string name="ui_uploaded_to_server_825d5e" formatted="false">"Zum Server hochgeladen"</string>
+    <string name="ui_uploading_9da15d" formatted="false">"Hochladen"</string>
+    <string name="ui_use_account_a6c379" formatted="false">"Konto verwenden"</string>
+    <string name="ui_use_avatar_a723a9" formatted="false">"Verwenden Sie Avatar"</string>
+    <string name="ui_use_your_account_s_username_on_this_server_2200cb" formatted="false">"Verwenden Sie den Benutzernamen Ihres Kontos auf diesem Server. Ihr Passwort wird nicht gespeichert. Externe Anbieter Anmelde (SSO) wird noch nicht unterstützt."</string>
+    <string name="ui_username_8f11d1" formatted="false">"Benutzername"</string>
+    <string name="ui_verified_playable_only_slower_a59030" formatted="false">"Nur nachweislich abspielbare Videos — langsamer"</string>
+    <string name="ui_verify_your_email_address_on_the_server_we_eb9f69" formatted="false">"Überprüfen Sie Ihre E-Mail-Adresse auf der Server-Website."</string>
+    <string name="ui_version_994a31" formatted="false">"Version"</string>
+    <string name="ui_video_availability_69e650" formatted="false">"Videoverfügbarkeit"</string>
+    <string name="ui_video_count_1e68ed" formatted="false">"Videoanzahl"</string>
+    <string name="ui_video_description_02d4b7" formatted="false">"Videobeschreibung"</string>
+    <string name="ui_video_scaling_cfb650" formatted="false">"Videoskalierung"</string>
+    <string name="ui_videos_89ea5c" formatted="false">"Videos"</string>
+    <string name="ui_views_385ac8" formatted="false">"Ansichten"</string>
+    <string name="ui_views_bfcec5" formatted="false">"Ansichten"</string>
+    <string name="ui_visibility_613511" formatted="false">"Sichtbarkeit"</string>
+    <string name="ui_visibility_cb41fd" formatted="false">"Sichtbarkeit"</string>
+    <string name="ui_voice_7692ca" formatted="false">"Stimme"</string>
+    <string name="ui_voice_language_timing_and_original_audio_afa432" formatted="false">"Sprache, Sprache, Timing und Original-Audio"</string>
+    <string name="ui_voice_pitch_8d9081" formatted="false">"Tonhöhe"</string>
+    <string name="ui_voice_test_language">"Sprache: %1$s. Das Video wird pausiert."</string>
+    <string name="ui_waiting_for_live_fc9024" formatted="false">"Warten auf das Leben"</string>
+    <string name="ui_watch_5f1a41" formatted="false">"Ansehen"</string>
+    <string name="ui_website_633681" formatted="false">"Website"</string>
+    <string name="ui_white_eecc94" formatted="false">"Weiß"</string>
+    <string name="ui_yellow_20cd3f" formatted="false">"Gelb"</string>
+    <string name="ui_you_have_no_videos_on_this_server_yet_74102c" formatted="false">"Sie haben noch keine Videos auf diesem Server."</string>
+    <string name="ui_your_account_has_reached_its_live_stream_l_fdf60d" formatted="false">"Ihr Konto hat sein Live-Stream-Limit erreicht. Wählen Sie ein vorhandenes wartendes live oder enden nicht verwendete Bächen auf dem Server."</string>
+    <string name="ui_your_channel_1dcac2" formatted="false">"Ihr Kanal"</string>
+    <string name="ui_your_videos_90d416" formatted="false">"Deine Videos"</string>
+    <string name="ui_your_videos_and_upload_tasks_65de76" formatted="false">"Ihre Videos und Upload-Aufgaben"</string>
+    <string name="ui_zoom_crop_e0b550" formatted="false">"Vergrößern / Zuschneiden"</string>
+    <string name="unsubscribe_button" formatted="false">"Abo beenden"</string>
+    <string name="unsubscribe_channel" formatted="false">"Abbestellen von Kanal"</string>
+    <string name="update_available">"PeerIche %1$s ist verfügbar"</string>
+    <string name="update_check_failed" formatted="false">"Github konnte nicht überprüfen. Bitte versuchen Sie es später erneut."</string>
+    <string name="update_current" formatted="false">"Sie haben die neueste Version."</string>
+    <string name="update_description" formatted="false">"Laden Sie das Update von GitHub herunter? Android bittet Sie, die Installation zu bestätigen."</string>
+    <string name="update_download" formatted="false">"Herunterladen"</string>
+    <string name="update_download_failed" formatted="false">"Download oder APK-Überprüfung fehlgeschlagen. Bitte versuchen Sie es erneut."</string>
+    <string name="update_install" formatted="false">"Installieren"</string>
+    <string name="update_install_failed" formatted="false">"Konnte den Android-Installationsprogramm nicht öffnen."</string>
+    <string name="update_later" formatted="false">"Später"</string>
+    <string name="update_ready" formatted="false">"Die APK wurde überprüft. Tippe auf Installieren. Falls Android danach fragt, erlaube Updates von PeerIche, kehre hierher zurück und tippe erneut auf Installieren."</string>
+    <string name="video_meta">"%1$d Ansichten · %2$s"</string>
+    <string name="video_unavailable" formatted="false">"Konnte keinen spielbaren Strom laden. Versuchen Sie es erneut oder wählen Sie einen anderen Server aus."</string>
+    <string name="you" formatted="false">"Du"</string>
+</resources>

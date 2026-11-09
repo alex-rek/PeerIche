@@ -74,11 +74,11 @@ private data class ServerProbe(val online: Boolean, val videos: Int)
     LazyColumn(Modifier.fillMaxSize()) {
         item { Column(Modifier.padding(24.dp)) {
             OutlinedTextField(address, { address = it; failure = false }, modifier = Modifier.fillMaxWidth(), singleLine = true,
-                label = { Text(uiText("HTTPS-адрес сервера", "HTTPS server address")) }, isError = failure)
-            FilledTonalButton(enabled = address.isNotBlank() && busy == null, onClick = { connect(address) }) { Text(uiText("Проверить и подключить", "Check and connect")) }
-            if (failure) Text(if (incompatible) uiText("Этот сайт не поддерживает PeerTube API. Выберите сервер PeerTube. Предыдущий сервер сохранён.", "This website does not support the PeerTube API. Choose a PeerTube server. Your previous server is retained.") else uiText("Подключение не удалось. Проверьте HTTPS-адрес, сеть и доступность PeerTube API. Предыдущий сервер сохранён.", "Connection failed. Check the HTTPS address, network and PeerTube API. Your previous server is retained."), color = MaterialTheme.colorScheme.error)
+                label = { Text(uiText(R.string.ui_https_server_address_102d29)) }, isError = failure)
+            FilledTonalButton(enabled = address.isNotBlank() && busy == null, onClick = { connect(address) }) { Text(uiText(R.string.ui_check_and_connect_a891d1)) }
+            if (failure) Text(if (incompatible) uiText(R.string.ui_this_website_does_not_support_the_peertube_3f0625) else uiText(R.string.ui_connection_failed_check_the_https_address_f92ec9), color = MaterialTheme.colorScheme.error)
             OutlinedTextField(query, { query = it }, modifier = Modifier.fillMaxWidth().padding(top = 16.dp), singleLine = true,
-                label = { Text(uiText("Поиск по названию или адресу", "Find by name or address")) })
+                label = { Text(uiText(R.string.ui_find_by_name_or_address_b99f1e)) })
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 TextButton(enabled = busy == null, onClick = {
                     scope.launch {
@@ -95,7 +95,7 @@ private data class ServerProbe(val online: Boolean, val videos: Int)
                         catch (_: Exception) { failure = true }
                         finally { busy = null }
                     }
-                }) { Text(uiText("Найти серверы", "Discover servers")) }
+                }) { Text(uiText(R.string.ui_discover_servers_f44c73)) }
                 TextButton(enabled = busy == null && all.isNotEmpty(), onClick = {
                     scope.launch {
                         busy = "check"; checked = 0
@@ -114,33 +114,33 @@ private data class ServerProbe(val online: Boolean, val videos: Int)
                             cache.edit().putString("probes", Gson().toJson(probes)).apply()
                         } finally { busy = null }
                     }
-                }) { Text(uiText("Проверить доступность", "Check availability")) }
+                }) { Text(uiText(R.string.ui_check_availability_db0909)) }
             }
             if (busy != null) {
                 LinearProgressIndicator(Modifier.fillMaxWidth())
                 if (busy == "check") Text("$checked / ${all.size}")
             }
         } }
-        item { SettingsChoice(uiText("Сортировать серверы", "Sort servers"), sort,
-            listOf("connected" to uiText("Подключённые", "Connected"), "active" to uiText("Сначала активные", "Online first"), "videos" to uiText("По количеству видео", "Video count"))) { sort = it } }
+        item { SettingsChoice(uiText(R.string.ui_sort_servers_f2aae1), sort,
+            listOf("connected" to uiText(R.string.ui_connected_2fcbe2), "active" to uiText(R.string.ui_online_first_fc7de2), "videos" to uiText(R.string.ui_video_count_1e68ed))) { sort = it } }
         items(sorted, key = { it.host }) { instance ->
             val url = "https://${instance.host}"
             val state = probes[instance.host]
             val count = state?.videos?.toLong() ?: instance.totalVideos ?: instance.stats?.totalVideos
             SettingsRow(instance.name?.takeIf(String::isNotBlank) ?: instance.host,
                 instance.host + " · " + when (state?.online) {
-                    true -> uiText("активен", "online")
-                    false -> uiText("недоступен", "unavailable")
-                    null -> uiText("не проверен", "not checked")
-                } + (count?.let { " · $it ${uiText("видео", "videos")}" } ?: "")) {
+                    true -> uiText(R.string.ui_online_5fb239)
+                    false -> uiText(R.string.ui_unavailable_abcd43)
+                    null -> uiText(R.string.ui_not_checked_30ef8c)
+                } + (count?.let { " · $it ${uiText(R.string.ui_videos_89ea5c)}" } ?: "")) {
                 Column {
-                    TextButton(enabled = busy == null, onClick = { connect(url) }) { Text(if (url == active) uiText("Выбран", "Selected") else uiText("Подключить", "Connect")) }
+                    TextButton(enabled = busy == null, onClick = { connect(url) }) { Text(if (url == active) uiText(R.string.ui_selected_af7b83) else uiText(R.string.ui_connect_53bb39)) }
                     if (url in configured && configured.size > 1) TextButton(enabled = busy == null, onClick = {
                         scope.launch {
                             val remaining = configured - url
                             saveServerList(context, remaining.joinToString("\n"), if (active == url) remaining.first() else active)
                         }
-                    }) { Text(uiText("Убрать", "Remove")) }
+                    }) { Text(uiText(R.string.ui_remove_32d0b3)) }
                 }
             }
         }
@@ -158,7 +158,7 @@ private data class ServerProbe(val online: Boolean, val videos: Int)
                     catch (_: Exception) { failure = true }
                     finally { busy = null }
                 }
-            }) { Text(uiText("Ещё серверы", "More servers")) }
+            }) { Text(uiText(R.string.ui_more_servers_7b0fae)) }
         }
     }
 }

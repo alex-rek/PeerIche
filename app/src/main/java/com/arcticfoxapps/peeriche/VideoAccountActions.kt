@@ -62,15 +62,15 @@ import kotlinx.coroutines.launch
     Column(Modifier.fillMaxWidth()) {
         Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             FilterChip(selected = rating == "like", onClick = { rate("like") }, enabled = !busy && resolved != null,
-                label = { Text(counts.likes.toString()) }, leadingIcon = { Icon(Icons.Default.ThumbUp, uiText("Нравится", "Like"), Modifier.size(20.dp)) })
+                label = { Text(counts.likes.toString()) }, leadingIcon = { Icon(Icons.Default.ThumbUp, uiText(R.string.ui_like_95fa84), Modifier.size(20.dp)) })
             FilterChip(selected = rating == "dislike", onClick = { rate("dislike") }, enabled = !busy && resolved != null,
-                label = { Text(counts.dislikes.toString()) }, leadingIcon = { Icon(Icons.Default.ThumbDown, uiText("Не нравится", "Dislike"), Modifier.size(20.dp)) })
+                label = { Text(counts.dislikes.toString()) }, leadingIcon = { Icon(Icons.Default.ThumbDown, uiText(R.string.ui_dislike_c74b31), Modifier.size(20.dp)) })
             actions()
         }
         if (busy) LinearProgressIndicator(Modifier.fillMaxWidth())
         error?.let { reason ->
             Text(accountErrorText(reason), Modifier.padding(horizontal = 12.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
-            TextButton(onClick = { retry++ }) { Text(uiText("Повторить", "Retry")) }
+            TextButton(onClick = { retry++ }) { Text(uiText(R.string.ui_retry_e8368b)) }
         }
     }
 }

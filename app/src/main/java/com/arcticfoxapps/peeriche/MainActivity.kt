@@ -764,7 +764,7 @@ class MainActivity : ComponentActivity() {
                             channelDirectoryServer != null -> stringResource(R.string.channels_on_server)
                             youSection == YouSection.Channels -> stringResource(R.string.channels)
                             youSection == YouSection.Favorites -> stringResource(R.string.favorites)
-                            youSection == YouSection.Videos -> uiText("Ваши видео", "Your videos")
+                            youSection == YouSection.Videos -> uiText(R.string.ui_your_videos_90d416)
                             else -> stringResource(R.string.history)
                         }, onBack = ::backFromYou)
                     } }
@@ -793,7 +793,7 @@ class MainActivity : ComponentActivity() {
                         Text(accountErrorText(accountFeedError!!), Modifier.padding(16.dp), color = colors.error)
                         TextButton(onClick = { loadAccountFeed() }) { Text(stringResource(R.string.retry)) }
                     }
-                    if (serverSubscriptionFeed && !accountFeedBusy && accountFeedError == null && accountFeed.isEmpty()) Text(uiText("В подписках аккаунта пока нет видео", "No videos in this account's subscriptions yet"), Modifier.padding(16.dp))
+                    if (serverSubscriptionFeed && !accountFeedBusy && accountFeedError == null && accountFeed.isEmpty()) Text(uiText(R.string.ui_no_videos_in_this_account_s_subscriptions_5d5d6a), Modifier.padding(16.dp))
                     (if (!showFeedStatus || serverSubscriptionFeed) null else if (browsingFeed) browseError else error)?.let { Text(it, Modifier.padding(18.dp), color = if (darkTheme) Color(0xFFFFB49B) else Color(0xFF9C341F)) }
                     if (browsingFeed && browseError != null && !browseBusy) Row {
                         if (!browseUnsupported) TextButton(onClick = { loadBrowse(if (browseHasMore) browsePage + 1 else 0) }) {
@@ -827,7 +827,7 @@ class MainActivity : ComponentActivity() {
                         onRefresh = { if (!busy) { loadHome(); if (serverSubscriptions) { loadAccountFeed(); selectedAccount?.let { scope.launch { accountLibrary.refresh(it.id) } } } } }
                     ) {
                     if (page == "You" && visibleVideos.isEmpty() && youSection in listOf(YouSection.Favorites, YouSection.History)) {
-                        Text(if (youSection == YouSection.Favorites) uiText("В избранном пока нет видео", "No saved videos yet") else uiText("История пока пуста", "No watch history yet"), Modifier.padding(20.dp), color = colors.onSurfaceVariant)
+                        Text(if (youSection == YouSection.Favorites) uiText(R.string.ui_no_saved_videos_yet_7311d4) else uiText(R.string.ui_no_watch_history_yet_c9ff6c), Modifier.padding(20.dp), color = colors.onSurfaceVariant)
                     }
                     LazyVerticalGrid(state = activeFeedState, modifier = Modifier.nestedScroll(feedScrollConnection), columns = if (wideLayout) GridCells.Fixed(tabletColumns(LocalConfiguration.current.screenWidthDp)) else GridCells.Adaptive(minSize = 230.dp), contentPadding = PaddingValues(12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
                         if (page == "Home" && options.homeSort != "sections") {
@@ -898,7 +898,7 @@ class MainActivity : ComponentActivity() {
                             onChannel = { video.channel?.name?.let { handle -> openChannelVideos(PeerTubeChannel(video.channel.displayName ?: handle, handle, video.sourceServer(server).removePrefix("https://"))); closePlayer() } })
                         val next = deduplicateVideos(recommendedVideos + homeVideos + serverVideos + liveVideos + videos + subscriptionFeed, server)
                             .filterNot { it.apiId() == video.apiId() && it.sourceServer(server) == video.sourceServer(server) }.take(20)
-                        if (next.isNotEmpty()) Text(uiText("Далее", "Up next"), Modifier.padding(16.dp), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                        if (next.isNotEmpty()) Text(uiText(R.string.ui_up_next_b0dfbd), Modifier.padding(16.dp), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                         next.forEach { item -> NextVideoRow(item, server) { openVideo(item) } }
                     }
                 }
@@ -961,7 +961,7 @@ private fun LazyGridScope.videoSection(
         Box {
             VideoThumbnail(video, fallbackServer, Modifier.fillMaxWidth().aspectRatio(16f / 9f)
                 .then(if (video.nsfw && cardOptions.sensitiveDisplay == "blur") Modifier.blur(24.dp) else Modifier))
-            if (video.nsfw && cardOptions.sensitiveDisplay != "show") Box(Modifier.matchParentSize().background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = if (cardOptions.sensitiveDisplay == "warning" || android.os.Build.VERSION.SDK_INT < 31) 1f else .55f)), contentAlignment = Alignment.Center) { Text(uiText("Чувствительный контент", "Sensitive content"), Modifier.padding(16.dp)) }
+            if (video.nsfw && cardOptions.sensitiveDisplay != "show") Box(Modifier.matchParentSize().background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = if (cardOptions.sensitiveDisplay == "warning" || android.os.Build.VERSION.SDK_INT < 31) 1f else .55f)), contentAlignment = Alignment.Center) { Text(uiText(R.string.ui_sensitive_content_576e42), Modifier.padding(16.dp)) }
             if (video.isLive || video.duration > 0) Text(if (video.isLive) stringResource(R.string.live_now) else formatDuration(video.duration), Modifier.align(Alignment.BottomEnd).padding(9.dp).clip(RoundedCornerShape(7.dp)).background(if (video.isLive) Color(0xFFC83232) else Color.Black.copy(alpha = 0.78f)).padding(horizontal = 7.dp, vertical = 4.dp), color = Color.White, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold)
         }
         Row(Modifier.fillMaxWidth().padding(start = 14.dp, top = 11.dp, end = 4.dp), verticalAlignment = Alignment.CenterVertically) {

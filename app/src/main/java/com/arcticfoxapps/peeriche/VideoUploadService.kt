@@ -217,6 +217,7 @@ internal object VideoUploads {
 }
 
 class VideoUploadService : Service() {
+    override fun attachBaseContext(newBase: Context) { super.attachBaseContext(localizedAppContext(newBase)) }
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private lateinit var uploads: VideoUploadCoordinator
     private var monitor: Job? = null
@@ -224,15 +225,15 @@ class VideoUploadService : Service() {
     private fun finishService() { androidx.core.app.ServiceCompat.stopForeground(this, androidx.core.app.ServiceCompat.STOP_FOREGROUND_REMOVE); stopSelf() }
     override fun onCreate() {
         super.onCreate(); uploads = VideoUploads.get(this)
-        if (Build.VERSION.SDK_INT >= 26) getSystemService(NotificationManager::class.java).createNotificationChannel(NotificationChannel("uploads", "PeerIche · Загрузка видео", NotificationManager.IMPORTANCE_LOW))
+        if (Build.VERSION.SDK_INT >= 26) getSystemService(NotificationManager::class.java).createNotificationChannel(NotificationChannel("uploads", getString(R.string.notification_upload), NotificationManager.IMPORTANCE_LOW))
     }
     private fun notification(draft: UploadDraft?): Notification {
         val content = PendingIntent.getActivity(this, 0, Intent(this, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
         val pause = PendingIntent.getService(this, 1, Intent(this, VideoUploadService::class.java).setAction("pause"), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
         val percent = draft?.let { (100.0 * it.offset / it.file.size).toInt().coerceIn(0, 100) } ?: 0
-        return NotificationCompat.Builder(this, "uploads").setSmallIcon(android.R.drawable.stat_sys_upload).setContentTitle("PeerIche · Загрузка видео")
+        return NotificationCompat.Builder(this, "uploads").setSmallIcon(android.R.drawable.stat_sys_upload).setContentTitle(getString(R.string.notification_upload))
             .setContentText(draft?.metadata?.name.orEmpty()).setContentIntent(content).setOngoing(true).setOnlyAlertOnce(true)
-            .setProgress(100, percent, draft?.status in listOf("starting", "cover", "cancelling")).addAction(0, "Пауза", pause).build()
+            .setProgress(100, percent, draft?.status in listOf("starting", "cover", "cancelling")).addAction(0, getString(R.string.pause_playback), pause).build()
     }
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         startForeground(702, notification(uploads.state.value))

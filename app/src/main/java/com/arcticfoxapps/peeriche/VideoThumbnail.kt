@@ -36,7 +36,7 @@ import kotlinx.coroutines.withTimeoutOrNull
         }
     }
     Box(modifier.background(MaterialTheme.colorScheme.surfaceVariant), contentAlignment = Alignment.Center) {
-        if (failed) Icon(Icons.Outlined.ImageNotSupported, uiText("Миниатюра недоступна", "Thumbnail unavailable"), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+        if (failed) Icon(Icons.Outlined.ImageNotSupported, uiText(R.string.ui_thumbnail_unavailable_1a08a4), tint = MaterialTheme.colorScheme.onSurfaceVariant)
         AsyncImage(candidates.getOrNull(index), video.name, Modifier.matchParentSize(), contentScale = ContentScale.Crop,
             onSuccess = { failed = false },
             onError = { if (index < candidates.lastIndex) index++ else failed = true })

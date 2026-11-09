@@ -45,6 +45,8 @@ class AppPreferences private constructor(context: Context) {
 }
 
 internal fun localizedAppContext(context: Context): Context {
+    // Android 13+ owns the per-app locale, including changes from system settings.
+    if (android.os.Build.VERSION.SDK_INT >= 33) return context
     val language = AppPreferences.get(context).options.value.interfaceLanguage
     if (language.isBlank()) return context
     return context.createConfigurationContext(Configuration(context.resources.configuration).apply {

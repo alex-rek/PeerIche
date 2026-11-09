@@ -26,7 +26,7 @@ internal enum class YouSection { Menu, Channels, Favorites, History, Videos }
 
 @Composable internal fun YouSectionHeader(title: String, onBack: () -> Unit) {
     Row(Modifier.fillMaxWidth().heightIn(min = 56.dp).padding(horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-        IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, uiText("Назад", "Back")) }
+        IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, uiText(R.string.ui_back_02b74f)) }
         Text(title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
     }
 }
@@ -55,19 +55,19 @@ internal enum class YouSection { Menu, Channels, Favorites, History, Videos }
                     active?.avatar?.let { AsyncImage(it, null, Modifier.fillMaxSize(), contentScale = androidx.compose.ui.layout.ContentScale.Crop) }
                 }
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text(active?.displayName ?: uiText("Войти в аккаунт", "Sign in"), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+                    Text(active?.displayName ?: uiText(R.string.ui_sign_in_fe4740), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
                     Text(if (active != null) "${active.username}@${java.net.URI(active.server).authority}" else server.removePrefix("https://").removePrefix("http://"), color = colors.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
                 }
-                if (active?.needsLogin == true) Icon(Icons.Default.Login, uiText("Войдите снова", "Sign in again"))
-                else Icon(Icons.Default.ChevronRight, null)
+                if (active?.needsLogin == true) Icon(Icons.Default.Login, uiText(R.string.ui_sign_in_again_770ace))
+                else Icon(interfaceForwardChevron(), null)
             }
             HorizontalDivider(Modifier.padding(vertical = 12.dp), color = colors.outlineVariant)
-            YouMenuRow(Icons.Default.AccountBox, uiText("Каналы", "Channels")) { onOpenSection(YouSection.Channels) }
-            if (active != null && !active.needsLogin) YouMenuRow(Icons.Default.VideoLibrary, uiText("Ваши видео", "Your videos")) { onOpenSection(YouSection.Videos) }
-            YouMenuRow(Icons.Default.FavoriteBorder, uiText("Избранное", "Favorites")) { onOpenSection(YouSection.Favorites) }
-            YouMenuRow(Icons.Default.History, uiText("История", "History")) { onOpenSection(YouSection.History) }
+            YouMenuRow(Icons.Default.AccountBox, uiText(R.string.ui_channels_a38998)) { onOpenSection(YouSection.Channels) }
+            if (active != null && !active.needsLogin) YouMenuRow(Icons.Default.VideoLibrary, uiText(R.string.ui_your_videos_90d416)) { onOpenSection(YouSection.Videos) }
+            YouMenuRow(Icons.Default.FavoriteBorder, uiText(R.string.ui_favorites_d4c059)) { onOpenSection(YouSection.Favorites) }
+            YouMenuRow(Icons.Default.History, uiText(R.string.ui_history_4d3d0c)) { onOpenSection(YouSection.History) }
             HorizontalDivider(Modifier.padding(vertical = 12.dp), color = colors.outlineVariant)
-            YouMenuRow(Icons.Default.Settings, uiText("Настройки", "Settings"), onSettings)
+            YouMenuRow(Icons.Default.Settings, uiText(R.string.ui_settings_2bca56), onSettings)
         }
     }
     if (accountInfo) AccountScreen(server, manager, onAccountServer) { accountInfo = false }

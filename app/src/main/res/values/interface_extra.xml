@@ -1,0 +1,9 @@
+<resources>
+    <string name="ui_account_server_mismatch">Videos currently come from %1$s. This account belongs to %2$s.</string>
+    <string name="ui_voice_test_language">Language: %1$s. Video will pause.</string>
+    <string name="ui_reply_to">Reply to: %1$s</string>
+    <string name="ui_account_subscription">Account subscription: %1$s</string>
+    <string name="notification_upload">PeerIche · Video upload</string>
+    <string name="notification_broadcast">PeerIche · Broadcast</string>
+    <string name="notification_end">End</string>
+</resources>

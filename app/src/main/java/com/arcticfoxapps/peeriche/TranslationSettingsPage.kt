@@ -39,16 +39,16 @@ import java.util.Locale
         }
     }
     LazyColumn(Modifier.fillMaxSize()) {
-        item { SettingsToggle(uiText("Переводить названия, описания и комментарии", "Translate titles, descriptions and comments"), options.translateMetadata) { value -> preferences.update { it.copy(translateMetadata = value) } } }
-        item { SettingsToggle(uiText("Переводить субтитры", "Translate subtitles"), options.translateSubtitles) { value -> preferences.update { it.copy(translateSubtitles = value) } } }
-        item { SettingsChoice(uiText("Язык перевода", "Translation language"), options.translateTo, languages) { value -> preferences.update { it.copy(translateTo = value) } } }
-        item { SettingsToggle(uiText("Загружать модели только по Wi-Fi", "Download models only over Wi-Fi"), options.modelsWifiOnly) { value -> preferences.update { it.copy(modelsWifiOnly = value) } } }
-        item { Text(uiText("Перевод выполняется на устройстве. Для пары языков нужны соответствующие модели; новые модели могут занимать около 30 МБ каждая. Текст видео не отправляется переводчику в облако.", "Translation runs on your device. Both language models are required; new models can be around 30 MB each. Video text is not sent to a cloud translation service."), Modifier.padding(24.dp), color = MaterialTheme.colorScheme.onSurfaceVariant) }
-        if (status == "downloading" || status == "translating") item { Text(uiText("Подготовка моделей или перевод…", "Preparing models or translating…"), Modifier.padding(horizontal = 24.dp)) }
-        if (error || status == "error") item { Text(uiText("Не удалось подготовить перевод. Проверьте сеть и загруженные модели; исходный текст остаётся доступен.", "Translation could not be prepared. Check your connection and downloaded models; original text stays available."), Modifier.padding(24.dp), color = MaterialTheme.colorScheme.error) }
-        item { Text(uiText("Языковые модели", "Language models"), Modifier.padding(24.dp), style = MaterialTheme.typography.titleMedium) }
+        item { SettingsToggle(uiText(R.string.ui_translate_titles_descriptions_and_comments_234bae), options.translateMetadata) { value -> preferences.update { it.copy(translateMetadata = value) } } }
+        item { SettingsToggle(uiText(R.string.ui_translate_subtitles_92ac18), options.translateSubtitles) { value -> preferences.update { it.copy(translateSubtitles = value) } } }
+        item { SettingsChoice(uiText(R.string.ui_translation_language_401967), options.translateTo, languages) { value -> preferences.update { it.copy(translateTo = value) } } }
+        item { SettingsToggle(uiText(R.string.ui_download_models_only_over_wi_fi_b739a9), options.modelsWifiOnly) { value -> preferences.update { it.copy(modelsWifiOnly = value) } } }
+        item { Text(uiText(R.string.ui_translation_runs_on_your_device_both_langu_bebcf9), Modifier.padding(24.dp), color = MaterialTheme.colorScheme.onSurfaceVariant) }
+        if (status == "downloading" || status == "translating") item { Text(uiText(R.string.ui_preparing_models_or_translating_a98b86), Modifier.padding(horizontal = 24.dp)) }
+        if (error || status == "error") item { Text(uiText(R.string.ui_translation_could_not_be_prepared_check_yo_180ecc), Modifier.padding(24.dp), color = MaterialTheme.colorScheme.error) }
+        item { Text(uiText(R.string.ui_language_models_6ecbd3), Modifier.padding(24.dp), style = MaterialTheme.typography.titleMedium) }
         items(languages, key = { it.first }) { (language, label) ->
-            SettingsRow(label, if (language in downloaded) uiText("Загружена", "Downloaded") else uiText("Не загружена", "Not downloaded")) {
+            SettingsRow(label, if (language in downloaded) uiText(R.string.ui_downloaded_8b6faf) else uiText(R.string.ui_not_downloaded_1af9b2)) {
                 if (busy == language) CircularProgressIndicator(Modifier.size(24.dp))
                 else TextButton(enabled = busy == null, onClick = {
                     scope.launch {
@@ -61,7 +61,7 @@ import java.util.Locale
                         catch (_: Exception) { error = true }
                         finally { busy = null }
                     }
-                }) { Text(if (language in downloaded) uiText("Удалить", "Delete") else uiText("Загрузить", "Download")) }
+                }) { Text(if (language in downloaded) uiText(R.string.ui_delete_423009) else uiText(R.string.ui_download_eac11a)) }
             }
         }
     }

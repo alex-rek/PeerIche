@@ -71,24 +71,24 @@ internal fun Video.shareText(server: String): String = name + "\n" + publicWatch
             modifier = Modifier.fillMaxWidth().clickable { expanded = !expanded }.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 6.dp))
         Row(Modifier.fillMaxWidth().clickable { expanded = !expanded }.padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
             val date = video.publishedAt?.substringBefore('T').orEmpty()
-            Text(java.text.NumberFormat.getIntegerInstance().format(video.views) + " " + uiText("просмотров", "views") + if (date.isBlank()) "" else " · $date",
+            Text(java.text.NumberFormat.getIntegerInstance().format(video.views) + " " + uiText(R.string.ui_views_bfcec5) + if (date.isBlank()) "" else " · $date",
                 Modifier.weight(1f), color = colors.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
             IconButton(onClick = { expanded = !expanded }) { Icon(if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                uiText("Описание видео", "Video description")) }
+                uiText(R.string.ui_video_description_02d4b7)) }
         }
-        if (expanded) LinkedWatchDescription(translatedMetadata(fullDescription).ifBlank { uiText("Описание отсутствует", "No description") })
+        if (expanded) LinkedWatchDescription(translatedMetadata(fullDescription).ifBlank { uiText(R.string.ui_no_description_aff1cf) })
         VideoAccountActions(video, server) {
-            AssistChip(onClick = onFavorite, label = { Text(uiText(if (favorite) "В избранном" else "В избранное", if (favorite) "Saved" else "Save")) },
+            AssistChip(onClick = onFavorite, label = { Text(uiText(if (favorite) R.string.ui_saved_197dc1 else R.string.ui_save_efb7cc)) },
                 leadingIcon = { Icon(if (favorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder, null, Modifier.size(20.dp)) })
-            val shareLabel = uiText("Поделиться", "Share")
+            val shareLabel = uiText(R.string.ui_share_0e2e41)
             AssistChip(onClick = {
                 context.playerActivity()?.pipSupport?.suspendForExternalUi()
                 context.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).apply {
                     type = "text/plain"; putExtra(Intent.EXTRA_TEXT, video.shareText(server)); putExtra(Intent.EXTRA_SUBJECT, video.name)
                 }, shareLabel))
             }, label = { Text(shareLabel) }, leadingIcon = { Icon(Icons.Default.Share, null, Modifier.size(20.dp)) })
-            AssistChip(onClick = { speechSettings = true }, label = { Text(uiText("Озвучивание", "Speech")) }, leadingIcon = { Icon(Icons.Default.RecordVoiceOver, null, Modifier.size(20.dp)) })
-            AssistChip(onClick = onChannel, enabled = video.channel?.name != null, label = { Text(uiText("Видео канала", "Channel videos")) })
+            AssistChip(onClick = { speechSettings = true }, label = { Text(uiText(R.string.ui_speech_b0f924)) }, leadingIcon = { Icon(Icons.Default.RecordVoiceOver, null, Modifier.size(20.dp)) })
+            AssistChip(onClick = onChannel, enabled = video.channel?.name != null, label = { Text(uiText(R.string.ui_channel_videos_db019b)) })
         }
         Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp), verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -101,22 +101,22 @@ internal fun Video.shareText(server: String): String = name + "\n" + publicWatch
             }
             Column(Modifier.weight(1f).clickable(enabled = video.channel?.name != null, onClick = onChannel)) {
                 Text(title, maxLines = 2, fontWeight = FontWeight.SemiBold)
-                channel?.followersCount?.let { Text(java.text.NumberFormat.getIntegerInstance().format(it) + " " + uiText("подписчиков", "followers"), style = MaterialTheme.typography.bodySmall, color = colors.onSurfaceVariant) }
+                channel?.followersCount?.let { Text(java.text.NumberFormat.getIntegerInstance().format(it) + " " + uiText(R.string.ui_followers_1c1d35), style = MaterialTheme.typography.bodySmall, color = colors.onSurfaceVariant) }
             }
             if (canSubscribe) FilledTonalButton(onClick = onSubscribe, enabled = video.channel?.name != null, contentPadding = PaddingValues(horizontal = 14.dp)) {
-                Text(uiText(if (subscribed) "Вы подписаны" else "Подписаться", if (subscribed) "Subscribed" else "Subscribe"), maxLines = 1)
+                Text(uiText(if (subscribed) R.string.ui_subscribed_b31c7d else R.string.ui_subscribe_7a95fd), maxLines = 1)
             }
         }
         if (canSubscribe) Text(if (serverSubscription)
-            uiText("Подписка аккаунта: ${accountState.active!!.username}@${java.net.URI(accountState.active!!.server).authority}", "Account subscription: ${accountState.active!!.username}@${java.net.URI(accountState.active!!.server).authority}")
-            else uiText("Подписка на этом устройстве", "Subscription on this device"), Modifier.padding(horizontal = 16.dp),
+            uiText(R.string.ui_account_subscription, "${accountState.active!!.username}@${java.net.URI(accountState.active!!.server).authority}")
+            else uiText(R.string.ui_subscription_on_this_device_97636d), Modifier.padding(horizontal = 16.dp),
             style = MaterialTheme.typography.bodySmall, color = colors.onSurfaceVariant)
         Surface(onClick = { comments = true }, shape = RoundedCornerShape(16.dp), color = colors.surfaceVariant,
             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp)) {
             Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Icon(Icons.Default.Comment, null)
-                Text(uiText("Комментарии", "Comments") + (video.comments?.let { " · $it" } ?: ""), Modifier.weight(1f), fontWeight = FontWeight.SemiBold)
-                Icon(Icons.Default.ChevronRight, null)
+                Text(uiText(R.string.ui_comments_08c5c0) + (video.comments?.let { " · $it" } ?: ""), Modifier.weight(1f), fontWeight = FontWeight.SemiBold)
+                Icon(interfaceForwardChevron(), null)
             }
         }
     }

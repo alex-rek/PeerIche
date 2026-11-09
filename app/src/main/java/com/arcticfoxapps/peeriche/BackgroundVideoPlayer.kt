@@ -13,7 +13,7 @@ import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Fullscreen
 import androidx.compose.material.icons.filled.FullscreenExit
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.PictureInPictureAlt
 import androidx.compose.material.icons.filled.Subtitles
 import androidx.compose.material.icons.filled.Settings
@@ -239,7 +239,7 @@ data class VideoCaption(val language: CaptionLanguage? = null, val captionPath: 
             // Leave space for the always-visible Compose fullscreen control.
             findViewById<android.view.View>(androidx.media3.ui.R.id.exo_bottom_bar)?.let { bar ->
                 bar.setBackgroundColor(android.graphics.Color.TRANSPARENT)
-                bar.setPadding(bar.paddingLeft, bar.paddingTop, (48 * resources.displayMetrics.density).toInt(), bar.paddingBottom)
+                bar.setPaddingRelative(bar.paddingStart, bar.paddingTop, (48 * resources.displayMetrics.density).toInt(), bar.paddingBottom)
             }
         } }, update = {
             it.player = player
@@ -263,10 +263,10 @@ data class VideoCaption(val language: CaptionLanguage? = null, val captionPath: 
         }, onRelease = { it.player = null }, modifier = Modifier.fillMaxSize())
         if (!pip && controlsVisible) {
             Row(Modifier.align(Alignment.TopCenter).fillMaxWidth().then(if (fullscreen) Modifier.windowInsetsPadding(WindowInsets.systemBarsIgnoringVisibility.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal)) else Modifier).padding(4.dp), verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, stringResource(R.string.back), tint = Color.White) }
+                IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back), tint = Color.White) }
                 Spacer(Modifier.weight(1f))
                 IconButton(onClick = onMiniPlayer, modifier = Modifier.size(40.dp)) {
-                    Icon(Icons.Default.PictureInPictureAlt, uiText("Картинка в картинке", "Picture in picture"), tint = Color.White)
+                    Icon(Icons.Default.PictureInPictureAlt, uiText(R.string.ui_picture_in_picture_481ea8), tint = Color.White)
                 }
                 if (hasSubtitles) {
                     SpeechQuickControl(transparent = true, showSettings = false)
@@ -274,7 +274,7 @@ data class VideoCaption(val language: CaptionLanguage? = null, val captionPath: 
                         Icon(Icons.Default.Subtitles, stringResource(R.string.subtitles), tint = Color.White)
                     }
                 }
-                IconButton(onClick = { menu = true }, modifier = Modifier.size(40.dp)) { Icon(Icons.Default.Settings, uiText("Параметры плеера", "Player settings"), tint = Color.White) }
+                IconButton(onClick = { menu = true }, modifier = Modifier.size(40.dp)) { Icon(Icons.Default.Settings, uiText(R.string.ui_player_settings_2989d1), tint = Color.White) }
             }
         IconButton(onClick = onFullscreenToggle,
             modifier = Modifier.align(Alignment.BottomEnd).then(if (fullscreen) Modifier.windowInsetsPadding(WindowInsets.systemBarsIgnoringVisibility.only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal)) else Modifier).padding(4.dp)) {
@@ -288,7 +288,7 @@ data class VideoCaption(val language: CaptionLanguage? = null, val captionPath: 
     }
     if (!pip && player == null && !failed) LinearProgressIndicator(Modifier.fillMaxWidth())
     if (!pip && captionsFailed) TextButton(onClick = { captionRetry++ }) { Text(stringResource(R.string.retry_captions)) }
-    if (!pip && translationFailed && !fullscreen && !compact) TextButton(onClick = { captionRetry++ }) { Text(uiText("Повторить перевод субтитров", "Retry subtitle translation")) }
+    if (!pip && translationFailed && !fullscreen && !compact) TextButton(onClick = { captionRetry++ }) { Text(uiText(R.string.ui_retry_subtitle_translation_377fcd)) }
     if (!pip && failed) TextButton(onClick = {
         failed = false
         if (player == null) connectionAttempt++ else { player.prepare(); player.play() }

@@ -1,0 +1,978 @@
+{
+  "Home": [
+    "Inicio",
+    "Accueil",
+    "Startseite",
+    "Início",
+    "Ana sayfa",
+    "Головна"
+  ],
+  "Search": [
+    "Buscar",
+    "Recherche",
+    "Suche",
+    "Pesquisar",
+    "Ara",
+    "Пошук"
+  ],
+  "Subscriptions": [
+    "Suscripciones",
+    "Abonnements",
+    "Abos",
+    "Inscrições",
+    "Abonelikler",
+    "Підписки"
+  ],
+  "You": [
+    "Tú",
+    "Vous",
+    "Du",
+    "Você",
+    "Siz",
+    "Ви"
+  ],
+  "Create": [
+    "Crear",
+    "Créer",
+    "Erstellen",
+    "Criar",
+    "Oluştur",
+    "Створити"
+  ],
+  "On server": [
+    "En el servidor",
+    "Sur le serveur",
+    "Auf dem Server",
+    "No servidor",
+    "Sunucuda",
+    "На сервері"
+  ],
+  "Live": [
+    "En directo",
+    "En direct",
+    "Live",
+    "Ao vivo",
+    "Canlı",
+    "Наживо"
+  ],
+  "Settings": [
+    "Ajustes",
+    "Paramètres",
+    "Einstellungen",
+    "Configurações",
+    "Ayarlar",
+    "Налаштування"
+  ],
+  "General": [
+    "General",
+    "Général",
+    "Allgemein",
+    "Geral",
+    "Genel",
+    "Загальні"
+  ],
+  "Servers": [
+    "Servidores",
+    "Serveurs",
+    "Server",
+    "Servidores",
+    "Sunucular",
+    "Сервери"
+  ],
+  "Language and translations": [
+    "Idioma y traducciones",
+    "Langue et traductions",
+    "Sprache und Übersetzungen",
+    "Idioma e traduções",
+    "Dil ve çeviriler",
+    "Мова й переклади"
+  ],
+  "Interface language": [
+    "Idioma de la interfaz",
+    "Langue de l’interface",
+    "Sprache der Benutzeroberfläche",
+    "Idioma da interface",
+    "Arayüz dili",
+    "Мова інтерфейсу"
+  ],
+  "Follow Android": [
+    "Como en Android",
+    "Comme sur Android",
+    "Wie in Android",
+    "Como no Android",
+    "Android ile aynı",
+    "Як на пристрої Android"
+  ],
+  "App theme": [
+    "Tema de la aplicación",
+    "Thème de l’application",
+    "App-Design",
+    "Tema do aplicativo",
+    "Uygulama teması",
+    "Тема застосунку"
+  ],
+  "Graphite": [
+    "Grafito",
+    "Graphite",
+    "Graphit",
+    "Grafite",
+    "Grafit",
+    "Графіт"
+  ],
+  "Aurora · blue": [
+    "Aurora · azul",
+    "Aurore · bleu",
+    "Aurora · blau",
+    "Aurora · azul",
+    "Aurora · mavi",
+    "Аврора · синя"
+  ],
+  "Player": [
+    "Reproductor",
+    "Lecteur",
+    "Player",
+    "Reprodutor",
+    "Oynatıcı",
+    "Програвач"
+  ],
+  "About": [
+    "Acerca de",
+    "À propos",
+    "Über die App",
+    "Sobre",
+    "Hakkında",
+    "Про застосунок"
+  ],
+  "Channels": [
+    "Canales",
+    "Chaînes",
+    "Kanäle",
+    "Canais",
+    "Kanallar",
+    "Канали"
+  ],
+  "Your videos": [
+    "Tus vídeos",
+    "Vos vidéos",
+    "Deine Videos",
+    "Seus vídeos",
+    "Videolarınız",
+    "Ваші відео"
+  ],
+  "Favorites": [
+    "Favoritos",
+    "Favoris",
+    "Favoriten",
+    "Favoritos",
+    "Favoriler",
+    "Обране"
+  ],
+  "History": [
+    "Historial",
+    "Historique",
+    "Verlauf",
+    "Histórico",
+    "Geçmiş",
+    "Історія"
+  ],
+  "Sign in": [
+    "Iniciar sesión",
+    "Se connecter",
+    "Anmelden",
+    "Entrar",
+    "Oturum aç",
+    "Увійти"
+  ],
+  "Sign out": [
+    "Cerrar sesión",
+    "Se déconnecter",
+    "Abmelden",
+    "Sair",
+    "Oturumu kapat",
+    "Вийти"
+  ],
+  "Subscribe": [
+    "Suscribirse",
+    "S’abonner",
+    "Abonnieren",
+    "Inscrever-se",
+    "Abone ol",
+    "Підписатися"
+  ],
+  "Subscribed": [
+    "Suscrito",
+    "Abonné",
+    "Abonniert",
+    "Inscrito",
+    "Abone olundu",
+    "Ви підписані"
+  ],
+  "Unsubscribe": [
+    "Cancelar suscripción",
+    "Se désabonner",
+    "Abo beenden",
+    "Cancelar inscrição",
+    "Abonelikten çık",
+    "Відписатися"
+  ],
+  "Like": [
+    "Me gusta",
+    "J’aime",
+    "Gefällt mir",
+    "Gostei",
+    "Beğen",
+    "Подобається"
+  ],
+  "Dislike": [
+    "No me gusta",
+    "Je n’aime pas",
+    "Gefällt mir nicht",
+    "Não gostei",
+    "Beğenme",
+    "Не подобається"
+  ],
+  "Share": [
+    "Compartir",
+    "Partager",
+    "Teilen",
+    "Compartilhar",
+    "Paylaş",
+    "Поділитися"
+  ],
+  "Watch": [
+    "Ver",
+    "Regarder",
+    "Ansehen",
+    "Assistir",
+    "İzle",
+    "Дивитися"
+  ],
+  "Play": [
+    "Reproducir",
+    "Lire",
+    "Wiedergeben",
+    "Reproduzir",
+    "Oynat",
+    "Відтворити"
+  ],
+  "Pause": [
+    "Pausar",
+    "Pause",
+    "Pausieren",
+    "Pausar",
+    "Duraklat",
+    "Призупинити"
+  ],
+  "Resume": [
+    "Continuar",
+    "Reprendre",
+    "Fortsetzen",
+    "Continuar",
+    "Devam et",
+    "Продовжити"
+  ],
+  "Back": [
+    "Atrás",
+    "Retour",
+    "Zurück",
+    "Voltar",
+    "Geri",
+    "Назад"
+  ],
+  "Close": [
+    "Cerrar",
+    "Fermer",
+    "Schließen",
+    "Fechar",
+    "Kapat",
+    "Закрити"
+  ],
+  "Cancel": [
+    "Cancelar",
+    "Annuler",
+    "Abbrechen",
+    "Cancelar",
+    "İptal",
+    "Скасувати"
+  ],
+  "Save": [
+    "Guardar",
+    "Enregistrer",
+    "Speichern",
+    "Salvar",
+    "Kaydet",
+    "Зберегти"
+  ],
+  "Saved": [
+    "Guardado",
+    "Enregistré",
+    "Gespeichert",
+    "Salvo",
+    "Kaydedildi",
+    "Збережено"
+  ],
+  "Done": [
+    "Listo",
+    "Terminé",
+    "Fertig",
+    "Concluído",
+    "Bitti",
+    "Готово"
+  ],
+  "Retry": [
+    "Reintentar",
+    "Réessayer",
+    "Erneut versuchen",
+    "Tentar novamente",
+    "Yeniden dene",
+    "Повторити"
+  ],
+  "More": [
+    "Más",
+    "Plus",
+    "Mehr",
+    "Mais",
+    "Diğer",
+    "Ще"
+  ],
+  "Refresh": [
+    "Actualizar",
+    "Actualiser",
+    "Aktualisieren",
+    "Atualizar",
+    "Yenile",
+    "Оновити"
+  ],
+  "Load more": [
+    "Cargar más",
+    "Charger plus",
+    "Mehr laden",
+    "Carregar mais",
+    "Daha fazla yükle",
+    "Завантажити ще"
+  ],
+  "Comments": [
+    "Comentarios",
+    "Commentaires",
+    "Kommentare",
+    "Comentários",
+    "Yorumlar",
+    "Коментарі"
+  ],
+  "Reply": [
+    "Responder",
+    "Répondre",
+    "Antworten",
+    "Responder",
+    "Yanıtla",
+    "Відповісти"
+  ],
+  "Send": [
+    "Enviar",
+    "Envoyer",
+    "Senden",
+    "Enviar",
+    "Gönder",
+    "Надіслати"
+  ],
+  "Subtitles": [
+    "Subtítulos",
+    "Sous-titres",
+    "Untertitel",
+    "Legendas",
+    "Altyazılar",
+    "Субтитри"
+  ],
+  "Subtitle speech": [
+    "Lectura de subtítulos",
+    "Lecture des sous-titres",
+    "Untertitel vorlesen",
+    "Leitura de legendas",
+    "Altyazı seslendirme",
+    "Озвучування субтитрів"
+  ],
+  "Speech": [
+    "Lectura en voz alta",
+    "Lecture vocale",
+    "Sprachausgabe",
+    "Leitura em voz alta",
+    "Seslendirme",
+    "Озвучування"
+  ],
+  "Speech rate": [
+    "Velocidad de voz",
+    "Vitesse de lecture",
+    "Sprechgeschwindigkeit",
+    "Velocidade da fala",
+    "Konuşma hızı",
+    "Швидкість мовлення"
+  ],
+  "Voice pitch": [
+    "Tono de voz",
+    "Hauteur de la voix",
+    "Tonhöhe",
+    "Tom de voz",
+    "Ses perdesi",
+    "Висота голосу"
+  ],
+  "Duck during speech": [
+    "Atenuar durante la lectura",
+    "Atténuer pendant la lecture",
+    "Beim Vorlesen leiser stellen",
+    "Reduzir durante a leitura",
+    "Seslendirme sırasında sesi azalt",
+    "Приглушувати під час озвучування"
+  ],
+  "Broadcast": [
+    "Transmisión",
+    "Diffusion",
+    "Übertragung",
+    "Transmissão",
+    "Yayın",
+    "Трансляція"
+  ],
+  "Upload video": [
+    "Subir vídeo",
+    "Importer une vidéo",
+    "Video hochladen",
+    "Enviar vídeo",
+    "Video yükle",
+    "Завантажити відео"
+  ],
+  "Channel settings": [
+    "Ajustes del canal",
+    "Paramètres de la chaîne",
+    "Kanaleinstellungen",
+    "Configurações do canal",
+    "Kanal ayarları",
+    "Параметри каналу"
+  ],
+  "Start broadcast": [
+    "Iniciar transmisión",
+    "Démarrer la diffusion",
+    "Übertragung starten",
+    "Iniciar transmissão",
+    "Yayını başlat",
+    "Почати трансляцію"
+  ],
+  "End broadcast": [
+    "Finalizar transmisión",
+    "Terminer la diffusion",
+    "Übertragung beenden",
+    "Encerrar transmissão",
+    "Yayını bitir",
+    "Завершити трансляцію"
+  ],
+  "portrait": [
+    "vertical",
+    "vertical",
+    "Hochformat",
+    "vertical",
+    "dikey",
+    "вертикальна"
+  ],
+  "landscape": [
+    "horizontal",
+    "horizontal",
+    "Querformat",
+    "horizontal",
+    "yatay",
+    "горизонтальна"
+  ],
+  "Portrait frame": [
+    "Fotograma vertical",
+    "Image verticale",
+    "Hochformat",
+    "Quadro vertical",
+    "Dikey kare",
+    "Вертикальний кадр"
+  ],
+  "Landscape frame": [
+    "Fotograma horizontal",
+    "Image horizontale",
+    "Querformat",
+    "Quadro horizontal",
+    "Yatay kare",
+    "Горизонтальний кадр"
+  ],
+  "Private": [
+    "Privado",
+    "Privé",
+    "Privat",
+    "Privado",
+    "Özel",
+    "Приватне"
+  ],
+  "Public": [
+    "Público",
+    "Public",
+    "Öffentlich",
+    "Público",
+    "Herkese açık",
+    "Публічне"
+  ],
+  "Unlisted": [
+    "Solo con enlace",
+    "Non répertorié",
+    "Nicht gelistet",
+    "Não listado",
+    "Liste dışı",
+    "За посиланням"
+  ],
+  "Off": [
+    "Desactivado",
+    "Désactivé",
+    "Aus",
+    "Desativado",
+    "Kapalı",
+    "Вимкнено"
+  ],
+  "On": [
+    "Activado",
+    "Activé",
+    "Ein",
+    "Ativado",
+    "Açık",
+    "Увімкнено"
+  ],
+  "Fit": [
+    "Ajustar",
+    "Ajuster",
+    "Einpassen",
+    "Ajustar",
+    "Sığdır",
+    "Вписати"
+  ],
+  "PeerIche · Video upload": [
+    "PeerIche · Subida de vídeo",
+    "PeerIche · Importation vidéo",
+    "PeerIche · Video-Upload",
+    "PeerIche · Envio de vídeo",
+    "PeerIche · Video yükleme",
+    "PeerIche · Завантаження відео"
+  ],
+  "PeerIche · Broadcast": [
+    "PeerIche · Transmisión",
+    "PeerIche · Diffusion",
+    "PeerIche · Übertragung",
+    "PeerIche · Transmissão",
+    "PeerIche · Yayın",
+    "PeerIche · Трансляція"
+  ],
+  "Checking directory…": [
+    "Consultando el directorio…",
+    "Vérification de l’annuaire…",
+    "Verzeichnis wird geprüft…",
+    "Consultando o diretório…",
+    "Dizin kontrol ediliyor…",
+    "Перевірка каталогу…"
+  ],
+  "Android permission settings": [
+    "Permisos de Android",
+    "Autorisations Android",
+    "Android-Berechtigungen",
+    "Permissões do Android",
+    "Android izin ayarları",
+    "Дозволи Android"
+  ],
+  "Default quality": [
+    "Calidad predeterminada",
+    "Qualité par défaut",
+    "Standardqualität",
+    "Qualidade padrão",
+    "Varsayılan kalite",
+    "Якість за замовчуванням"
+  ],
+  "OBS service: Custom": [
+    "Servicio OBS: personalizado",
+    "Service OBS : personnalisé",
+    "OBS-Dienst: Benutzerdefiniert",
+    "Serviço OBS: personalizado",
+    "OBS hizmeti: özel",
+    "Служба OBS: власна"
+  ],
+  "Open server website": [
+    "Abrir el sitio del servidor",
+    "Ouvrir le site du serveur",
+    "Server-Webseite öffnen",
+    "Abrir o site do servidor",
+    "Sunucunun sitesini aç",
+    "Відкрити сайт сервера"
+  ],
+  "Player settings": [
+    "Ajustes del reproductor",
+    "Paramètres du lecteur",
+    "Player-Einstellungen",
+    "Configurações do reprodutor",
+    "Oynatıcı ayarları",
+    "Параметри програвача"
+  ],
+  "Processing failed": [
+    "Error de procesamiento",
+    "Échec du traitement",
+    "Verarbeitung fehlgeschlagen",
+    "Falha no processamento",
+    "İşleme başarısız",
+    "Помилка обробки"
+  ],
+  "Stream settings": [
+    "Ajustes de la transmisión",
+    "Paramètres de diffusion",
+    "Streaming-Einstellungen",
+    "Configurações da transmissão",
+    "Yayın ayarları",
+    "Параметри трансляції"
+  ],
+  "Verified playable only — slower": [
+    "Solo vídeos verificados como reproducibles — más lento",
+    "Seulement les vidéos vérifiées lisibles — plus lent",
+    "Nur nachweislich abspielbare Videos — langsamer",
+    "Apenas vídeos com reprodução verificada — mais lento",
+    "Yalnızca oynatılabilirliği doğrulananlar — daha yavaş",
+    "Лише перевірені доступні відео — повільніше"
+  ],
+  "Zoom / crop": [
+    "Ampliar y recortar",
+    "Agrandir et recadrer",
+    "Vergrößern / Zuschneiden",
+    "Ampliar e cortar",
+    "Yakınlaştır / kırp",
+    "Збільшити й обрізати"
+  ],
+  "Channel videos": [
+    "Vídeos del canal",
+    "Vidéos de la chaîne",
+    "Kanalvideos",
+    "Vídeos do canal",
+    "Kanal videoları",
+    "Відео каналу"
+  ],
+  "Discover videos": [
+    "Descubrir vídeos",
+    "Découvrir des vidéos",
+    "Videos entdecken",
+    "Descobrir vídeos",
+    "Videoları keşfet",
+    "Знайти відео"
+  ],
+  "Remove favorite": [
+    "Quitar de favoritos",
+    "Retirer des favoris",
+    "Aus Favoriten entfernen",
+    "Remover dos favoritos",
+    "Favorilerden çıkar",
+    "Вилучити з обраного"
+  ],
+  "Subscribe to channel": [
+    "Suscribirse al canal",
+    "S’abonner à la chaîne",
+    "Kanal abonnieren",
+    "Inscrever-se no canal",
+    "Kanala abone ol",
+    "Підписатися на канал"
+  ],
+  "Allow camera and microphone access.": [
+    "Permite el acceso a la cámara y al micrófono.",
+    "Autorisez l’accès à la caméra et au microphone.",
+    "Erlaube den Zugriff auf Kamera und Mikrofon.",
+    "Permita o acesso à câmera e ao microfone.",
+    "Kamera ve mikrofon erişimine izin verin.",
+    "Дозвольте доступ до камери й мікрофона."
+  ],
+  "Broadcast details": [
+    "Parámetros de la transmisión",
+    "Paramètres de la diffusion",
+    "Übertragungsdetails",
+    "Detalhes da transmissão",
+    "Yayın bilgileri",
+    "Параметри ефіру"
+  ],
+  "Check session": [
+    "Comprobar sesión",
+    "Vérifier la session",
+    "Sitzung prüfen",
+    "Verificar sessão",
+    "Oturumu kontrol et",
+    "Перевірити сеанс"
+  ],
+  "Choose cover (optional)": [
+    "Elegir portada (opcional)",
+    "Choisir une miniature (facultatif)",
+    "Vorschaubild wählen (optional)",
+    "Escolher capa (opcional)",
+    "Kapak seç (isteğe bağlı)",
+    "Вибрати обкладинку (необов’язково)"
+  ],
+  "Enable camera": [
+    "Activar cámara",
+    "Activer la caméra",
+    "Kamera einschalten",
+    "Ativar câmera",
+    "Kamerayı aç",
+    "Увімкнути камеру"
+  ],
+  "Hide camera": [
+    "Ocultar cámara",
+    "Masquer la caméra",
+    "Kamera ausblenden",
+    "Ocultar câmera",
+    "Kamerayı gizle",
+    "Приховати камеру"
+  ],
+  "OBS stream settings": [
+    "Ajustes de transmisión de OBS",
+    "Paramètres de diffusion OBS",
+    "OBS-Streaming-Einstellungen",
+    "Configurações de transmissão do OBS",
+    "OBS yayın ayarları",
+    "Параметри трансляції OBS"
+  ],
+  "Refresh waiting lives": [
+    "Actualizar emisiones pendientes",
+    "Actualiser les directs en attente",
+    "Wartende Livestreams aktualisieren",
+    "Atualizar transmissões aguardando início",
+    "Bekleyen yayınları yenile",
+    "Оновити ефіри, що очікують"
+  ],
+  "Reset upload task": [
+    "Restablecer tarea de subida",
+    "Réinitialiser la tâche d’importation",
+    "Upload-Aufgabe zurücksetzen",
+    "Redefinir tarefa de envio",
+    "Yükleme görevini sıfırla",
+    "Скинути завдання завантаження"
+  ],
+  "Save channel on server": [
+    "Guardar canal en el servidor",
+    "Enregistrer la chaîne sur le serveur",
+    "Kanal auf dem Server speichern",
+    "Salvar canal no servidor",
+    "Kanalı sunucuya kaydet",
+    "Зберегти канал на сервері"
+  ],
+  "Skip outdated speech": [
+    "Omitir frases atrasadas",
+    "Ignorer les répliques dépassées",
+    "Veraltete Sprachausgabe überspringen",
+    "Ignorar falas atrasadas",
+    "Gecikmiş replikleri atla",
+    "Пропускати застарілі репліки"
+  ],
+  "Speech settings": [
+    "Ajustes de voz",
+    "Paramètres de lecture vocale",
+    "Spracheinstellungen",
+    "Configurações de voz",
+    "Seslendirme ayarları",
+    "Параметри озвучування"
+  ],
+  "Copy watch link": [
+    "Copiar enlace del vídeo",
+    "Copier le lien de lecture",
+    "Wiedergabelink kopieren",
+    "Copiar link do vídeo",
+    "İzleme bağlantısını kopyala",
+    "Скопіювати посилання на відео"
+  ],
+  "Custom image selected": [
+    "Imagen personalizada seleccionada",
+    "Image personnalisée sélectionnée",
+    "Eigenes Bild ausgewählt",
+    "Imagem personalizada selecionada",
+    "Özel görüntü seçildi",
+    "Вибрано власне зображення"
+  ],
+  "Enable automatic mode": [
+    "Activar modo automático",
+    "Activer le mode automatique",
+    "Automatischen Modus aktivieren",
+    "Ativar modo automático",
+    "Otomatik modu etkinleştir",
+    "Увімкнути автоматичний режим"
+  ],
+  "Import failed": [
+    "Error de importación",
+    "Échec de l’importation",
+    "Import fehlgeschlagen",
+    "Falha na importação",
+    "İçe aktarma başarısız",
+    "Помилка імпорту"
+  ],
+  "Include sensitive content": [
+    "Incluir contenido sensible",
+    "Inclure les contenus sensibles",
+    "Sensible Inhalte einschließen",
+    "Incluir conteúdo sensível",
+    "Hassas içeriği dahil et",
+    "Включати чутливий вміст"
+  ],
+  "Original audio": [
+    "Audio original",
+    "Son d’origine",
+    "Originalton",
+    "Áudio original",
+    "Özgün ses",
+    "Оригінальний звук"
+  ],
+  "Original volume during speech": [
+    "Volumen original durante la lectura",
+    "Volume d’origine pendant la lecture",
+    "Originallautstärke beim Vorlesen",
+    "Volume original durante a leitura",
+    "Seslendirme sırasında özgün ses düzeyi",
+    "Гучність оригіналу під час озвучування"
+  ],
+  "Sensitive content display": [
+    "Mostrar contenido sensible",
+    "Affichage des contenus sensibles",
+    "Anzeige sensibler Inhalte",
+    "Exibição de conteúdo sensível",
+    "Hassas içerik görünümü",
+    "Показ чутливого вмісту"
+  ],
+  "Latest videos": [
+    "Vídeos recientes",
+    "Vidéos récentes",
+    "Neueste Videos",
+    "Vídeos mais recentes",
+    "En yeni videolar",
+    "Найновіші відео"
+  ],
+  "Connected servers search": [
+    "Búsqueda en servidores conectados",
+    "Recherche sur les serveurs connectés",
+    "Suche auf verbundenen Servern",
+    "Busca nos servidores conectados",
+    "Bağlı sunucularda arama",
+    "Пошук на підключених серверах"
+  ],
+  "Follow translation language": [
+    "Usar el idioma de traducción",
+    "Utiliser la langue de traduction",
+    "Übersetzungssprache verwenden",
+    "Usar o idioma da tradução",
+    "Çeviri dilini kullan",
+    "Як мова перекладу"
+  ],
+  "Language models": [
+    "Modelos de idiomas",
+    "Modèles linguistiques",
+    "Sprachmodelle",
+    "Modelos de idiomas",
+    "Dil modelleri",
+    "Мовні моделі"
+  ],
+  "Selected server search": [
+    "Búsqueda en el servidor seleccionado",
+    "Recherche sur le serveur sélectionné",
+    "Suche auf dem ausgewählten Server",
+    "Busca no servidor selecionado",
+    "Seçili sunucuda arama",
+    "Пошук на вибраному сервері"
+  ],
+  "Translation language": [
+    "Idioma de traducción",
+    "Langue de traduction",
+    "Übersetzungssprache",
+    "Idioma da tradução",
+    "Çeviri dili",
+    "Мова перекладу"
+  ],
+  "Discover servers": [
+    "Buscar servidores",
+    "Découvrir des serveurs",
+    "Server entdecken",
+    "Descobrir servidores",
+    "Sunucuları keşfet",
+    "Знайти сервери"
+  ],
+  "Use account": [
+    "Usar cuenta",
+    "Utiliser le compte",
+    "Konto verwenden",
+    "Usar conta",
+    "Hesabı kullan",
+    "Використати обліковий запис"
+  ],
+  "Check and connect": [
+    "Comprobar y conectar",
+    "Vérifier et connecter",
+    "Prüfen und verbinden",
+    "Verificar e conectar",
+    "Kontrol et ve bağlan",
+    "Перевірити й підключитися"
+  ],
+  "Comment sent": [
+    "Comentario enviado",
+    "Commentaire envoyé",
+    "Kommentar gesendet",
+    "Comentário enviado",
+    "Yorum gönderildi",
+    "Коментар надіслано"
+  ],
+  "Show": [
+    "Mostrar",
+    "Afficher",
+    "Anzeigen",
+    "Mostrar",
+    "Göster",
+    "Показати"
+  ],
+  "Stretch": [
+    "Estirar",
+    "Étirer",
+    "Strecken",
+    "Esticar",
+    "Esnet",
+    "Розтягнути"
+  ],
+  "Download": [
+    "Descargar",
+    "Télécharger",
+    "Herunterladen",
+    "Baixar",
+    "İndir",
+    "Завантажити"
+  ],
+  "Bitrate": [
+    "Tasa de bits",
+    "Débit binaire",
+    "Bitrate",
+    "Taxa de bits",
+    "Bit hızı",
+    "Бітрейт"
+  ],
+  "Newest first": [
+    "Más recientes primero",
+    "Les plus récentes",
+    "Neueste zuerst",
+    "Mais recentes primeiro",
+    "En yeniler önce",
+    "Спочатку нові"
+  ],
+  "Oldest first": [
+    "Más antiguos primero",
+    "Les plus anciennes",
+    "Älteste zuerst",
+    "Mais antigos primeiro",
+    "En eskiler önce",
+    "Спочатку старі"
+  ],
+  "Most viewed": [
+    "Más vistos",
+    "Les plus vues",
+    "Meistgesehen",
+    "Mais vistos",
+    "En çok izlenenler",
+    "Найбільше переглядів"
+  ],
+  "By collections": [
+    "Por colecciones",
+    "Par sélections",
+    "Nach Sammlungen",
+    "Por coleções",
+    "Koleksiyonlara göre",
+    "За добірками"
+  ]
+}

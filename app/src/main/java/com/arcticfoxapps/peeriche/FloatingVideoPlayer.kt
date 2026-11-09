@@ -24,7 +24,7 @@ internal fun clampFloatingPosition(position: Offset, maxX: Float, maxY: Float) =
     position.x.coerceIn(0f, maxX.coerceAtLeast(0f)), position.y.coerceIn(0f, maxY.coerceAtLeast(0f)))
 
 @Composable internal fun FloatingVideoPlayer(video: Video, server: String, onExpand: () -> Unit, onClose: () -> Unit) {
-    BoxWithConstraints(Modifier.fillMaxSize().safeDrawingPadding().padding(start = 12.dp, end = 12.dp, top = 12.dp, bottom = 88.dp)) {
+    BoxWithConstraints(Modifier.fillMaxSize().safeDrawingPadding().padding(start = 12.dp, end = 12.dp, top = 12.dp, bottom = 88.dp), contentAlignment = androidx.compose.ui.AbsoluteAlignment.TopLeft) {
         val width = minOf(240.dp, maxWidth)
         val height = width * 9 / 16
         val density = LocalDensity.current
@@ -41,18 +41,18 @@ internal fun clampFloatingPosition(position: Offset, maxX: Float, maxY: Float) =
             player?.addListener(listener)
             onDispose { player?.removeListener(listener) }
         }
-        Box(Modifier.offset { IntOffset(position.x.roundToInt(), position.y.roundToInt()) }
+        Box(Modifier.absoluteOffset { IntOffset(position.x.roundToInt(), position.y.roundToInt()) }
             .width(width).height(height).clip(RoundedCornerShape(16.dp)).background(Color.Black)
             .pointerInput(video.apiId(), maxX, maxY) {
                 detectDragGestures { change, delta -> change.consume(); position = clampFloatingPosition(position + delta, maxX, maxY) }
             }) {
             BackgroundVideoPlayer(video, server, Modifier.fillMaxSize(), pip = true, onController = { player = it })
             Row(Modifier.align(Alignment.TopEnd).background(Color.Black.copy(alpha = .35f)), verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = onExpand, modifier = Modifier.size(40.dp)) { Icon(Icons.Default.OpenInFull, uiText("Открыть видео", "Open video"), tint = Color.White, modifier = Modifier.size(20.dp)) }
-                IconButton(onClick = onClose, modifier = Modifier.size(40.dp)) { Icon(Icons.Default.Close, uiText("Закрыть видео", "Close video"), tint = Color.White, modifier = Modifier.size(20.dp)) }
+                IconButton(onClick = onExpand, modifier = Modifier.size(40.dp)) { Icon(Icons.Default.OpenInFull, uiText(R.string.ui_open_video_26c029), tint = Color.White, modifier = Modifier.size(20.dp)) }
+                IconButton(onClick = onClose, modifier = Modifier.size(40.dp)) { Icon(Icons.Default.Close, uiText(R.string.ui_close_video_74d1e9), tint = Color.White, modifier = Modifier.size(20.dp)) }
             }
             IconButton(onClick = { if (playing) player?.pause() else player?.play() }, modifier = Modifier.align(Alignment.BottomStart).size(40.dp)) {
-                Icon(if (playing) Icons.Default.Pause else Icons.Default.PlayArrow, uiText(if (playing) "Пауза" else "Воспроизвести", if (playing) "Pause" else "Play"), tint = Color.White)
+                Icon(if (playing) Icons.Default.Pause else Icons.Default.PlayArrow, uiText(if (playing) R.string.ui_pause_d19299 else R.string.ui_play_016c52), tint = Color.White)
             }
         }
     }

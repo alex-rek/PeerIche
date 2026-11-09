@@ -1,0 +1,562 @@
+<resources>
+    <string name="about_independent" formatted="false">"PeerIche - незалежний клієнт і не пов'язаний з FramaSoft."</string>
+    <string name="add_favorite" formatted="false">"Додати в обране"</string>
+    <string name="add_server" formatted="false">"Додати"</string>
+    <string name="app_theme" formatted="false">"Зовнішній вигляд"</string>
+    <string name="app_updates" formatted="false">"Перевірити наявність оновлень"</string>
+    <string name="back" formatted="false">"Назад"</string>
+    <string name="cancel" formatted="false">"Скасувати"</string>
+    <string name="channel_column" formatted="false">"Канал"</string>
+    <string name="channel_videos" formatted="false">"Відео каналу"</string>
+    <string name="channels" formatted="false">"Канали"</string>
+    <string name="channels_load_failed" formatted="false">"Неможливо завантажити канали з цього сервера."</string>
+    <string name="channels_on_server" formatted="false">"Канали на сервері"</string>
+    <string name="choose_peer_server" formatted="false">"Виберіть Сервер"</string>
+    <string name="clear_search" formatted="false">"Очистити пошук"</string>
+    <string name="create" formatted="false">"Створити"</string>
+    <string name="dark_theme" formatted="false">"Темна тема"</string>
+    <string name="discover_servers" formatted="false">"Знайти сервери"</string>
+    <string name="discover_videos" formatted="false">"Знайти відео"</string>
+    <string name="discovered_servers">"Додав %1$d сервери"</string>
+    <string name="discovering_servers" formatted="false">"Перевірка каталогу…"</string>
+    <string name="enter_fullscreen" formatted="false">"Повноекранний"</string>
+    <string name="exit_fullscreen" formatted="false">"Вихід з повним екраном"</string>
+    <string name="favorites" formatted="false">"Обране"</string>
+    <string name="find_more_live" formatted="false">"Знайти більше потоків"</string>
+    <string name="followed_channels" formatted="false">"Дотримуються каналів"</string>
+    <string name="from_subscriptions" formatted="false">"Нові з каналів, які ви слідуєте"</string>
+    <string name="go" formatted="false">"Йти"</string>
+    <string name="hide_description" formatted="false">"Сховати опис"</string>
+    <string name="history" formatted="false">"Історія"</string>
+    <string name="home" formatted="false">"Головна"</string>
+    <string name="home_sort_label">"Сортування: %1$s"</string>
+    <string name="home_sort_newest" formatted="false">"Спочатку нові"</string>
+    <string name="home_sort_oldest" formatted="false">"Спочатку старі"</string>
+    <string name="home_sort_sections" formatted="false">"За добірками"</string>
+    <string name="home_sort_views" formatted="false">"Найбільше переглядів"</string>
+    <string name="invalid_server_address" formatted="false">"Введіть дійсну адресу PeerTube HTTPS."</string>
+    <string name="latest_videos" formatted="false">"Найновіші відео"</string>
+    <string name="library" formatted="false">"Бібліотека"</string>
+    <string name="live_feed_failed" formatted="false">"Не могли завантажувати живі потоки. Перевірте своє з'єднання та повторіть спробу."</string>
+    <string name="live_more_results" formatted="false">"Немає активних потоків у перевірці вибору. Пошук на наступних сторінках."</string>
+    <string name="live_now" formatted="false">"Наживо"</string>
+    <string name="load_more" formatted="false">"Завантажити ще"</string>
+    <string name="loading_more" formatted="false">"Завантаження ..."</string>
+    <string name="loading_video" formatted="false">"Завантаження відео з сервера PeerTube ..."</string>
+    <string name="manual_server_address" formatted="false">"Введіть адресу сервера"</string>
+    <string name="next_videos" formatted="false">"Наступні відео"</string>
+    <string name="no_channels" formatted="false">"На цьому сервері не знайдено жодних каналів."</string>
+    <string name="no_live_videos" formatted="false">"Не знайдено активних живих потоків. Спробуйте оновити пізніше."</string>
+    <string name="no_playable_stream" formatted="false">"Немає відтворюваного потоку з цього сервера."</string>
+    <string name="no_results" formatted="false">"Не знайдено жодних відео. Спробуйте інший запит або сервер."</string>
+    <string name="no_subscribed_channels" formatted="false">"Немає каналів. Підпишіться на відеокарту."</string>
+    <string name="no_subtitles" formatted="false">"Для цього відео не доступні субтитри."</string>
+    <string name="notification_broadcast" formatted="false">"PeerIche · Трансляція"</string>
+    <string name="notification_end" formatted="false">"Завершити"</string>
+    <string name="notification_upload" formatted="false">"PeerIche · Завантаження відео"</string>
+    <string name="on_server" formatted="false">"На сервері"</string>
+    <string name="pause_playback" formatted="false">"Призупинити"</string>
+    <string name="pip_unavailable" formatted="false">"Зображення на малюнку недоступна. Перевірте дозвіл додатка в налаштуваннях Android."</string>
+    <string name="popular_now" formatted="false">"Популярний на цьому сервері"</string>
+    <string name="recommended_for_you" formatted="false">"Рекомендовано з історії годинника"</string>
+    <string name="remove_favorite" formatted="false">"Вилучити з обраного"</string>
+    <string name="resume_playback" formatted="false">"Відтворити"</string>
+    <string name="retry" formatted="false">"Повторити"</string>
+    <string name="retry_captions" formatted="false">"Повторіть спробу навантаження субтитрів"</string>
+    <string name="save" formatted="false">"Зберегти"</string>
+    <string name="search" formatted="false">"Пошук"</string>
+    <string name="search_failed" formatted="false">"Пошук не міг досягти вибраних джерел."</string>
+    <string name="search_hint" formatted="false">"Пошук по перубку"</string>
+    <string name="select_server" formatted="false">"Пошуковий сервер"</string>
+    <string name="server" formatted="false">"Сервер PeerTube"</string>
+    <string name="server_column" formatted="false">"Сервер"</string>
+    <string name="server_feed_failed" formatted="false">"Не вдалося завантажити відео з цього сервера. Перевірте з'єднання або виберіть інший сервер."</string>
+    <string name="server_list" formatted="false">"Сервери PeerTube"</string>
+    <string name="server_not_peertube" formatted="false">"Ця адреса не підтримує API PeerTube. Виберіть сервери Peeertube у налаштуваннях серверів."</string>
+    <string name="servers" formatted="false">"Сервери"</string>
+    <string name="servers_help" formatted="false">"Один HTTPS PeerTube адресу за лінію. Пошук перевіряє Sepia Search і до п'яти серверів."</string>
+    <string name="settings" formatted="false">"Налаштування"</string>
+    <string name="show_description" formatted="false">"Показати опис"</string>
+    <string name="stop_playback" formatted="false">"Закрити"</string>
+    <string name="subscribe_button" formatted="false">"Підписатися"</string>
+    <string name="subscribe_channel" formatted="false">"Підписатися на канал"</string>
+    <string name="subscriptions" formatted="false">"Підписки"</string>
+    <string name="subtitles" formatted="false">"Субтитри"</string>
+    <string name="theme_aurora" formatted="false">"Аврора · синя"</string>
+    <string name="theme_graphite" formatted="false">"Графіт"</string>
+    <string name="theme_light" formatted="false">"Світла"</string>
+    <string name="theme_system" formatted="false">"Як на пристрої Android"</string>
+    <string name="translated_track" formatted="false">"Переклад"</string>
+    <string name="ui_a_comment_must_contain_1_to_10_000_charact_1bbc71" formatted="false">"Коментар повинен містити від 1 до 10 000 символів."</string>
+    <string name="ui_about_9a8919" formatted="false">"Про застосунок"</string>
+    <string name="ui_account_avatar_or_user_initials_a1dfdc" formatted="false">"Обліковий запис Аватар або Ініціали користувачів"</string>
+    <string name="ui_account_server_mismatch">"Відео зараз із сервера %1$s. Цей обліковий запис пов’язаний із %2$s."</string>
+    <string name="ui_account_subscription">"Підписка облікового запису: %1$s"</string>
+    <string name="ui_account_subscriptions_5aa21c" formatted="false">"Підписки рахунку"</string>
+    <string name="ui_account_subscriptions_come_from_its_server_4cb70b" formatted="false">"Підписки рахунку надсилаються з сервера. Підписки пристрою, вибране та історія залишаються окремими і не автоматично передаються."</string>
+    <string name="ui_active_account_7ead88" formatted="false">"Активний обліковий запис"</string>
+    <string name="ui_add_account_240e92" formatted="false">"Додати обліковий запис"</string>
+    <string name="ui_after_creation_use_the_server_url_and_stre_1eddbc" formatted="false">"Після створення, використовуйте URL-адресу сервера та клавішу Stream у OBS. Телефонне мовлення буде додано окремо."</string>
+    <string name="ui_all_countries_719a89" formatted="false">"Всі країни"</string>
+    <string name="ui_all_results_069caf" formatted="false">"Всі результати"</string>
+    <string name="ui_allow_camera_and_microphone_access_98d95e" formatted="false">"Дозвольте доступ до камери й мікрофона."</string>
+    <string name="ui_allow_ea9723" formatted="false">"Дозволяють"</string>
+    <string name="ui_android_could_not_start_the_upload_service_6cfdee" formatted="false">"Android не міг розпочати службу завантаження. Поверніться до програми та відновлення."</string>
+    <string name="ui_android_permission_settings_d74962" formatted="false">"Дозволи Android"</string>
+    <string name="ui_android_stopped_broadcasting_return_to_the_c7f063" formatted="false">"Android припинив трансляцію. Повернутися на сторінку камери, щоб перезавантажити."</string>
+    <string name="ui_another_account_has_an_upload_task_ce4ce5" formatted="false">"Інший обліковий запис має завдання завантаження"</string>
+    <string name="ui_another_account_has_an_upload_task_switch_dadf08" formatted="false">"Інший обліковий запис має завдання завантаження. Перейдіть до нього, щоб відновити, або видалити місцеве завдання, якщо більше не потрібно."</string>
+    <string name="ui_app_theme_610976" formatted="false">"Тема застосунку"</string>
+    <string name="ui_aspect_ratio_47bc1a" formatted="false">"Співвідношення сторін"</string>
+    <string name="ui_aurora_blue_a5d4ab" formatted="false">"Аврора · синя"</string>
+    <string name="ui_auto_cbb079" formatted="false">"Авто"</string>
+    <string name="ui_automatic_00a8ae" formatted="false">"Автоматична"</string>
+    <string name="ui_automatic_mode_is_recommended_speak_subtit_b9ef26" formatted="false">"Рекомендується автоматичний режим: розмовляти субтитри у вибраній мові перекладу, використовуючи існуючий переклад, коли це необхідно. Ви можете змінити режим у налаштуваннях."</string>
+    <string name="ui_automatic_selection_f4cc61" formatted="false">"Автоматичний вибір"</string>
+    <string name="ui_back_02b74f" formatted="false">"Назад"</string>
+    <string name="ui_background_playback_364de7" formatted="false">"Довідкова інформація"</string>
+    <string name="ui_bitrate_654ba4" formatted="false">"Бітрейт"</string>
+    <string name="ui_blur_thumbnails_1c7734" formatted="false">"Розмивання ескізів"</string>
+    <string name="ui_broadcast_84c258" formatted="false">"Трансляція"</string>
+    <string name="ui_broadcast_details_fb7ead" formatted="false">"Параметри ефіру"</string>
+    <string name="ui_broadcast_stopped_the_server_rejected_the_42e89f" formatted="false">"Трансляція зупинилася: сервер відхилив з'єднання або мережу була перервана. Знову підключіть до існуючого потоку живих."</string>
+    <string name="ui_camera_and_microphone_access_384ace" formatted="false">"Доступ до камери та мікрофона"</string>
+    <string name="ui_camera_and_microphone_transmission_will_st_82b4a0" formatted="false">"Камера та трансмісія мікрофона зупиниться."</string>
+    <string name="ui_cancel_28fb55" formatted="false">"Скасувати"</string>
+    <string name="ui_cancel_8afaa2" formatted="false">"Скасувати"</string>
+    <string name="ui_cancelled_36a6b0" formatted="false">"Скасовано"</string>
+    <string name="ui_cancelling_6a8032" formatted="false">"Скасування"</string>
+    <string name="ui_channel_c07a24" formatted="false">"Канал"</string>
+    <string name="ui_channel_description_9a5a40" formatted="false">"Опис каналу"</string>
+    <string name="ui_channel_name_e9c0fd" formatted="false">"Назва каналу"</string>
+    <string name="ui_channel_saved_7a1980" formatted="false">"Канал збережений"</string>
+    <string name="ui_channel_settings_079a60" formatted="false">"Параметри каналу"</string>
+    <string name="ui_channel_videos_db019b" formatted="false">"Відео каналу"</string>
+    <string name="ui_channels_a38998" formatted="false">"Канали"</string>
+    <string name="ui_check_and_connect_a891d1" formatted="false">"Перевірити й підключитися"</string>
+    <string name="ui_check_availability_db0909" formatted="false">"Перевірте наявність"</string>
+    <string name="ui_check_for_updates_a3997c" formatted="false">"Перевірити наявність оновлень"</string>
+    <string name="ui_check_session_5531bc" formatted="false">"Перевірити сеанс"</string>
+    <string name="ui_check_the_https_addresses_5a8051" formatted="false">"Перевірте адреси HTTPS."</string>
+    <string name="ui_check_the_title_3_120_characters_descripti_42321d" formatted="false">"Перевірте назву (3-120 символів), опис (до 10 000) та канал."</string>
+    <string name="ui_choose_a_video_on_your_device_its_channel_7a7d31" formatted="false">"Виберіть відео на своєму пристрої, його канал та видимість."</string>
+    <string name="ui_choose_cover_optional_9a60e9" formatted="false">"Вибрати обкладинку (необов’язково)"</string>
+    <string name="ui_choose_image_4cd057" formatted="false">"Виберіть зображення"</string>
+    <string name="ui_choose_the_frame_orientation_before_starti_6979da" formatted="false">"Вибрати орієнтацію кадрів перед початком. Закінчити поточну трансляцію, щоб змінити його."</string>
+    <string name="ui_choose_video_71bb7b" formatted="false">"Виберіть відео"</string>
+    <string name="ui_close_641636" formatted="false">"Закрити"</string>
+    <string name="ui_close_video_74d1e9" formatted="false">"Закрити відео"</string>
+    <string name="ui_comment_b40722" formatted="false">"Коментарі"</string>
+    <string name="ui_comment_deleted_b96457" formatted="false">"Коментар видалено"</string>
+    <string name="ui_comment_sent_1b95cd" formatted="false">"Коментар надіслано"</string>
+    <string name="ui_comment_sent_for_moderation_59d0cc" formatted="false">"Коментар, надісланий для модерації"</string>
+    <string name="ui_comments_08c5c0" formatted="false">"Коментарі"</string>
+    <string name="ui_comments_are_disabled_by_the_author_41ba4a" formatted="false">"Коментарі відключені автором"</string>
+    <string name="ui_connect_53bb39" formatted="false">"Підключення"</string>
+    <string name="ui_connected_2fcbe2" formatted="false">"Пов'язані"</string>
+    <string name="ui_connected_servers_search_f61604" formatted="false">"Пошук на підключених серверах"</string>
+    <string name="ui_connecting_6da59b" formatted="false">"Підключення ..."</string>
+    <string name="ui_connection_failed_check_the_https_address_f92ec9" formatted="false">"Не вдалося з'єднання. Перевірте адресу HTTPS, мережу та API PeerTube. Ваш попередній сервер зберігається."</string>
+    <string name="ui_control_labels_e1ef00" formatted="false">"Етикетки управління"</string>
+    <string name="ui_copy_key_8b55c7" formatted="false">"Копіювати ключ"</string>
+    <string name="ui_copy_url_4f5c50" formatted="false">"Копіювати URL"</string>
+    <string name="ui_copy_watch_link_52e6ac" formatted="false">"Скопіювати посилання на відео"</string>
+    <string name="ui_could_not_determine_the_channel_address_b19cce" formatted="false">"Не міг визначити адресу каналу."</string>
+    <string name="ui_could_not_load_retry_17aae5" formatted="false">"Не міг завантажити. Повтору"</string>
+    <string name="ui_could_not_open_or_save_protected_sign_in_d_f64e67" formatted="false">"Не міг відкрити або зберегти захищені дані входу. Повторіть спробу, або видалити збережені знаки, якщо це необхідно."</string>
+    <string name="ui_could_not_prepare_the_camera_or_encoder_tr_322eab" formatted="false">"Не міг підготувати камеру або кодер. Спробуйте 480p або іншу камеру."</string>
+    <string name="ui_could_not_read_subtitles_8fc073" formatted="false">"Не могли читати субтитри"</string>
+    <string name="ui_could_not_read_the_server_publication_resp_afcf21" formatted="false">"Не вдалося прочитати відповідь на публікацію сервера. Резюме перевірки прогресу або оновлення ваших відео."</string>
+    <string name="ui_could_not_switch_the_camera_d211fd" formatted="false">"Не міг перемикати камеру."</string>
+    <string name="ui_could_not_verify_the_secure_server_connect_1a1995" formatted="false">"Не могло перевірити безпечне з'єднання сервера. Перевірте дату адреси та пристрою."</string>
+    <string name="ui_country_0db877" formatted="false">"Країна"</string>
+    <string name="ui_cover_686522" formatted="false">"Покриття"</string>
+    <string name="ui_create_514e39" formatted="false">"Створити"</string>
+    <string name="ui_create_live_2cf7bd" formatted="false">"Створювати жити"</string>
+    <string name="ui_create_live_for_obs_3e8e4f" formatted="false">"Створити жити для"</string>
+    <string name="ui_created_live_7a0340" formatted="false">"Створений живий"</string>
+    <string name="ui_custom_image_selected_5d7182" formatted="false">"Вибрано власне зображення"</string>
+    <string name="ui_custom_indexes_one_https_address_per_line_84c995" formatted="false">"Користувацькі індекси - одна адреса HTTPS на рядок"</string>
+    <string name="ui_custom_search_indexes_33a8cb" formatted="false">"Індекси спеціальних пошуків"</string>
+    <string name="ui_cyan_335685" formatted="false">"Блакитний"</string>
+    <string name="ui_default_quality_424975" formatted="false">"Якість за замовчуванням"</string>
+    <string name="ui_delete_423009" formatted="false">"Видалити"</string>
+    <string name="ui_delivery_could_not_be_confirmed_refresh_co_ddf9ab" formatted="false">"Доставка не може бути підтверджена. Оновити коментарі перед відправкою знову."</string>
+    <string name="ui_description_70bc2e" formatted="false">"Опис"</string>
+    <string name="ui_developer_arctic_fox_apps_fa73f2" formatted="false">"Розробник: Arctic Fox Apps"</string>
+    <string name="ui_discover_servers_f44c73" formatted="false">"Знайти сервери"</string>
+    <string name="ui_dislike_c74b31" formatted="false">"Не подобається"</string>
+    <string name="ui_distance_from_bottom_ae3e60" formatted="false">"Відстань від дна"</string>
+    <string name="ui_done_76ab9d" formatted="false">"Готово"</string>
+    <string name="ui_download_eac11a" formatted="false">"Завантажити"</string>
+    <string name="ui_download_models_only_over_wi_fi_b739a9" formatted="false">"Скачати моделі лише через Wi-Fi"</string>
+    <string name="ui_downloaded_8b6faf" formatted="false">"Завантажити"</string>
+    <string name="ui_duck_during_speech_62dee3" formatted="false">"Приглушувати під час озвучування"</string>
+    <string name="ui_editing_video_99ff81" formatted="false">"Редагування відео"</string>
+    <string name="ui_enable_automatic_mode_6c85a3" formatted="false">"Увімкнути автоматичний режим"</string>
+    <string name="ui_enable_camera_3b9a3f" formatted="false">"Увімкнути камеру"</string>
+    <string name="ui_enable_microphone_79e3a9" formatted="false">"Увімкнути мікрофон"</string>
+    <string name="ui_enable_preview_5b929b" formatted="false">"Увімкнути попередній перегляд"</string>
+    <string name="ui_enable_subtitle_speech_a576df" formatted="false">"Увімкнути виступу субтитрів?"</string>
+    <string name="ui_end_18118d" formatted="false">"Кінця"</string>
+    <string name="ui_end_broadcast_4e87f9" formatted="false">"Завершити трансляцію"</string>
+    <string name="ui_end_broadcast_6bfccc" formatted="false">"Закінчується трансляція?"</string>
+    <string name="ui_enter_a_peertube_https_server_address_with_f7f124" formatted="false">"Введіть адресу сервера HTTPS PeptBS без шляху, запиту або облікових даних."</string>
+    <string name="ui_enter_a_username_and_password_d3c026" formatted="false">"Введіть ім'я користувача та пароль."</string>
+    <string name="ui_enter_your_two_factor_code_and_sign_in_aga_11ed14" formatted="false">"Введіть свій двофакторний код і знову увійдіть."</string>
+    <string name="ui_existing_live_selected_b99798" formatted="false">"Існуюче вибрано"</string>
+    <string name="ui_existing_live_streams_keep_their_server_se_ece468" formatted="false">"Існуючі поточні потоки зберігають свої параметри сервера."</string>
+    <string name="ui_favorites_d4c059" formatted="false">"Обране"</string>
+    <string name="ui_find_90925b" formatted="false">"Знайти"</string>
+    <string name="ui_find_by_name_or_address_b99f1e" formatted="false">"Знайдіть назву або адресу"</string>
+    <string name="ui_finish_or_remove_the_existing_task_first_2d4084" formatted="false">"Закінчити або видалити існуюче завдання."</string>
+    <string name="ui_fit_dc1e4e" formatted="false">"Вписати"</string>
+    <string name="ui_follow_android_9652ce" formatted="false">"Як на пристрої Android"</string>
+    <string name="ui_follow_translation_language_5b9919" formatted="false">"Як мова перекладу"</string>
+    <string name="ui_followers_1c1d35" formatted="false">"послідовники"</string>
+    <string name="ui_frame_rate_3345f0" formatted="false">"Частота кадрів"</string>
+    <string name="ui_frame_size_and_quality_can_be_changed_befo_eeda5d" formatted="false">"Розмір та якість кадру можна змінити до наступної трансляції."</string>
+    <string name="ui_general_4d7c8e" formatted="false">"Загальні"</string>
+    <string name="ui_graphite_7c3294" formatted="false">"Графіт"</string>
+    <string name="ui_green_3fb852" formatted="false">"Зелений"</string>
+    <string name="ui_hide_929379" formatted="false">"Приховати"</string>
+    <string name="ui_hide_c7431d" formatted="false">"Приховати"</string>
+    <string name="ui_hide_camera_0122c1" formatted="false">"Приховати камеру"</string>
+    <string name="ui_hide_controls_after_5aa971" formatted="false">"Сховати елементи керування"</string>
+    <string name="ui_hide_known_unavailable_videos_615b8f" formatted="false">"Приховати відомі недоступні відео"</string>
+    <string name="ui_history_4d3d0c" formatted="false">"Історія"</string>
+    <string name="ui_home_9dd0b3" formatted="false">"Головна"</string>
+    <string name="ui_horizontal_position_1439c5" formatted="false">"Горизонтальне положення"</string>
+    <string name="ui_https_server_address_102d29" formatted="false">"Адреса сервера https"</string>
+    <string name="ui_i_use_two_factor_authentication_68d856" formatted="false">"Я використовую двофакторну аутентифікацію"</string>
+    <string name="ui_if_translation_is_unavailable_f4e52f" formatted="false">"Якщо переклад недоступний"</string>
+    <string name="ui_image_when_camera_is_off_e4eb6f" formatted="false">"Зображення, коли камера вимкнена"</string>
+    <string name="ui_import_failed_6ca1a5" formatted="false">"Помилка імпорту"</string>
+    <string name="ui_importing_video_978518" formatted="false">"Імпортування відео"</string>
+    <string name="ui_include_sensitive_content_9b8651" formatted="false">"Включати чутливий вміст"</string>
+    <string name="ui_independent_peertube_client_not_affiliated_8ece4c" formatted="false">"Незалежний клієнт PeerTube. Не пов'язаний з FramaSoft."</string>
+    <string name="ui_install_tts_language_data_03de98" formatted="false">"Встановіть дані мови TTS"</string>
+    <string name="ui_insufficient_quota_or_the_server_file_size_b79de3" formatted="false">"Недостатньо квот або обмеження розміру файлу сервера."</string>
+    <string name="ui_interface_language_88df3c" formatted="false">"Мова інтерфейсу"</string>
+    <string name="ui_invalid_cover_check_its_size_and_jpg_png_o_f819b9" formatted="false">"Недійсний обкладинка: перевірте його розмір та формат JPG, PNG або WEBP."</string>
+    <string name="ui_is_live_20cabe" formatted="false">" живий"</string>
+    <string name="ui_keep_7058e4" formatted="false">"Тримати"</string>
+    <string name="ui_keep_streaming_f81bca" formatted="false">"Тримати потокове"</string>
+    <string name="ui_keep_visible_63e256" formatted="false">"Утримувати"</string>
+    <string name="ui_landscape_69a703" formatted="false">"горизонтальна"</string>
+    <string name="ui_landscape_frame_36005f" formatted="false">"Горизонтальний кадр"</string>
+    <string name="ui_language_and_translations_29d99b" formatted="false">"Мова й переклади"</string>
+    <string name="ui_language_models_6ecbd3" formatted="false">"Мовні моделі"</string>
+    <string name="ui_leave_the_description_empty_or_enter_3_to_b7e8f0" formatted="false">"Залиште опис порожнім або введіть від 3 до 10 000 символів."</string>
+    <string name="ui_light_bc799a" formatted="false">"Світла"</string>
+    <string name="ui_light_ce5d5c" formatted="false">"Світло"</string>
+    <string name="ui_light_is_unavailable_for_this_camera_673dc4" formatted="false">"Світло недоступне для цієї камери."</string>
+    <string name="ui_like_95fa84" formatted="false">"Подобається"</string>
+    <string name="ui_live_13cd53" formatted="false">"Наживо"</string>
+    <string name="ui_live_4a340c" formatted="false">"Наживо"</string>
+    <string name="ui_live_creation_could_not_be_confirmed_refre_523650" formatted="false">"Живе створення не може бути підтверджено. Оновіть свої відео, перш ніж спробувати знову."</string>
+    <string name="ui_live_ended_4704f1" formatted="false">"Живий закінчився"</string>
+    <string name="ui_live_streaming_is_disabled_on_this_server_d8fe5d" formatted="false">"Поворотний потік вимкнено на цьому сервері."</string>
+    <string name="ui_load_more_b9d06f" formatted="false">"Завантажити ще"</string>
+    <string name="ui_local_search_cache_213967" formatted="false">"Локальний пошуковий кеш"</string>
+    <string name="ui_long_utterances_e0af43" formatted="false">"Довгі висловлювання"</string>
+    <string name="ui_more_81555a" formatted="false">"Ще"</string>
+    <string name="ui_more_servers_7b0fae" formatted="false">"Більше серверів"</string>
+    <string name="ui_move_down_a0544c" formatted="false">"Рухатися вниз"</string>
+    <string name="ui_move_up_cdf16d" formatted="false">"Рухатися вгору"</string>
+    <string name="ui_moving_failed_0aec63" formatted="false">"Помилка руху"</string>
+    <string name="ui_moving_video_98925c" formatted="false">"Переміщення відео"</string>
+    <string name="ui_mute_during_speech_669ae8" formatted="false">"Вимкнення виступу"</string>
+    <string name="ui_mute_microphone_877493" formatted="false">"Вимкнений мікрофон"</string>
+    <string name="ui_my_channels_350cbf" formatted="false">"Мої канали"</string>
+    <string name="ui_name_3_120_characters_description_up_to_1_f6f55f" formatted="false">"Ім'я: 3-120 символів; Опис: до 1000."</string>
+    <string name="ui_network_a37c44" formatted="false">" · Мережа"</string>
+    <string name="ui_new_live_57d293" formatted="false">"Нова жива"</string>
+    <string name="ui_newest_first_a4f3b2" formatted="false">"Спочатку нові"</string>
+    <string name="ui_no_channel_available_f2ae51" formatted="false">"Немає доступного каналу"</string>
+    <string name="ui_no_comments_yet_c91050" formatted="false">"Ще немає коментарів"</string>
+    <string name="ui_no_cover_564f04" formatted="false">"Немає кришки"</string>
+    <string name="ui_no_description_aff1cf" formatted="false">"Без опису"</string>
+    <string name="ui_no_installed_voice_for_this_language_insta_087db8" formatted="false">"Немає встановленого голосу для цієї мови. Встановіть дані мови TTS."</string>
+    <string name="ui_no_local_subscriptions_yet_aa8224" formatted="false">"Ніяких місцевих підписки ще немає"</string>
+    <string name="ui_no_saved_videos_yet_7311d4" formatted="false">"Немає збережених відео ще"</string>
+    <string name="ui_no_subscriptions_on_the_server_yet_d1abd5" formatted="false">"Ніяких підписки на сервері ще немає"</string>
+    <string name="ui_no_subtitles_available_yet_71da63" formatted="false">"Ніяких субтитрів ще не доступні"</string>
+    <string name="ui_no_text_subtitles_available_f53567" formatted="false">"Немає текстових субтитрів"</string>
+    <string name="ui_no_videos_in_this_account_s_subscriptions_5d5d6a" formatted="false">"Немає відео підписки цього облікового запису"</string>
+    <string name="ui_no_watch_history_yet_c9ff6c" formatted="false">"Ще немає історії годин"</string>
+    <string name="ui_not_checked_30ef8c" formatted="false">"не перевірено"</string>
+    <string name="ui_not_downloaded_1af9b2" formatted="false">"Не завантажено"</string>
+    <string name="ui_obs_service_custom_257d44" formatted="false">"Служба OBS: власна"</string>
+    <string name="ui_obs_stream_settings_a35ef7" formatted="false">"Параметри трансляції OBS"</string>
+    <string name="ui_off_135883" formatted="false">"Вимкнено"</string>
+    <string name="ui_off_7f197c" formatted="false">"Вимкнено"</string>
+    <string name="ui_off_b8a9e9" formatted="false">"Вимкнено"</string>
+    <string name="ui_on_c10791" formatted="false">"Увімкнено"</string>
+    <string name="ui_on_device_e0756a" formatted="false">" · На пристрої"</string>
+    <string name="ui_on_e3afd0" formatted="false">"Увімкнено"</string>
+    <string name="ui_on_this_device_8d14b3" formatted="false">"На цьому пристрої"</string>
+    <string name="ui_online_5fb239" formatted="false">"он-лайн"</string>
+    <string name="ui_online_first_fc7de2" formatted="false">"Спочатку онлайн"</string>
+    <string name="ui_only_sign_in_data_on_this_device_will_be_r_167f36" formatted="false">"Можна видалити лише дані в цьому пристрою. Фаворити, історія та місцеві підписки залишаються."</string>
+    <string name="ui_open_server_website_5cc079" formatted="false">"Відкрити сайт сервера"</string>
+    <string name="ui_open_video_26c029" formatted="false">"Відкрити відео"</string>
+    <string name="ui_orientation_ae6af6" formatted="false">"Орієнтація: "</string>
+    <string name="ui_original_77bed0" formatted="false">"Оригінальний"</string>
+    <string name="ui_original_audio_2d2547" formatted="false">"Оригінальний звук"</string>
+    <string name="ui_original_speech_follows_the_subtitle_langu_90034f" formatted="false">"Оригінальна мова виступає за мовою субтитрів. Встановлені автономні голоси є кращими. Переклад використовує існуючі моделі та кеш-кеш PeerIche."</string>
+    <string name="ui_original_subtitles_8c6f16" formatted="false">"Оригінальні субтитри"</string>
+    <string name="ui_original_translation_18e287" formatted="false">"Оригінал + переклад"</string>
+    <string name="ui_original_volume_during_speech_e135a9" formatted="false">"Гучність оригіналу під час озвучування"</string>
+    <string name="ui_parallel_563423" formatted="false">"Паралельно"</string>
+    <string name="ui_parallel_requests_34a8a3" formatted="false">"Паралельні запити"</string>
+    <string name="ui_password_367eb8" formatted="false">"Пароль"</string>
+    <string name="ui_pause_d19299" formatted="false">"Призупинити"</string>
+    <string name="ui_pause_video_until_speech_ends_898fb7" formatted="false">"Призупинити відео до закінчення мовлення"</string>
+    <string name="ui_paused_5d65a6" formatted="false">"Призупинено"</string>
+    <string name="ui_peertube_accounts_8d748a" formatted="false">"Рахунки PeerTube"</string>
+    <string name="ui_peertube_server_f36de6" formatted="false">"Сервер PeerTube"</string>
+    <string name="ui_pending_moderation_9cd027" formatted="false">"Очікувана помірність"</string>
+    <string name="ui_picture_in_picture_481ea8" formatted="false">"Картина на малюнку"</string>
+    <string name="ui_play_016c52" formatted="false">"Відтворити"</string>
+    <string name="ui_playback_speed_cd9e90" formatted="false">"Швидкість відтворення"</string>
+    <string name="ui_player_cd0260" formatted="false">"Програвач"</string>
+    <string name="ui_player_settings_2989d1" formatted="false">"Параметри програвача"</string>
+    <string name="ui_portrait_c5160e" formatted="false">"вертикальна"</string>
+    <string name="ui_portrait_frame_6adb4d" formatted="false">"Вертикальний кадр"</string>
+    <string name="ui_posting_as_bba67f" formatted="false">"Розміщення як"</string>
+    <string name="ui_practice_mode_b4c403" formatted="false">"Режим практики"</string>
+    <string name="ui_preferred_subtitle_language_5e7c1c" formatted="false">"Переважна мова субтитрів"</string>
+    <string name="ui_preparing_6e055d" formatted="false">"Підготовка"</string>
+    <string name="ui_preparing_existing_translation_4a6aba" formatted="false">"Підготовка існуючого перекладу ..."</string>
+    <string name="ui_preparing_live_adb70d" formatted="false">"Підготовка живих ..."</string>
+    <string name="ui_preparing_models_or_translating_a98b86" formatted="false">"Підготовка моделей або переклад ..."</string>
+    <string name="ui_preview_not_live_b602f3" formatted="false">"Попередній перегляд · Не жити"</string>
+    <string name="ui_preview_stays_on_this_device_nothing_is_tr_578f58" formatted="false">"Попередній перегляд залишається на цьому пристрої. Ніщо не передається, доки ви натискаєте кнопку \"Початок\"."</string>
+    <string name="ui_private_b83206" formatted="false">"Приватне"</string>
+    <string name="ui_processing_failed_423bf1" formatted="false">"Помилка обробки"</string>
+    <string name="ui_processing_video_967d3f" formatted="false">"Обробка відео"</string>
+    <string name="ui_public_5fe491" formatted="false">"Публічне"</string>
+    <string name="ui_published_b4e8f8" formatted="false">"Опубліковано"</string>
+    <string name="ui_published_videos_will_remain_on_the_server_f6e568" formatted="false">"Опубліковані відео залишаться на сервері. Ви можете скасувати спочатку неповний перенесення; Видалення завдання відкидає його інформацію про відновлення."</string>
+    <string name="ui_quality_ca3d7b" formatted="false">"Якість"</string>
+    <string name="ui_ready_a518f4" formatted="false">"Готові"</string>
+    <string name="ui_recurring_live_526a88" formatted="false">"Повторюване життя"</string>
+    <string name="ui_refresh_3526ad" formatted="false">"Оновити"</string>
+    <string name="ui_refresh_comments_e472e7" formatted="false">"Оновити коментарі"</string>
+    <string name="ui_refresh_subscriptions_343f9b" formatted="false">"Оновити підписки"</string>
+    <string name="ui_refresh_waiting_lives_e1b4e8" formatted="false">"Оновити ефіри, що очікують"</string>
+    <string name="ui_relevance_5278a3" formatted="false">"Актуальність"</string>
+    <string name="ui_remove_32d0b3" formatted="false">"Видалити"</string>
+    <string name="ui_remove_ffcdea" formatted="false">"Видалити"</string>
+    <string name="ui_remove_local_task_66ebd2" formatted="false">"Видалити місцеве завдання"</string>
+    <string name="ui_remove_saved_sign_ins_812055" formatted="false">"Видалити збережені знаки?"</string>
+    <string name="ui_remove_saved_sign_ins_824597" formatted="false">"Видалити збережені знаки"</string>
+    <string name="ui_remove_task_cf3ba9" formatted="false">"Видалити завдання?"</string>
+    <string name="ui_remove_task_e9224e" formatted="false">"Видалити завдання"</string>
+    <string name="ui_replace_thumbnail_with_warning_9eae35" formatted="false">"Замінити ескіз з попередженням"</string>
+    <string name="ui_replies_7f615f" formatted="false">"Відповідей"</string>
+    <string name="ui_reply_6de9d9" formatted="false">"Відповісти"</string>
+    <string name="ui_reply_to">"Відповідь: %1$s"</string>
+    <string name="ui_reset_upload_task_322db7" formatted="false">"Скинути завдання завантаження"</string>
+    <string name="ui_restricted_5746bb" formatted="false">"Обмежений"</string>
+    <string name="ui_result_order_0b1c23" formatted="false">"Порядок результату"</string>
+    <string name="ui_resume_44eb04" formatted="false">"Продовжити"</string>
+    <string name="ui_resume_to_check_the_transfer_then_refresh_2ca5ab" formatted="false">"Резюме для перевірки передачі, а потім оновіть свої відео, перш ніж почати інше завантаження."</string>
+    <string name="ui_retry_e8368b" formatted="false">"Повторити"</string>
+    <string name="ui_retry_subtitle_translation_377fcd" formatted="false">"Перейти до підрозділу"</string>
+    <string name="ui_return_to_broadcast_fef56e" formatted="false">"Повернення до трансляції"</string>
+    <string name="ui_save_channel_on_server_87bc4e" formatted="false">"Зберегти канал на сервері"</string>
+    <string name="ui_save_efb7cc" formatted="false">"Зберегти"</string>
+    <string name="ui_save_indexes_a883b9" formatted="false">"Зберегти індекси"</string>
+    <string name="ui_save_replay_6cbd4e" formatted="false">"Зберегти відтворення"</string>
+    <string name="ui_save_replay_on_server_c7d724" formatted="false">"Зберегти відтворення на сервері"</string>
+    <string name="ui_saved_197dc1" formatted="false">"Збережено"</string>
+    <string name="ui_saved_account_46c390" formatted="false">"Збережений обліковий запис"</string>
+    <string name="ui_search_c2faca" formatted="false">"Пошук"</string>
+    <string name="ui_search_mode_083d38" formatted="false">"Режим пошуку"</string>
+    <string name="ui_search_sources_and_priority_295e1b" formatted="false">"Джерела пошуку та пріоритету"</string>
+    <string name="ui_sec_563e48" formatted="false">"сек"</string>
+    <string name="ui_sec_56737f" formatted="false">" сек"</string>
+    <string name="ui_seek_increment_8f8898" formatted="false">"Шукати приріст"</string>
+    <string name="ui_selected_af7b83" formatted="false">"Вибраний"</string>
+    <string name="ui_selected_server_search_ff8be3" formatted="false">"Пошук на вибраному сервері"</string>
+    <string name="ui_send_697d7f" formatted="false">"Надіслати"</string>
+    <string name="ui_sending_c8b200" formatted="false">"Відправлення ..."</string>
+    <string name="ui_sensitive_content_3d5344" formatted="false">"Чуттєвий вміст"</string>
+    <string name="ui_sensitive_content_576e42" formatted="false">"Чуттєвий вміст"</string>
+    <string name="ui_sensitive_content_display_dc3750" formatted="false">"Показ чутливого вмісту"</string>
+    <string name="ui_sequential_8e675b" formatted="false">"Послідовних"</string>
+    <string name="ui_server_channels_639d6c" formatted="false">"Серверні канали"</string>
+    <string name="ui_server_dedf58" formatted="false">"Сервер"</string>
+    <string name="ui_server_error_try_again_later_c789a0" formatted="false">"Помилка сервера. Повторіть спробу пізніше."</string>
+    <string name="ui_server_processing_726797" formatted="false">"Обробка сервера"</string>
+    <string name="ui_servers_d9002c" formatted="false">"Сервери"</string>
+    <string name="ui_settings_23de1b" formatted="false">"Налаштування"</string>
+    <string name="ui_settings_2bca56" formatted="false">"Налаштування"</string>
+    <string name="ui_share_0e2e41" formatted="false">"Поділитися"</string>
+    <string name="ui_share_live_23cbbf" formatted="false">"Поділитися"</string>
+    <string name="ui_show_ab515c" formatted="false">"Показати"</string>
+    <string name="ui_show_bd4eeb" formatted="false">"Показати"</string>
+    <string name="ui_show_or_hide_password_51b918" formatted="false">"Показати або сховати пароль"</string>
+    <string name="ui_sign_in_again_75f938" formatted="false">"Знову ввійти"</string>
+    <string name="ui_sign_in_again_770ace" formatted="false">"Знову ввійти"</string>
+    <string name="ui_sign_in_again_bd741c" formatted="false">"Знову ввійти"</string>
+    <string name="ui_sign_in_f39424" formatted="false">"Увійти"</string>
+    <string name="ui_sign_in_failed_check_your_username_passwor_23a85e" formatted="false">"Не вдалося увійти. Перевірте своє ім'я користувача, пароль та сервер."</string>
+    <string name="ui_sign_in_fe4740" formatted="false">"Увійти"</string>
+    <string name="ui_sign_in_on_the_you_page_15ac8e" formatted="false">"Увійдіть на сторінку ви."</string>
+    <string name="ui_sign_in_on_the_you_page_to_upload_videos_a_38f091" formatted="false">"Увійдіть на сторінку ви, щоб завантажити відео та перейти до Live."</string>
+    <string name="ui_sign_in_to_a_server_85e839" formatted="false">"Увійдіть до сервера"</string>
+    <string name="ui_sign_in_was_removed_from_this_device_the_s_7a170f" formatted="false">"Вхід був вилучений з цього пристрою. Серверний сеанс не може бути скасовано; Ви можете відкликати його на веб-сайті PeerTube."</string>
+    <string name="ui_sign_out_2f12bc" formatted="false">"Вийти"</string>
+    <string name="ui_signing_in_34c5a1" formatted="false">"Вхід ..."</string>
+    <string name="ui_skip_outdated_speech_f1fffa" formatted="false">"Пропускати застарілі репліки"</string>
+    <string name="ui_skip_utterance_4e9d44" formatted="false">"Пропустити висловлювання"</string>
+    <string name="ui_sort_servers_f2aae1" formatted="false">"Сортувати сервери"</string>
+    <string name="ui_source_timeout_b4e594" formatted="false">"Тайм джерела"</string>
+    <string name="ui_speak_original_381a76" formatted="false">"Розмовляйте"</string>
+    <string name="ui_speak_subtitles_8f45b6" formatted="false">"Говорити субтитри"</string>
+    <string name="ui_speaking_737906" formatted="false">"Виступаючи"</string>
+    <string name="ui_speech_b0f924" formatted="false">"Озвучування"</string>
+    <string name="ui_speech_mode_21b9ce" formatted="false">"Режим мовлення"</string>
+    <string name="ui_speech_rate_7cb6d9" formatted="false">"Швидкість мовлення"</string>
+    <string name="ui_speech_settings_8ae8a1" formatted="false">"Параметри озвучування"</string>
+    <string name="ui_speech_synthesis_failed_video_playback_is_03ff7c" formatted="false">"Синтез мовлення не вдалося. Відтворення відео не впливає."</string>
+    <string name="ui_speed_up_speech_up_to_2_5_b97e49" formatted="false">"Прискорити мову (до 2,5 ×)"</string>
+    <string name="ui_start_broadcast_ca85c4" formatted="false">"Почати трансляцію"</string>
+    <string name="ui_start_playback_automatically_61d054" formatted="false">"Автоматично почати відтворення"</string>
+    <string name="ui_status_b60505" formatted="false">"Статус"</string>
+    <string name="ui_stop_test_d2ea2c" formatted="false">"Зупинка тесту"</string>
+    <string name="ui_storage_ecf1de" formatted="false">"Зберігання: "</string>
+    <string name="ui_stream_key_8d248e" formatted="false">"Потік"</string>
+    <string name="ui_stream_settings_16c86b" formatted="false">"Параметри трансляції"</string>
+    <string name="ui_stretch_6f9bc7" formatted="false">"Розтягнути"</string>
+    <string name="ui_subscribe_7a95fd" formatted="false">"Підписатися"</string>
+    <string name="ui_subscribed_b31c7d" formatted="false">"Ви підписані"</string>
+    <string name="ui_subscription_on_this_device_97636d" formatted="false">"Підписка на цей пристрій"</string>
+    <string name="ui_subtitle_color_ee2bd3" formatted="false">"Колір субтитрів"</string>
+    <string name="ui_subtitle_preview_73219c" formatted="false">"Попередній перегляд субтитрів"</string>
+    <string name="ui_subtitle_size_f492b3" formatted="false">"Розмір субтитрів"</string>
+    <string name="ui_subtitle_speech_4f7011" formatted="false">"Озвучування субтитрів"</string>
+    <string name="ui_subtitle_speech_ffd472" formatted="false">"Озвучування субтитрів"</string>
+    <string name="ui_subtitles_4b389d" formatted="false">"Субтитри"</string>
+    <string name="ui_subtitles_by_default_007b19" formatted="false">"Субтитри за замовчуванням"</string>
+    <string name="ui_subtitles_speech_ab081c" formatted="false">"Субтитри → Мова"</string>
+    <string name="ui_sufficient_results_64a8a1" formatted="false">"Достатні результати"</string>
+    <string name="ui_switch_camera_515854" formatted="false">"Перемикання камери"</string>
+    <string name="ui_system_default_00d48c" formatted="false">"Системна система"</string>
+    <string name="ui_test_voice_9c6b87" formatted="false">"Тестовий голос"</string>
+    <string name="ui_the_account_changed_retry_using_the_intend_338ec1" formatted="false">"Обліковий запис змінився. Повторіть спробу за допомогою передбачуваного облікового запису."</string>
+    <string name="ui_the_account_is_blocked_on_the_server_05ab34" formatted="false">"Обліковий запис заблоковано на сервері."</string>
+    <string name="ui_the_account_is_waiting_for_server_administ_f422c2" formatted="false">"Обліковий запис чекає на схвалення адміністратора сервера."</string>
+    <string name="ui_the_account_server_could_not_find_this_vid_90b052" formatted="false">"Сервер облікового запису не міг знайти це відео. Перевірте наявність там і повторіть спробу."</string>
+    <string name="ui_the_directory_prefers_servers_from_this_co_c7856f" formatted="false">"Каталог віддає перевагу серверам з цієї країни. Інші країни залишаються доступними."</string>
+    <string name="ui_the_key_allows_broadcasting_as_you_keep_it_45f0a6" formatted="false">"Ключ дозволяє трансляцію, як ви. Тримайте його приватним."</string>
+    <string name="ui_the_microphone_is_unavailable_check_permis_69f097" formatted="false">"Мікрофон недоступний. Перевірте дозвіл та інші програми."</string>
+    <string name="ui_the_original_file_must_remain_accessible_a_f44e10" formatted="false">"Оригінальний файл повинен залишатися доступним та без змін до завершення завантаження."</string>
+    <string name="ui_the_server_changed_its_sign_in_configurati_bcd296" formatted="false">"Сервер змінив конфігурацію входу. Знову увійти."</string>
+    <string name="ui_the_server_chunk_limits_are_incompatible_w_055ddc" formatted="false">"Ліміт на серверні шматки несумісні з цим розміром файлу."</string>
+    <string name="ui_the_server_could_not_read_the_video_file_c95cf8" formatted="false">"Сервер не міг прочитати відеофайл."</string>
+    <string name="ui_the_server_denied_this_action_check_your_a_d471c9" formatted="false">"Сервер заперечував цю дію. Перевірте свій обліковий запис на своєму веб-сайті."</string>
+    <string name="ui_the_server_does_not_accept_this_password_l_96ca66" formatted="false">"Сервер не приймає цю довжину пароля."</string>
+    <string name="ui_the_server_does_not_allow_these_live_or_re_b8bb40" formatted="false">"Сервер не дозволяє цим живим або відтворюваним параметрам."</string>
+    <string name="ui_the_server_does_not_support_this_file_form_0ebd3a" formatted="false">"Сервер не підтримує цей формат файлу."</string>
+    <string name="ui_the_server_has_reached_its_simultaneous_li_7e7ab4" formatted="false">"Сервер досяг свого одночасного обмеження потоку."</string>
+    <string name="ui_the_server_is_unavailable_check_your_netwo_c773e7" formatted="false">"Сервер недоступний. Перевірте свою мережу та повторіть спробу."</string>
+    <string name="ui_the_server_redirects_this_request_enter_it_d8d57d" formatted="false">"Сервер перенаправляє цей запит. Введіть свою остаточну адресу HTTPS; облікові дані не були переслані."</string>
+    <string name="ui_the_server_rejected_the_publication_parame_022749" formatted="false">"Сервер відхилив параметри публікації. Перевірте назву, опис, канал та конфіденційність."</string>
+    <string name="ui_the_server_rejected_the_request_check_the_afc910" formatted="false">"Сервер відхилив запит. Перевірте дозвіл даних та дозвіл облікового запису."</string>
+    <string name="ui_the_server_rejected_this_account_registrat_1f9f3b" formatted="false">"Сервер відхилив цю реєстрацію облікового запису."</string>
+    <string name="ui_the_server_returned_an_invalid_upload_url_d03771" formatted="false">"Сервер повернув недійсний URL-адресу завантаження."</string>
+    <string name="ui_the_server_returned_an_unsupported_stream_0cfcba" formatted="false">"Сервер повернув URL-адресу або ключ непідтримуваного потоку."</string>
+    <string name="ui_the_session_expired_or_was_revoked_sign_in_2b6a69" formatted="false">"Сеанс закінчився або був скасований. Знову увійти."</string>
+    <string name="ui_the_two_factor_code_was_rejected_enter_a_n_e749c0" formatted="false">"Двофакторний код був відхилений. Введіть новий код."</string>
+    <string name="ui_the_upload_session_is_unavailable_refresh_c1a973" formatted="false">"Сеанс завантаження недоступний. Оновити свої відео перші: це може бути вже завантажено. Якщо відсутня, зніміть завдання та знову виберіть файл."</string>
+    <string name="ui_the_upload_task_could_not_be_read_or_saved_803c41" formatted="false">"Завдання завантаження не можна було читати або зберегти. Ви можете скинути це завдання без видалення облікових записів або опублікованих відео."</string>
+    <string name="ui_the_video_channel_or_comment_was_not_found_56ee2c" formatted="false">"Відео, канал або коментар не знайдено на сервері рахунку."</string>
+    <string name="ui_the_video_has_already_been_uploaded_cancel_006471" formatted="false">"Відео вже завантажено. Скасування не видаляє опубліковані відео."</string>
+    <string name="ui_the_video_has_been_uploaded_its_cover_stil_d841b6" formatted="false">"Відео було завантажено. Його покриття все ще потрібно застосовувати."</string>
+    <string name="ui_this_account_has_no_channels_90d173" formatted="false">"Цей обліковий запис не має каналів"</string>
+    <string name="ui_this_address_does_not_provide_a_compatible_702d33" formatted="false">"Ця адреса не дає сумісного знаку API."</string>
+    <string name="ui_this_server_disables_live_streaming_local_fcce38" formatted="false">"Цей сервер вимикає прямого потоку. Місцевий попередній перегляд доступний."</string>
+    <string name="ui_this_website_does_not_support_the_peertube_3f0625" formatted="false">"Цей веб-сайт не підтримує API PeerTube. Виберіть сервер PeerTube. Ваш попередній сервер зберігається."</string>
+    <string name="ui_thumbnail_unavailable_1a08a4" formatted="false">"Ескіз недоступний"</string>
+    <string name="ui_title_1b6233" formatted="false">"Назва"</string>
+    <string name="ui_title_3_120_characters_205170" formatted="false">"Назва · 3-120 символів"</string>
+    <string name="ui_title_and_visibility_b072fd" formatted="false">"Назва та видимість"</string>
+    <string name="ui_today_db20e6" formatted="false">"Сьогодні: "</string>
+    <string name="ui_too_many_attempts_wait_before_trying_again_a0ffae" formatted="false">"Занадто багато спроб. Чекати, перш ніж спробувати знову."</string>
+    <string name="ui_transfer_was_interrupted_resume_to_check_p_77ca35" formatted="false">"Передача перервано. Резюме перевірки прогресу з сервером."</string>
+    <string name="ui_translate_subtitles_92ac18" formatted="false">"Перекласти субтитри"</string>
+    <string name="ui_translate_titles_descriptions_and_comments_234bae" formatted="false">"Перекласти назви, описи та коментарі"</string>
+    <string name="ui_translated_speech_language_fb3e9d" formatted="false">"Перекладена мова мовлення"</string>
+    <string name="ui_translated_subtitles_01ecb4" formatted="false">"Перекладені субтитри"</string>
+    <string name="ui_translation_could_not_be_prepared_check_yo_180ecc" formatted="false">"Не вдалося підготувати переклад. Перевірте з'єднання та завантажені моделі; Оригінальний текст залишається доступним."</string>
+    <string name="ui_translation_language_401967" formatted="false">"Мова перекладу"</string>
+    <string name="ui_translation_runs_on_your_device_both_langu_bebcf9" formatted="false">"Переклад запускається на вашому пристрої. Обидва моделі мови вимагаються; Нові моделі можуть бути близько 30 МБ кожна. Текст відео не надсилається на службу перекладу хмари."</string>
+    <string name="ui_translation_unavailable_using_fallback_604641" formatted="false">"Переклад недоступний - Використання загибелі"</string>
+    <string name="ui_tts_engine_6d87fc" formatted="false">"Двигун ТТС"</string>
+    <string name="ui_tts_engine_unavailable_check_system_speech_1ff563" formatted="false">"ТТС двигун недоступний. Перевірте системні мовні налаштування."</string>
+    <string name="ui_two_factor_code_2d51c2" formatted="false">"Двофакторний код"</string>
+    <string name="ui_unavailable_abcd43" formatted="false">"недоступна"</string>
+    <string name="ui_unchanged_dc2c08" formatted="false">"Без змін"</string>
+    <string name="ui_unlimited_2b3fb9" formatted="false">"необмежений"</string>
+    <string name="ui_unlisted_689d94" formatted="false">"За посиланням"</string>
+    <string name="ui_unsubscribe_c612d7" formatted="false">"Відписатися"</string>
+    <string name="ui_until_enough_results_dfbe89" formatted="false">"До достатньої кількості результатів"</string>
+    <string name="ui_up_next_b0dfbd" formatted="false">"Наступний"</string>
+    <string name="ui_up_to_20_accounts_can_be_saved_remove_an_u_32727c" formatted="false">"Можна зберегти до 20 облікових записів. Видалити невикористаний вхід."</string>
+    <string name="ui_upload_b4fcd7" formatted="false">"Завантажити"</string>
+    <string name="ui_upload_stopped_86c348" formatted="false">"Завантаження зупинено"</string>
+    <string name="ui_upload_video_504c7b" formatted="false">"Завантажити відео"</string>
+    <string name="ui_upload_video_a6dd28" formatted="false">"Завантажити відео"</string>
+    <string name="ui_uploaded_to_server_825d5e" formatted="false">"Завантажено на сервер"</string>
+    <string name="ui_uploading_9da15d" formatted="false">"Завантаження"</string>
+    <string name="ui_use_account_a6c379" formatted="false">"Використати обліковий запис"</string>
+    <string name="ui_use_avatar_a723a9" formatted="false">"Використовувати аватар"</string>
+    <string name="ui_use_your_account_s_username_on_this_server_2200cb" formatted="false">"Використовуйте ім'я користувача облікового запису на цьому сервері. Ваш пароль не зберігається. Вхід зовнішнього постачальника (SSO) ще не підтримується."</string>
+    <string name="ui_username_8f11d1" formatted="false">"Логін"</string>
+    <string name="ui_verified_playable_only_slower_a59030" formatted="false">"Лише перевірені доступні відео — повільніше"</string>
+    <string name="ui_verify_your_email_address_on_the_server_we_eb9f69" formatted="false">"Перевірте адресу електронної пошти на веб-сайті сервера."</string>
+    <string name="ui_version_994a31" formatted="false">"Версія"</string>
+    <string name="ui_video_availability_69e650" formatted="false">"Наявність відео"</string>
+    <string name="ui_video_count_1e68ed" formatted="false">"Відео розрахунок"</string>
+    <string name="ui_video_description_02d4b7" formatted="false">"Опис відео"</string>
+    <string name="ui_video_scaling_cfb650" formatted="false">"Відео масштабування"</string>
+    <string name="ui_videos_89ea5c" formatted="false">"відео"</string>
+    <string name="ui_views_385ac8" formatted="false">"Переглядів"</string>
+    <string name="ui_views_bfcec5" formatted="false">"переглядів"</string>
+    <string name="ui_visibility_613511" formatted="false">"Видимість"</string>
+    <string name="ui_visibility_cb41fd" formatted="false">"Видимість"</string>
+    <string name="ui_voice_7692ca" formatted="false">"Голос"</string>
+    <string name="ui_voice_language_timing_and_original_audio_afa432" formatted="false">"Голос, мова, час та оригінальний звук"</string>
+    <string name="ui_voice_pitch_8d9081" formatted="false">"Висота голосу"</string>
+    <string name="ui_voice_test_language">"Мова: %1$s. Відео буде призупинено."</string>
+    <string name="ui_waiting_for_live_fc9024" formatted="false">"Чекає живих"</string>
+    <string name="ui_watch_5f1a41" formatted="false">"Дивитися"</string>
+    <string name="ui_website_633681" formatted="false">"Веб-сайт"</string>
+    <string name="ui_white_eecc94" formatted="false">"Білий"</string>
+    <string name="ui_yellow_20cd3f" formatted="false">"Жовтий"</string>
+    <string name="ui_you_have_no_videos_on_this_server_yet_74102c" formatted="false">"У вас ще немає відео на цьому сервері."</string>
+    <string name="ui_your_account_has_reached_its_live_stream_l_fdf60d" formatted="false">"Ваш обліковий запис досяг свого обмеження прямого потоку. Виберіть існуюче очікування Live або закінчуються невикористаними потоками на сервері."</string>
+    <string name="ui_your_channel_1dcac2" formatted="false">"Ваш канал"</string>
+    <string name="ui_your_videos_90d416" formatted="false">"Ваші відео"</string>
+    <string name="ui_your_videos_and_upload_tasks_65de76" formatted="false">"Ваші відео та завантаження завдань"</string>
+    <string name="ui_zoom_crop_e0b550" formatted="false">"Збільшити й обрізати"</string>
+    <string name="unsubscribe_button" formatted="false">"Відписатися"</string>
+    <string name="unsubscribe_channel" formatted="false">"Скасувати підписку на канал"</string>
+    <string name="update_available">"PeerIche %1$s доступний"</string>
+    <string name="update_check_failed" formatted="false">"Не міг перевірити github. Повторіть спробу пізніше."</string>
+    <string name="update_current" formatted="false">"У вас є найновіша версія."</string>
+    <string name="update_description" formatted="false">"Завантажте оновлення від Github? Android попросить вас підтвердити установку."</string>
+    <string name="update_download" formatted="false">"Завантажити"</string>
+    <string name="update_download_failed" formatted="false">"Не вдалося завантажити або підтвердити підтвердження APK. Повторіть спробу."</string>
+    <string name="update_install" formatted="false">"Встановити"</string>
+    <string name="update_install_failed" formatted="false">"Не вдалося відкрити встановлювач Android."</string>
+    <string name="update_later" formatted="false">"Пізніше,"</string>
+    <string name="update_ready" formatted="false">"APK перевірено. Натисніть «Установити». Якщо Android попросить, дозвольте оновлення з PeerIche, поверніться сюди й знову натисніть «Установити»."</string>
+    <string name="video_meta">"%1$d Переглядів · %2$s"</string>
+    <string name="video_unavailable" formatted="false">"Не вдалося завантажити відтворений потік. Повторіть спробу або виберіть інший сервер."</string>
+    <string name="you" formatted="false">"Ви"</string>
+</resources>

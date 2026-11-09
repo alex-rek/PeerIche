@@ -117,50 +117,50 @@ import kotlinx.coroutines.launch
             Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                 if (thread != null) IconButton(enabled = !sending, onClick = {
                     generation++; job?.cancel(); thread = null; reply = null; rows = roots; busy = false; failed = false
-                }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, uiText("Назад", "Back")) }
-                Text(uiText("Комментарии", "Comments") + if (thread == null && total > 0) " · $total" else "", Modifier.weight(1f), style = MaterialTheme.typography.titleLarge)
-                IconButton(enabled = !sending, onClick = { load() }) { Icon(Icons.Default.Refresh, uiText("Обновить комментарии", "Refresh comments")) }
-                IconButton(onClick = onClose) { Icon(Icons.Default.Close, uiText("Закрыть", "Close")) }
+                }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, uiText(R.string.ui_back_02b74f)) }
+                Text(uiText(R.string.ui_comments_08c5c0) + if (thread == null && total > 0) " · $total" else "", Modifier.weight(1f), style = MaterialTheme.typography.titleLarge)
+                IconButton(enabled = !sending, onClick = { load() }) { Icon(Icons.Default.Refresh, uiText(R.string.ui_refresh_comments_e472e7)) }
+                IconButton(onClick = onClose) { Icon(Icons.Default.Close, uiText(R.string.ui_close_641636)) }
             }
             if (busy) LinearProgressIndicator(Modifier.fillMaxWidth())
-            if (!commentsEnabled) Text(uiText("Автор отключил комментарии", "Comments are disabled by the author"), Modifier.padding(16.dp))
-            if (failed) TextButton(onClick = { load() }) { Text(uiText("Не удалось загрузить. Повторить", "Could not load. Retry")) }
+            if (!commentsEnabled) Text(uiText(R.string.ui_comments_are_disabled_by_the_author_41ba4a), Modifier.padding(16.dp))
+            if (failed) TextButton(onClick = { load() }) { Text(uiText(R.string.ui_could_not_load_retry_17aae5)) }
             LazyColumn(Modifier.fillMaxWidth().weight(1f), contentPadding = PaddingValues(bottom = 12.dp)) {
-                if (!busy && !failed && rows.isEmpty() && commentsEnabled) item { Text(uiText("Комментариев пока нет", "No comments yet"), Modifier.padding(20.dp)) }
+                if (!busy && !failed && rows.isEmpty() && commentsEnabled) item { Text(uiText(R.string.ui_no_comments_yet_c91050), Modifier.padding(20.dp)) }
                 items(rows, key = { it.id }) { comment ->
                     Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 6.dp)) {
                         Text(comment.account?.displayName ?: comment.account?.name.orEmpty(), fontWeight = FontWeight.SemiBold)
-                        val body = if (comment.isDeleted) uiText("Комментарий удалён", "Comment deleted") else HtmlCompat.fromHtml(comment.text.orEmpty(), HtmlCompat.FROM_HTML_MODE_LEGACY).toString().trim()
+                        val body = if (comment.isDeleted) uiText(R.string.ui_comment_deleted_b96457) else HtmlCompat.fromHtml(comment.text.orEmpty(), HtmlCompat.FROM_HTML_MODE_LEGACY).toString().trim()
                         SelectionContainer { Text(translatedMetadata(body), Modifier.padding(top = 4.dp)) }
-                        if (comment.heldForReview) Text(uiText("На модерации", "Pending moderation"), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        if (comment.heldForReview) Text(uiText(R.string.ui_pending_moderation_9cd027), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Row {
                             if (thread == null && comment.totalReplies > 0) TextButton(enabled = !sending, onClick = {
                                 thread = comment.id; reply = comment.id; replyName = comment.account?.displayName.orEmpty(); load(comment.id)
-                            }) { Text(uiText("Ответы", "Replies") + " · ${comment.totalReplies}") }
+                            }) { Text(uiText(R.string.ui_replies_7f615f) + " · ${comment.totalReplies}") }
                             if (!comment.isDeleted && commentsEnabled && owner != null && resolved != null) TextButton(enabled = !sending, onClick = {
                                 if (thread == null) { thread = comment.id; load(comment.id) }
                                 reply = comment.id; replyName = comment.account?.displayName ?: comment.account?.name.orEmpty()
-                            }) { Text(uiText("Ответить", "Reply")) }
+                            }) { Text(uiText(R.string.ui_reply_6de9d9)) }
                         }
                     }
                 }
-                if (thread == null && start < total && !failed) item { TextButton(onClick = { load(append = true) }, enabled = !busy && !sending, modifier = Modifier.fillMaxWidth()) { Text(uiText("Загрузить ещё", "Load more")) } }
+                if (thread == null && start < total && !failed) item { TextButton(onClick = { load(append = true) }, enabled = !busy && !sending, modifier = Modifier.fillMaxWidth()) { Text(uiText(R.string.ui_load_more_b9d06f)) } }
             }
             if (commentsEnabled && owner != null) Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 if (resolved == null) {
                     accountError?.let { Text(accountErrorText(it), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error) }
-                    if (accountError != null) TextButton(onClick = { retry++ }) { Text(uiText("Повторить", "Retry")) }
+                    if (accountError != null) TextButton(onClick = { retry++ }) { Text(uiText(R.string.ui_retry_e8368b)) }
                 } else {
-                    Text(uiText("От имени", "Posting as") + " ${owner.username}@${java.net.URI(owner.server).authority}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    if (reply != null) Text(uiText("Ответ: $replyName", "Reply to: $replyName"), style = MaterialTheme.typography.bodySmall)
+                    Text(uiText(R.string.ui_posting_as_bba67f) + " ${owner.username}@${java.net.URI(owner.server).authority}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    if (reply != null) Text(uiText(R.string.ui_reply_to, replyName), style = MaterialTheme.typography.bodySmall)
                     OutlinedTextField(draft, { draft = it; sendError = null; sent = false }, enabled = !sending, minLines = 1, maxLines = 3,
-                        label = { Text(uiText("Комментарий", "Comment")) }, modifier = Modifier.fillMaxWidth(), isError = draft.length > 10_000)
+                        label = { Text(uiText(R.string.ui_comment_b40722)) }, modifier = Modifier.fillMaxWidth(), isError = draft.length > 10_000)
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                         Text("${draft.length}/10000", Modifier.weight(1f), style = MaterialTheme.typography.bodySmall)
-                        TextButton(enabled = !sending && draft.isNotBlank() && draft.length <= 10_000, onClick = ::send) { Text(uiText(if (sending) "Отправка…" else "Отправить", if (sending) "Sending…" else "Send")) }
+                        TextButton(enabled = !sending && draft.isNotBlank() && draft.length <= 10_000, onClick = ::send) { Text(uiText(if (sending) R.string.ui_sending_c8b200 else R.string.ui_send_697d7f)) }
                     }
                     sendError?.let { Text(accountErrorText(it), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error) }
-                    if (sent) Text(if (held) uiText("Комментарий отправлен на модерацию", "Comment sent for moderation") else uiText("Комментарий отправлен", "Comment sent"), style = MaterialTheme.typography.bodySmall)
+                    if (sent) Text(if (held) uiText(R.string.ui_comment_sent_for_moderation_59d0cc) else uiText(R.string.ui_comment_sent_1b95cd), style = MaterialTheme.typography.bodySmall)
                 }
             }
         }

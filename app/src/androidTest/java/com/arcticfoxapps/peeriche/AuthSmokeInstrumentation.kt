@@ -12,8 +12,12 @@ class AuthSmokeInstrumentation : Instrumentation() {
     private var creatorUi = false
     private var broadcastRtmp = false
     private var broadcastCamera = false
-    override fun onCreate(arguments: Bundle?) { super.onCreate(arguments); creatorUi = arguments?.getString("creator-ui") == "true"; broadcastRtmp = arguments?.getString("broadcast-rtmp") == "true"; broadcastCamera = arguments?.getString("broadcast-camera") == "true"; start() }
+    private var interfaceTranslations = false
+    private var interfaceLocales = false
+    override fun onCreate(arguments: Bundle?) { super.onCreate(arguments); interfaceLocales = arguments?.getString("interface-locales") == "true"; interfaceTranslations = arguments?.getString("interface-translations") == "true"; creatorUi = arguments?.getString("creator-ui") == "true"; broadcastRtmp = arguments?.getString("broadcast-rtmp") == "true"; broadcastCamera = arguments?.getString("broadcast-camera") == "true"; start() }
     override fun onStart() {
+        if (interfaceTranslations) { exportInterfaceTranslations(this); return }
+        if (interfaceLocales) { verifyInterfaceLocales(this); return }
         if (creatorUi) { creatorUiFixture(this); return }
         val result = Bundle()
         val suffix = UUID.randomUUID().toString()

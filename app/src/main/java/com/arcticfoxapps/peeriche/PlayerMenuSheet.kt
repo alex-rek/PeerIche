@@ -1,6 +1,7 @@
 package com.arcticfoxapps.peeriche
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.foundation.clickable
@@ -31,18 +32,18 @@ import androidx.media3.common.Player
     ModalBottomSheet(onDismissRequest = onClose, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
         Column(Modifier.fillMaxWidth().heightIn(max = androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp.dp * .85f)
             .verticalScroll(rememberScrollState()).padding(bottom = 12.dp)) {
-            CompactPlayerChoice(Icons.Default.Tune, uiText("Качество", "Quality"), options.quality.toString(), listOf("0" to uiText("Авто", "Auto")) +
+            CompactPlayerChoice(Icons.Default.Tune, uiText(R.string.ui_quality_ca3d7b), options.quality.toString(), listOf("0" to uiText(R.string.ui_auto_cbb079)) +
                 listOf(144, 240, 360, 480, 720, 1080, 2160).map { "$it" to "${it}p" }) { value -> preferences.update { it.copy(quality = value.toInt()) } }
-            if (hasSubtitles) CompactPlayerRow(Icons.Default.Subtitles, uiText("Субтитры", "Subtitles"),
-                if (options.subtitlesEnabled) uiText("Включены", "On") else uiText("Выкл", "Off")) { tracks = true }
-            CompactPlayerChoice(Icons.Default.Speed, uiText("Скорость воспроизведения", "Playback speed"), options.playbackSpeed.toString(),
+            if (hasSubtitles) CompactPlayerRow(Icons.Default.Subtitles, uiText(R.string.ui_subtitles_4b389d),
+                if (options.subtitlesEnabled) uiText(R.string.ui_on_c10791) else uiText(R.string.ui_off_b8a9e9)) { tracks = true }
+            CompactPlayerChoice(Icons.Default.Speed, uiText(R.string.ui_playback_speed_cd9e90), options.playbackSpeed.toString(),
                 listOf(.5f, .75f, 1f, 1.25f, 1.5f, 1.75f, 2f).map { "$it" to "${it}×" }) { value -> preferences.update { it.copy(playbackSpeed = value.toFloat()) } }
-            CompactPlayerChoice(Icons.Default.AspectRatio, uiText("Формат изображения", "Aspect ratio"), options.videoAspect,
-                listOf("auto" to uiText("Исходный", "Original")) + listOf("16:9", "4:3", "1:1", "21:9").map { it to it }) { value -> preferences.update { it.copy(videoAspect = value) } }
-            if (hasSubtitles) CompactPlayerRow(Icons.Default.RecordVoiceOver, uiText("Озвучивание", "Subtitle speech"),
-                if (options.speech.enabled) uiText("Вкл", "On") else uiText("Выкл", "Off")) { speech = true }
-            CompactPlayerRow(Icons.Default.PictureInPictureAlt, uiText("Картинка в картинке", "Picture in picture")) { onClose(); onPip() }
-            CompactPlayerRow(Icons.Default.Settings, uiText("Ещё", "More")) { more = true }
+            CompactPlayerChoice(Icons.Default.AspectRatio, uiText(R.string.ui_aspect_ratio_47bc1a), options.videoAspect,
+                listOf("auto" to uiText(R.string.ui_original_77bed0)) + listOf("16:9", "4:3", "1:1", "21:9").map { it to it }) { value -> preferences.update { it.copy(videoAspect = value) } }
+            if (hasSubtitles) CompactPlayerRow(Icons.Default.RecordVoiceOver, uiText(R.string.ui_subtitle_speech_ffd472),
+                if (options.speech.enabled) uiText(R.string.ui_on_e3afd0) else uiText(R.string.ui_off_b8a9e9)) { speech = true }
+            CompactPlayerRow(Icons.Default.PictureInPictureAlt, uiText(R.string.ui_picture_in_picture_481ea8)) { onClose(); onPip() }
+            CompactPlayerRow(Icons.Default.Settings, uiText(R.string.ui_more_81555a)) { more = true }
         }
     }
     LaunchedEffect(hasSubtitles) { if (!hasSubtitles) { tracks = false; speech = false } }
@@ -52,8 +53,8 @@ import androidx.media3.common.Player
         Surface(Modifier.fillMaxSize()) {
             Column {
                 Row(Modifier.fillMaxWidth().heightIn(min = 64.dp), verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = { more = false }) { Icon(Icons.Default.ArrowBack, uiText("Назад", "Back")) }
-                    Text(uiText("Параметры плеера", "Player settings"), style = MaterialTheme.typography.titleLarge)
+                    IconButton(onClick = { more = false }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, uiText(R.string.ui_back_02b74f)) }
+                    Text(uiText(R.string.ui_player_settings_2989d1), style = MaterialTheme.typography.titleLarge)
                 }
                 PlayerSettingsPage(options, preferences) { speech = true }
             }
@@ -67,7 +68,7 @@ import androidx.media3.common.Player
         Icon(icon, null, Modifier.size(24.dp))
         Text(label, Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge, maxLines = 2, overflow = TextOverflow.Ellipsis)
         if (value.isNotBlank()) Text(value, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
-        Icon(Icons.Default.ChevronRight, null, Modifier.size(20.dp))
+        Icon(interfaceForwardChevron(), null, Modifier.size(20.dp))
     }
 }
 
@@ -80,5 +81,5 @@ import androidx.media3.common.Player
                 RadioButton(selected == value, onClick = null); Text(title, Modifier.padding(start = 12.dp))
             } }
         }
-    }, confirmButton = { TextButton(onClick = { open = false }) { Text(uiText("Закрыть", "Close")) } })
+    }, confirmButton = { TextButton(onClick = { open = false }) { Text(uiText(R.string.ui_close_641636)) } })
 }

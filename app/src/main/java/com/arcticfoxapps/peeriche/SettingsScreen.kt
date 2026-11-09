@@ -9,6 +9,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -32,8 +33,12 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.util.Locale
 
-@Composable internal fun uiText(ru: String, en: String): String =
-    if (ConfigurationCompat.getLocales(LocalConfiguration.current)[0]?.language == "ru") ru else en
+@Composable internal fun uiText(@androidx.annotation.StringRes id: Int, vararg arguments: Any): String =
+    if (arguments.isEmpty()) androidx.compose.ui.res.stringResource(id)
+    else androidx.compose.ui.res.stringResource(id, *arguments)
+
+@Composable internal fun interfaceForwardChevron() =
+    if (androidx.compose.ui.platform.LocalLayoutDirection.current == androidx.compose.ui.unit.LayoutDirection.Rtl) Icons.Default.ChevronLeft else Icons.Default.ChevronRight
 
 @Composable internal fun SettingsScreen(onClose: () -> Unit, onCheckUpdates: () -> Unit, initialSection: String? = null) {
     val context = LocalContext.current
@@ -41,12 +46,12 @@ import java.util.Locale
     val options by preferences.options.collectAsState()
     var section by rememberSaveable { mutableStateOf(initialSection) }
     val categories = listOf(
-        Triple("general", uiText("Общие", "General"), Icons.Default.Settings),
-        Triple("search", uiText("Поиск", "Search"), Icons.Default.Search),
-        Triple("servers", uiText("Серверы", "Servers"), Icons.Default.Dns),
-        Triple("translations", uiText("Язык и переводы", "Language and translations"), Icons.Default.Translate),
-        Triple("player", uiText("Плеер", "Player"), Icons.Default.PlayCircle),
-        Triple("about", uiText("О приложении", "About"), Icons.Default.Info)
+        Triple("general", uiText(R.string.ui_general_4d7c8e), Icons.Default.Settings),
+        Triple("search", uiText(R.string.ui_search_c2faca), Icons.Default.Search),
+        Triple("servers", uiText(R.string.ui_servers_d9002c), Icons.Default.Dns),
+        Triple("translations", uiText(R.string.ui_language_and_translations_29d99b), Icons.Default.Translate),
+        Triple("player", uiText(R.string.ui_player_cd0260), Icons.Default.PlayCircle),
+        Triple("about", uiText(R.string.ui_about_9a8919), Icons.Default.Info)
     )
     Dialog(onDismissRequest = onClose, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         BackHandler { if (section == "speech") section = "player" else if (section != null) section = null else onClose() }
@@ -54,9 +59,9 @@ import java.util.Locale
             Column(Modifier.fillMaxSize()) {
                 Row(Modifier.fillMaxWidth().heightIn(min = 64.dp).padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                     IconButton(onClick = { if (section == "speech") section = "player" else if (section != null) section = null else onClose() }) {
-                        Icon(Icons.Default.ArrowBack, uiText("Назад", "Back"))
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, uiText(R.string.ui_back_02b74f))
                     }
-                    Text(if (section == "speech") uiText("Озвучивание субтитров", "Subtitle speech") else categories.firstOrNull { it.first == section }?.second ?: uiText("Настройки", "Settings"),
+                    Text(if (section == "speech") uiText(R.string.ui_subtitle_speech_4f7011) else categories.firstOrNull { it.first == section }?.second ?: uiText(R.string.ui_settings_2bca56),
                         fontSize = 23.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(start = 12.dp))
                 }
                 when (section) {
@@ -73,10 +78,10 @@ import java.util.Locale
                     "speech" -> SubtitleSpeechSettingsPage(options, preferences)
                     "about" -> Column(Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
                         Text("PeerIche", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-                        Text(uiText("Версия", "Version") + " " + BuildConfig.VERSION_NAME + " · " + BuildConfig.BUILD_DATE)
-                        Text(uiText("Разработчик: Arctic Fox Apps", "Developer: Arctic Fox Apps"))
-                        Text(uiText("Независимый клиент PeerTube. Не связан с Framasoft.", "Independent PeerTube client. Not affiliated with Framasoft."))
-                        FilledTonalButton(onClick = onCheckUpdates) { Text(uiText("Проверить обновление", "Check for updates")) }
+                        Text(uiText(R.string.ui_version_994a31) + " " + BuildConfig.VERSION_NAME + " · " + BuildConfig.BUILD_DATE)
+                        Text(uiText(R.string.ui_developer_arctic_fox_apps_fa73f2))
+                        Text(uiText(R.string.ui_independent_peertube_client_not_affiliated_8ece4c))
+                        FilledTonalButton(onClick = onCheckUpdates) { Text(uiText(R.string.ui_check_for_updates_a3997c)) }
                     }
                 }
             }
@@ -114,7 +119,7 @@ import java.util.Locale
     AlertDialog(onDismissRequest = onDismiss, title = { Text(title) }, text = {
         Column {
             if (choices.size > 12) OutlinedTextField(filter, { filter = it }, singleLine = true,
-                label = { Text(uiText("Найти", "Find")) }, modifier = Modifier.fillMaxWidth())
+                label = { Text(uiText(R.string.ui_find_90925b)) }, modifier = Modifier.fillMaxWidth())
             LazyColumn(Modifier.heightIn(max = 420.dp)) {
                 items(choices.filter { it.second.contains(filter, true) || it.first.contains(filter, true) }, key = { it.first }) { (key, label) ->
                     Row(Modifier.fillMaxWidth().clickable { onPick(key) }.heightIn(min = 48.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -124,7 +129,7 @@ import java.util.Locale
                 }
             }
         }
-    }, confirmButton = {}, dismissButton = { TextButton(onClick = onDismiss) { Text(uiText("Отмена", "Cancel")) } })
+    }, confirmButton = {}, dismissButton = { TextButton(onClick = onDismiss) { Text(uiText(R.string.ui_cancel_28fb55)) } })
 }
 
 @Composable internal fun SettingsSlider(title: String, value: Float, range: ClosedFloatingPointRange<Float>, suffix: String = "", onChange: (Float) -> Unit) {
@@ -141,47 +146,48 @@ import java.util.Locale
     val theme by remember(context) { context.peerIcheDataStore.data.catch { emit(emptyPreferences()) }.map { it[themeModeKey] ?: "system" } }.collectAsState("system")
     val locale = ConfigurationCompat.getLocales(LocalConfiguration.current)[0] ?: Locale.ENGLISH
     LazyColumn(Modifier.fillMaxSize()) {
-        item { SettingsChoice(uiText("Тема приложения", "App theme"), theme, listOf("system" to uiText("Как на устройстве", "Follow Android"),
-            "graphite" to uiText("Графит", "Graphite"), "light" to uiText("Светлая", "Light"), "aurora" to uiText("Аврора · синяя", "Aurora · blue"))) {
+        item { SettingsChoice(uiText(R.string.ui_app_theme_610976), theme, listOf("system" to uiText(R.string.ui_follow_android_9652ce),
+            "graphite" to uiText(R.string.ui_graphite_7c3294), "light" to uiText(R.string.ui_light_bc799a), "aurora" to uiText(R.string.ui_aurora_blue_a5d4ab))) {
             scope.launch { saveThemeMode(context, it) }
         } }
-        item { SettingsChoice(uiText("Язык интерфейса", "Interface language"), options.interfaceLanguage,
-            listOf("" to uiText("Как на устройстве", "Follow Android"), "ru" to "Русский", "en" to "English")) { language ->
+        item { SettingsChoice(uiText(R.string.ui_interface_language_88df3c),
+            if (Build.VERSION.SDK_INT >= 33) context.getSystemService(LocaleManager::class.java).applicationLocales.toLanguageTags() else options.interfaceLanguage,
+            listOf("" to uiText(R.string.ui_follow_android_9652ce)) + interfaceLanguages) { language ->
             preferences.update { it.copy(interfaceLanguage = language) }
             if (Build.VERSION.SDK_INT >= 33) context.getSystemService(LocaleManager::class.java).applicationLocales = LocaleList.forLanguageTags(language)
             else (context as? ComponentActivity)?.recreate()
         } }
-        item { SettingsChoice(uiText("Страна", "Country"), options.country,
-            listOf("" to uiText("Все страны", "All countries")) + Locale.getISOCountries().map { it to Locale("", it).getDisplayCountry(locale) }.sortedBy { it.second }) {
+        item { SettingsChoice(uiText(R.string.ui_country_0db877), options.country,
+            listOf("" to uiText(R.string.ui_all_countries_719a89)) + Locale.getISOCountries().map { it to Locale("", it).getDisplayCountry(locale) }.sortedBy { it.second }) {
             preferences.update { current -> current.copy(country = it) }
         } }
-        item { Text(uiText("В каталоге предпочтение отдаётся серверам этой страны. Другие страны остаются доступны.", "The directory prefers servers from this country. Other countries remain available."),
+        item { Text(uiText(R.string.ui_the_directory_prefers_servers_from_this_co_c7856f),
             Modifier.padding(24.dp), color = MaterialTheme.colorScheme.onSurfaceVariant) }
     }
 }
 
 @Composable internal fun PlayerSettingsPage(options: AppOptions, preferences: AppPreferences, onSpeech: () -> Unit) {
     LazyColumn(Modifier.fillMaxSize()) {
-        item { SettingsToggle(uiText("Автовоспроизведение", "Start playback automatically"), options.autoplay) { value -> preferences.update { it.copy(autoplay = value) } } }
-        item { SettingsToggle(uiText("Фоновое воспроизведение", "Background playback"), options.backgroundPlayback) { value -> preferences.update { it.copy(backgroundPlayback = value) } } }
-        item { SettingsChoice(uiText("Качество по умолчанию", "Default quality"), options.quality.toString(), listOf("0" to uiText("Автоматически", "Automatic")) + listOf(360, 480, 720, 1080, 2160).map { "$it" to "${it}p" }) { value -> preferences.update { it.copy(quality = value.toInt()) } } }
-        item { SettingsChoice(uiText("Скорость воспроизведения", "Playback speed"), options.playbackSpeed.toString(), listOf(.5f, .75f, 1f, 1.25f, 1.5f, 1.75f, 2f).map { "$it" to "${it}×" }) { value -> preferences.update { it.copy(playbackSpeed = value.toFloat()) } } }
-        item { SettingsChoice(uiText("Скрывать управление через", "Hide controls after"), options.controlsTimeout.toString(), listOf("0" to uiText("Не скрывать", "Keep visible")) + listOf(3, 5, 10, 15).map { "$it" to "$it ${uiText("сек.", "sec")}" }) { value -> preferences.update { it.copy(controlsTimeout = value.toInt()) } } }
-        item { SettingsChoice(uiText("Шаг перемотки", "Seek increment"), options.seekSeconds.toString(), listOf(5, 10, 15, 30).map { "$it" to "$it ${uiText("сек.", "sec")}" }) { value -> preferences.update { it.copy(seekSeconds = value.toInt()) } } }
-        item { SettingsChoice(uiText("Масштаб видео", "Video scaling"), options.resizeMode, listOf("fit" to uiText("Вписать", "Fit"), "zoom" to uiText("Заполнить с обрезкой", "Zoom / crop"), "fill" to uiText("Растянуть", "Stretch"))) { value -> preferences.update { it.copy(resizeMode = value) } } }
-        item { SettingsChoice(uiText("Формат изображения", "Aspect ratio"), options.videoAspect,
-            listOf("auto" to uiText("Исходный", "Original")) + listOf("16:9", "4:3", "1:1", "21:9").map { it to it }) { value -> preferences.update { it.copy(videoAspect = value) } } }
-        item { SettingsRow(uiText("Субтитры → Озвучивание", "Subtitles → Speech"), uiText("Голос, язык, синхронизация и исходный звук", "Voice, language, timing and original audio"), onClick = onSpeech) }
-        item { SettingsToggle(uiText("Субтитры по умолчанию", "Subtitles by default"), options.subtitlesEnabled) { value -> preferences.update { it.copy(subtitlesEnabled = value) } } }
-        item { SettingsChoice(uiText("Предпочтительный язык субтитров", "Preferred subtitle language"), options.subtitleLanguage,
-            listOf("" to uiText("Как на устройстве", "Follow Android")) + translationLanguages()) { value -> preferences.update { it.copy(subtitleLanguage = value) } } }
-        item { SettingsSlider(uiText("Размер субтитров", "Subtitle size"), options.subtitleSize.toFloat(), 12f..42f, " sp") { value -> preferences.update { it.copy(subtitleSize = value.toInt()) } } }
-        item { SettingsChoice(uiText("Цвет субтитров", "Subtitle color"), options.subtitleColor, listOf("white" to uiText("Белый", "White"), "yellow" to uiText("Жёлтый", "Yellow"), "green" to uiText("Зелёный", "Green"), "cyan" to uiText("Голубой", "Cyan"))) { value -> preferences.update { it.copy(subtitleColor = value) } } }
-        item { SettingsSlider(uiText("Положение по горизонтали", "Horizontal position"), options.subtitleHorizontal.toFloat(), 10f..90f, "%") { value -> preferences.update { it.copy(subtitleHorizontal = value.toInt()) } } }
-        item { SettingsSlider(uiText("Отступ от нижнего края", "Distance from bottom"), options.subtitleBottom.toFloat(), 0f..45f, "%") { value -> preferences.update { it.copy(subtitleBottom = value.toInt()) } } }
+        item { SettingsToggle(uiText(R.string.ui_start_playback_automatically_61d054), options.autoplay) { value -> preferences.update { it.copy(autoplay = value) } } }
+        item { SettingsToggle(uiText(R.string.ui_background_playback_364de7), options.backgroundPlayback) { value -> preferences.update { it.copy(backgroundPlayback = value) } } }
+        item { SettingsChoice(uiText(R.string.ui_default_quality_424975), options.quality.toString(), listOf("0" to uiText(R.string.ui_automatic_00a8ae)) + listOf(360, 480, 720, 1080, 2160).map { "$it" to "${it}p" }) { value -> preferences.update { it.copy(quality = value.toInt()) } } }
+        item { SettingsChoice(uiText(R.string.ui_playback_speed_cd9e90), options.playbackSpeed.toString(), listOf(.5f, .75f, 1f, 1.25f, 1.5f, 1.75f, 2f).map { "$it" to "${it}×" }) { value -> preferences.update { it.copy(playbackSpeed = value.toFloat()) } } }
+        item { SettingsChoice(uiText(R.string.ui_hide_controls_after_5aa971), options.controlsTimeout.toString(), listOf("0" to uiText(R.string.ui_keep_visible_63e256)) + listOf(3, 5, 10, 15).map { "$it" to "$it ${uiText(R.string.ui_sec_563e48)}" }) { value -> preferences.update { it.copy(controlsTimeout = value.toInt()) } } }
+        item { SettingsChoice(uiText(R.string.ui_seek_increment_8f8898), options.seekSeconds.toString(), listOf(5, 10, 15, 30).map { "$it" to "$it ${uiText(R.string.ui_sec_563e48)}" }) { value -> preferences.update { it.copy(seekSeconds = value.toInt()) } } }
+        item { SettingsChoice(uiText(R.string.ui_video_scaling_cfb650), options.resizeMode, listOf("fit" to uiText(R.string.ui_fit_dc1e4e), "zoom" to uiText(R.string.ui_zoom_crop_e0b550), "fill" to uiText(R.string.ui_stretch_6f9bc7))) { value -> preferences.update { it.copy(resizeMode = value) } } }
+        item { SettingsChoice(uiText(R.string.ui_aspect_ratio_47bc1a), options.videoAspect,
+            listOf("auto" to uiText(R.string.ui_original_77bed0)) + listOf("16:9", "4:3", "1:1", "21:9").map { it to it }) { value -> preferences.update { it.copy(videoAspect = value) } } }
+        item { SettingsRow(uiText(R.string.ui_subtitles_speech_ab081c), uiText(R.string.ui_voice_language_timing_and_original_audio_afa432), onClick = onSpeech) }
+        item { SettingsToggle(uiText(R.string.ui_subtitles_by_default_007b19), options.subtitlesEnabled) { value -> preferences.update { it.copy(subtitlesEnabled = value) } } }
+        item { SettingsChoice(uiText(R.string.ui_preferred_subtitle_language_5e7c1c), options.subtitleLanguage,
+            listOf("" to uiText(R.string.ui_follow_android_9652ce)) + translationLanguages()) { value -> preferences.update { it.copy(subtitleLanguage = value) } } }
+        item { SettingsSlider(uiText(R.string.ui_subtitle_size_f492b3), options.subtitleSize.toFloat(), 12f..42f, " sp") { value -> preferences.update { it.copy(subtitleSize = value.toInt()) } } }
+        item { SettingsChoice(uiText(R.string.ui_subtitle_color_ee2bd3), options.subtitleColor, listOf("white" to uiText(R.string.ui_white_eecc94), "yellow" to uiText(R.string.ui_yellow_20cd3f), "green" to uiText(R.string.ui_green_3fb852), "cyan" to uiText(R.string.ui_cyan_335685))) { value -> preferences.update { it.copy(subtitleColor = value) } } }
+        item { SettingsSlider(uiText(R.string.ui_horizontal_position_1439c5), options.subtitleHorizontal.toFloat(), 10f..90f, "%") { value -> preferences.update { it.copy(subtitleHorizontal = value.toInt()) } } }
+        item { SettingsSlider(uiText(R.string.ui_distance_from_bottom_ae3e60), options.subtitleBottom.toFloat(), 0f..45f, "%") { value -> preferences.update { it.copy(subtitleBottom = value.toInt()) } } }
         item { BoxWithConstraints(Modifier.fillMaxWidth().padding(24.dp).height(150.dp)) {
             Surface(Modifier.fillMaxSize(), color = Color.Black) {}
-            Text(uiText("Пример субтитров", "Subtitle preview"), color = Color(subtitleArgb(options.subtitleColor)), fontSize = options.subtitleSize.sp,
+            Text(uiText(R.string.ui_subtitle_preview_73219c), color = Color(subtitleArgb(options.subtitleColor)), fontSize = options.subtitleSize.sp,
                 modifier = Modifier.align(Alignment.BottomCenter).offset(x = maxWidth * ((options.subtitleHorizontal - 50) / 100f), y = -maxHeight * (options.subtitleBottom / 100f)))
         } }
     }
