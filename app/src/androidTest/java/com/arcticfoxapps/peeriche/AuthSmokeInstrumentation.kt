@@ -17,8 +17,15 @@ class AuthSmokeInstrumentation : Instrumentation() {
     private var startupUpdate = false
     private var playbackPosition = false
     private var broadcastLogo = false
-    override fun onCreate(arguments: Bundle?) { super.onCreate(arguments); broadcastLogo = arguments?.getString("broadcast-logo") == "true"; playbackPosition = arguments?.getString("playback-position") == "true"; startupUpdate = arguments?.getString("startup-update") == "true"; interfaceLocales = arguments?.getString("interface-locales") == "true"; interfaceTranslations = arguments?.getString("interface-translations") == "true"; creatorUi = arguments?.getString("creator-ui") == "true"; broadcastRtmp = arguments?.getString("broadcast-rtmp") == "true"; broadcastCamera = arguments?.getString("broadcast-camera") == "true"; start() }
+    private var nativeCamera = false
+    override fun onCreate(arguments: Bundle?) { super.onCreate(arguments); nativeCamera = arguments?.getString("native-camera") == "true"; broadcastLogo = arguments?.getString("broadcast-logo") == "true"; playbackPosition = arguments?.getString("playback-position") == "true"; startupUpdate = arguments?.getString("startup-update") == "true"; interfaceLocales = arguments?.getString("interface-locales") == "true"; interfaceTranslations = arguments?.getString("interface-translations") == "true"; creatorUi = arguments?.getString("creator-ui") == "true"; broadcastRtmp = arguments?.getString("broadcast-rtmp") == "true"; broadcastCamera = arguments?.getString("broadcast-camera") == "true"; start() }
     override fun onStart() {
+        if (nativeCamera) {
+            val result = Bundle(); var code = Activity.RESULT_OK
+            try { runBlocking { nativeCameraSmoke(this@AuthSmokeInstrumentation) }; result.putString("stream", "PASS: native Camera2 encoded frames in both formats without double fitting; no network publication\n") }
+            catch (failure: Throwable) { code = Activity.RESULT_CANCELED; result.putString("stream", "FAIL native camera: ${failure.message}\n") }
+            finish(code, result); return
+        }
         if (broadcastLogo) {
             val result = Bundle(); var code = Activity.RESULT_OK
             try { runBlocking { broadcastLogoSmoke(targetContext) }; result.putString("stream", "PASS: encoded logo, PNG transparency, source switch and disable in both orientations\n") }

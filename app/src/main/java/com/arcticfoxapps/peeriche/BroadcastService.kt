@@ -196,12 +196,6 @@ internal class BroadcastCoordinator(private val context: Context, private val ac
                 if (token != generation || engine !== stream) return@launch
                 val gl = stream.getGlInterface()
                 gl.clearFilters()
-                if (stream.videoSource is Camera2Source) {
-                    val portraitDisplay = context.resources.configuration.orientation != android.content.res.Configuration.ORIENTATION_LANDSCAPE
-                    val short = minOf(width, height).toFloat(); val long = maxOf(width, height).toFloat()
-                    val sourceAspect = if (portraitDisplay) short / long else long / short
-                    gl.addFilter(BroadcastCameraFit(sourceAspect, width.toFloat() / height))
-                }
                 if (filter != null) gl.addFilter(filter)
             } catch (cancelled: CancellationException) { throw cancelled }
             catch (_: Exception) { if (token == generation) mutable.value = state.value.copy(error = "invalid_cover") }

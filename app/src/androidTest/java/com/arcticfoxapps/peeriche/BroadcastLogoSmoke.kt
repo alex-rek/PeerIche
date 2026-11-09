@@ -13,12 +13,7 @@ import java.io.File
 internal suspend fun broadcastLogoSmoke(context: Context) {
     for (portrait in listOf(false, true)) {
         val file = File(context.cacheDir, "logo-smoke-${System.nanoTime()}.mp4")
-        val background = Bitmap.createBitmap(if (portrait) 480 else 640, if (portrait) 640 else 480, Bitmap.Config.ARGB_8888).apply {
-            eraseColor(Color.BLUE)
-            val halfWidth = if (portrait) 45f else 80f
-            android.graphics.Canvas(this).drawOval(width / 2f - halfWidth, height / 2f - 45f, width / 2f + halfWidth, height / 2f + 45f,
-                android.graphics.Paint().apply { color = Color.CYAN })
-        }
+        val background = Bitmap.createBitmap(640, 480, Bitmap.Config.ARGB_8888).apply { eraseColor(Color.BLUE) }
         val next = Bitmap.createBitmap(640, 480, Bitmap.Config.ARGB_8888).apply { eraseColor(Color.GREEN) }
         val logo = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888).apply {
             android.graphics.Canvas(this).drawRect(0f, 0f, 50f, 100f, android.graphics.Paint().apply { color = Color.RED })
@@ -39,18 +34,14 @@ internal suspend fun broadcastLogoSmoke(context: Context) {
                 }, BroadcastSlateSource(background), BroadcastSilenceSource()).apply {
                     check(prepareVideo(640, 480, 800_000, 24, 2, broadcastRotation(portrait)))
                     check(prepareAudio(44100, false, 96000)); setOrientation(0)
-                    getGlInterface().setFilter(BroadcastCameraFit(3f / 4, width.toFloat() / height))
-                    getGlInterface().addFilter(broadcastLogoFilter(logo, width, height, options))
+                    getGlInterface().setFilter(broadcastLogoFilter(logo, width, height, options))
                     startRecord(file.path) { if (it == com.pedro.library.base.recording.RecordController.Status.RECORDING) ready.complete(Unit) }
                 }
             }
             withTimeout(15_000) { ready.await() }; delay(1500)
             withContext(Dispatchers.Main) { stream!!.changeVideoSource(BroadcastSlateSource(next)); stream!!.setOrientation(0) }
             delay(1500)
-            withContext(Dispatchers.Main) {
-                stream!!.getGlInterface().clearFilters()
-                stream!!.getGlInterface().addFilter(BroadcastCameraFit(3f / 4, width.toFloat() / height))
-            }
+            withContext(Dispatchers.Main) { stream!!.getGlInterface().setFilter(com.pedro.encoder.input.gl.render.filters.NoFilterRender()) }
             delay(300)
             withContext(Dispatchers.Main) { stream!!.requestKeyframe() }
             delay(1200)
@@ -70,16 +61,6 @@ internal suspend fun broadcastLogoSmoke(context: Context) {
                         check(Color.red(transparent) < 80) { "PNG transparency lost" }
                         val center = frame.getPixel(width / 2, height / 2)
                         check(if (time < 1_500_000) Color.blue(center) > 170 else Color.green(center) > 170) { "Source hidden by overlay" }
-                        if (time == 800_000L) {
-                            var left = width; var right = 0; var top = height; var bottom = 0
-                            for (y in 0 until height) for (x in 0 until width) {
-                                val p = frame.getPixel(x, y)
-                                if (Color.red(p) < 70 && Color.green(p) > 150 && Color.blue(p) > 150) {
-                                    left = minOf(left, x); right = maxOf(right, x); top = minOf(top, y); bottom = maxOf(bottom, y)
-                                }
-                            }
-                            check(right > left && kotlin.math.abs((right-left) - (bottom-top)) <= 8) { "Camera aspect distorted: ${right-left} x ${bottom-top}" }
-                        }
                     } finally { frame.recycle() }
                 }
             } finally { reader.release() }
