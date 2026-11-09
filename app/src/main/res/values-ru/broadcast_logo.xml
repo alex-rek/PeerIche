@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="broadcast_logo">"Логотип трансляции"</string>
+    <string name="broadcast_logo_hint">"Логотип виден в эфире и записи. Поддерживается прозрачность PNG. Размер и отступ задаются относительно короткой стороны кадра."</string>
+    <string name="broadcast_logo_choose">"Выбрать логотип"</string>
+    <string name="broadcast_logo_position">"Положение логотипа"</string>
+    <string name="broadcast_logo_size">"Размер логотипа"</string>
+    <string name="broadcast_logo_opacity">"Непрозрачность логотипа"</string>
+    <string name="broadcast_logo_margin">"Отступ логотипа"</string>
+    <string name="logo_top_left">"Слева сверху"</string>
+    <string name="logo_top_right">"Справа сверху"</string>
+    <string name="logo_bottom_left">"Слева снизу"</string>
+    <string name="logo_bottom_right">"Справа снизу"</string>
+</resources>

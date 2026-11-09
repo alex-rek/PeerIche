@@ -10,6 +10,24 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
+@Composable internal fun searchSortChoices() = listOf("-match" to uiText(R.string.ui_relevance_5278a3),
+    "-publishedAt" to uiText(R.string.ui_newest_first_a4f3b2), "-views" to uiText(R.string.ui_views_385ac8))
+
+@Composable internal fun SearchSortMenu(value: String, onChange: (String) -> Unit) {
+    var open by remember { mutableStateOf(false) }
+    val choices = searchSortChoices()
+    Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp), horizontalArrangement = Arrangement.End) {
+        Box {
+            TextButton(onClick = { open = true }) {
+                Text(uiText(R.string.home_sort_label, choices.firstOrNull { it.first == value }?.second ?: choices.first().second) + " ▾")
+            }
+            DropdownMenu(open, onDismissRequest = { open = false }) {
+                choices.forEach { (id, label) -> DropdownMenuItem(text = { Text(label) }, onClick = { open = false; onChange(id) }) }
+            }
+        }
+    }
+}
+
 @Composable internal fun searchSourceName(key: String): String = when (key) {
     "sepia" -> "Sepia Search"
     "peerseek" -> "PeerSeek"
@@ -60,7 +78,7 @@ import androidx.compose.ui.unit.dp
         item { SettingsSlider(uiText(R.string.ui_sufficient_results_64a8a1), options.searchEnough.toFloat(), 5f..100f) { value -> preferences.update { it.copy(searchEnough = value.toInt()) } } }
         item { SettingsSlider(uiText(R.string.ui_parallel_requests_34a8a3), options.searchParallel.toFloat(), 1f..6f) { value -> preferences.update { it.copy(searchParallel = value.toInt()) } } }
         item { SettingsSlider(uiText(R.string.ui_source_timeout_b4e594), options.searchTimeout.toFloat(), 3f..30f, uiText(R.string.ui_sec_56737f)) { value -> preferences.update { it.copy(searchTimeout = value.toInt()) } } }
-        item { SettingsChoice(uiText(R.string.ui_result_order_0b1c23), options.searchSort, listOf("-match" to uiText(R.string.ui_relevance_5278a3), "-publishedAt" to uiText(R.string.ui_newest_first_a4f3b2), "-views" to uiText(R.string.ui_views_385ac8))) { value -> preferences.update { it.copy(searchSort = value) } } }
+        item { SettingsChoice(uiText(R.string.ui_result_order_0b1c23), options.searchSort, searchSortChoices()) { value -> preferences.update { it.copy(searchSort = value) } } }
         item { SettingsChoice(uiText(R.string.ui_video_availability_69e650), options.availability, listOf("all" to uiText(R.string.ui_all_results_069caf), "unknown_or_available" to uiText(R.string.ui_hide_known_unavailable_videos_615b8f), "available_only" to uiText(R.string.ui_verified_playable_only_slower_a59030))) { value -> preferences.update { it.copy(availability = value) } } }
         item { SettingsToggle(uiText(R.string.ui_include_sensitive_content_9b8651), options.includeSensitive) { value -> preferences.update { it.copy(includeSensitive = value) } } }
         item { SettingsChoice(uiText(R.string.ui_sensitive_content_display_dc3750), options.sensitiveDisplay, listOf("hide" to uiText(R.string.ui_hide_929379), "blur" to uiText(R.string.ui_blur_thumbnails_1c7734), "warning" to uiText(R.string.ui_replace_thumbnail_with_warning_9eae35), "show" to uiText(R.string.ui_show_ab515c))) { value -> preferences.update { it.copy(sensitiveDisplay = value) } } }

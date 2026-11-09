@@ -38,6 +38,30 @@ class AccountOperationsTest {
         manager.initialize(); return manager to api
     }
     private fun route(op: AccountOperation) = op.segments.drop(2).joinToString("/")
+    @Test fun urlImportUsesAccountServerMultipartAndSelectedMetadata() = runBlocking {
+        val (manager, api) = setup()
+        api.handler = { op -> when (route(op)) {
+            "users/me" -> json("""{"videoChannels":[{"id":7,"name":"mine"}]}""")
+            "config" -> json("""{"import":{"videos":{"http":{"enabled":true}}}}""")
+            "users/me/video-quota-used" -> JsonObject()
+            "videos/imports" -> json("""{"video":{"uuid":"$uuid"}}""")
+            else -> error("Unexpected request")
+        } }
+        assertEquals(uuid, CreatorRepository(manager).importVideo("https://account.example|1", CreatorMetadata("Imported video", "", 7, 3), "https://media.example/watch?v=123"))
+        val write = api.calls.single { it.third.writes }
+        assertEquals("https://account.example", write.first)
+        assertEquals("POST", write.third.method); assertTrue(write.third.multipart)
+        assertEquals("https://media.example/watch?v=123", write.third.body!!.get("targetUrl").asString)
+        assertEquals(3, write.third.body!!.get("privacy").asInt)
+        assertEquals(7, write.third.body!!.get("channelId").asLong)
+    }
+    @Test fun disabledUrlImportNeverSendsPublication() = runBlocking {
+        val (manager, api) = setup()
+        api.handler = { op -> if (route(op) == "users/me") json("""{"videoChannels":[{"id":7,"name":"mine"}]}""") else JsonObject() }
+        try { CreatorRepository(manager).importVideo("https://account.example|1", CreatorMetadata("Imported video", "", 7, 3), "https://media.example/video.mp4"); fail() }
+        catch (failure: AuthFailure) { assertEquals("import_disabled", failure.reason) }
+        assertTrue(api.calls.none { it.third.writes })
+    }
     @Test fun queuedSubscriptionSurvivesStaleRefreshUntilServerConfirms() = runBlocking {
         val (manager, api) = setup()
         var confirmed = false

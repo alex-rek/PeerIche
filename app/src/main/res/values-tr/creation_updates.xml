@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="import_from_url">"URL’den yükle"</string>
+    <string name="import_video_url">"Video URL’si"</string>
+    <string name="import_url_hint">"Sunucu videoyu bu URL’den indirecek. İşleme sunucuda devam eder; sonucu Videolarınız bölümünde kontrol edin."</string>
+    <string name="import_disabled">"Bu sunucu URL’den video içe aktarmaya izin vermiyor."</string>
+    <string name="import_invalid_url">"Gömülü giriş bilgileri içermeyen bir HTTP veya HTTPS video URL’si girin."</string>
+    <string name="import_unknown">"İçe aktarma doğrulanamadı. Yeniden denemeden önce Videolarınız bölümünü kontrol edin."</string>
+</resources>

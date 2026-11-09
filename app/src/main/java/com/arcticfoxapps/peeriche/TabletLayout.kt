@@ -23,9 +23,10 @@ import coil.compose.AsyncImage
 
 internal fun tabletColumns(widthDp: Int): Int = if (widthDp >= 1100) 3 else 2
 
-@Composable internal fun TabletNavigation(page: String, collapsed: Boolean, authorized: Boolean = false, onNavigate: (String) -> Unit) {
+@Composable internal fun TabletNavigation(page: String, collapsed: Boolean, authorized: Boolean = false,
+    creationMode: String = "live", onCreationMode: (String) -> Unit = {}, onNavigate: (String) -> Unit) {
     Surface(color = MaterialTheme.colorScheme.surface) {
-        Column(Modifier.width(if (collapsed) 76.dp else 184.dp).fillMaxHeight().padding(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(Modifier.width(if (collapsed) 76.dp else 184.dp).fillMaxHeight().verticalScroll(rememberScrollState()).padding(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             listOf("Home" to R.string.home, "Search" to R.string.search, broadcastMenuDestination(authorized) to if (authorized) R.string.create else R.string.subscriptions, "You" to R.string.you).forEach { (destination, label) ->
                 val icon = when (destination) {
                     "Home" -> R.drawable.ic_nav_home
@@ -40,6 +41,19 @@ internal fun tabletColumns(widthDp: Int): Int = if (widthDp >= 1100) 3 else 2
                     Row(Modifier.fillMaxWidth().heightIn(min = 52.dp).padding(12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         Icon(painterResource(icon), stringResource(label), Modifier.size(24.dp))
                         if (!collapsed) Text(stringResource(label), maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.labelLarge)
+                    }
+                }
+            }
+            if (page == "Create" && authorized) {
+                HorizontalDivider(Modifier.padding(vertical = 12.dp))
+                creationModes.forEach { id ->
+                    Surface(onClick = { onCreationMode(id) }, shape = MaterialTheme.shapes.medium,
+                        color = if (creationMode == id) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface) {
+                        Row(Modifier.fillMaxWidth().heightIn(min = 52.dp).padding(12.dp), verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            Icon(creationModeIcon(id), uiText(creationModeLabel(id)), Modifier.size(24.dp))
+                            if (!collapsed) Text(uiText(creationModeLabel(id)), style = MaterialTheme.typography.labelLarge)
+                        }
                     }
                 }
             }

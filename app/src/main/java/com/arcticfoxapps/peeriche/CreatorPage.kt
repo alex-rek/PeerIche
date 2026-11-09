@@ -160,7 +160,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable internal fun CreatorEditor(owner: AccountSummary, capabilities: CreatorCapabilities, live: Boolean, uploads: VideoUploadCoordinator,
-    repository: CreatorRepository, onCreated: (String?) -> Unit, onClose: () -> Unit) {
+    repository: CreatorRepository, onCreated: (String?) -> Unit, onClose: () -> Unit, fromUrl: Boolean = false) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var file by remember { mutableStateOf<UploadFileInfo?>(null) }
@@ -168,6 +168,8 @@ import kotlinx.coroutines.launch
     var retained by remember { mutableStateOf(false) }
     DisposableEffect(Unit) { onDispose { if (!retained) { releaseUploadFile(context, file); releaseUploadFile(context, cover) } } }
     var title by remember { mutableStateOf("") }
+    var importUrl by remember { mutableStateOf("") }
+    val validUrl = !fromUrl || runCatching { validatedImportUrl(importUrl) }.isSuccess
     var description by remember { mutableStateOf("") }
     var channel by remember { mutableStateOf(capabilities.channels.firstOrNull()) }
     var privacy by remember { mutableIntStateOf(3) }
@@ -202,9 +204,16 @@ import kotlinx.coroutines.launch
     } }
     ModalBottomSheet(onDismissRequest = { if (!busy) onClose() }, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
         Column(Modifier.align(Alignment.CenterHorizontally).widthIn(max = 720.dp).fillMaxWidth().fillMaxHeight(.94f).imePadding().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text(uiText(if (live) R.string.ui_create_live_for_obs_3e8e4f else R.string.ui_upload_video_a6dd28), style = MaterialTheme.typography.titleLarge)
+            Text(uiText(if (fromUrl) R.string.import_from_url else if (live) R.string.ui_create_live_for_obs_3e8e4f else R.string.ui_upload_video_a6dd28), style = MaterialTheme.typography.titleLarge)
             Text("${owner.username}@${java.net.URI(owner.server).authority}", style = MaterialTheme.typography.bodySmall)
-            if (!live) {
+            if (fromUrl) {
+                OutlinedTextField(importUrl, { importUrl = it }, enabled = !busy, singleLine = true,
+                    label = { Text(uiText(R.string.import_video_url)) }, isError = importUrl.isNotBlank() && !validUrl,
+                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Uri),
+                    modifier = Modifier.fillMaxWidth())
+                Text(uiText(R.string.import_url_hint), style = MaterialTheme.typography.bodySmall)
+            }
+            if (!live && !fromUrl) {
                 OutlinedButton(enabled = !busy, onClick = { picker.launch(arrayOf("video/*")) }) { Text(file?.name ?: uiText(R.string.ui_choose_video_71bb7b)) }
                 file?.let { Text(formatBytes(it.size), style = MaterialTheme.typography.bodySmall) }
                 OutlinedButton(enabled = !busy, onClick = { coverPicker.launch(arrayOf("image/jpeg", "image/png", "image/webp")) }) { Text(cover?.name ?: uiText(R.string.ui_choose_cover_optional_9a60e9)) }
@@ -232,12 +241,15 @@ import kotlinx.coroutines.launch
             error?.let { Text(creatorErrorText(it), color = MaterialTheme.colorScheme.error) }
             if (busy) LinearProgressIndicator(Modifier.fillMaxWidth())
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(enabled = !busy && title.trim().length in 3..120 && description.length <= 10000 && channel != null && (live || file != null), onClick = {
+                Button(enabled = !busy && title.trim().length in 3..120 && description.length <= 10000 && channel != null && validUrl && (live || fromUrl || file != null), onClick = {
                     busy = true; error = null
                     scope.launch {
                         try {
                             val metadata = CreatorMetadata(title, description, channel!!.id, privacy, nsfw)
-                            if (live) {
+                            if (fromUrl) {
+                                repository.importVideo(owner.id, metadata, importUrl)
+                                onCreated(null)
+                            } else if (live) {
                                 val uuid = repository.createLive(owner.id, metadata, replay, permanent)
                                 onCreated(uuid)
                             } else {
@@ -254,7 +266,8 @@ import kotlinx.coroutines.launch
                                 } finally { onCreated(null) }
                             }
                         } catch (cancelled: CancellationException) { throw cancelled }
-                        catch (failure: Exception) { error = if (live && (failure !is AuthFailure || failure.status >= 500 || failure.reason == "invalid_response")) "live_create_unknown" else accountErrorCode(failure) }
+                        catch (failure: Exception) { error = if (fromUrl && (failure !is AuthFailure || failure.status >= 500 || failure.reason == "invalid_response")) "import_unknown"
+                            else if (live && (failure !is AuthFailure || failure.status >= 500 || failure.reason == "invalid_response")) "live_create_unknown" else accountErrorCode(failure) }
                         finally { busy = false }
                     }
                 }) { Text(uiText(if (live) R.string.ui_create_live_2cf7bd else R.string.ui_upload_b4fcd7)) }
@@ -332,6 +345,9 @@ internal fun formatBytes(value: Long): String = when {
     "cancelling" -> uiText(R.string.ui_cancelling_6a8032); else -> uiText(R.string.ui_upload_stopped_86c348)
 }
 @Composable internal fun creatorErrorText(reason: String): String = when (reason) {
+    "invalid_import_url" -> uiText(R.string.import_invalid_url)
+    "import_disabled" -> uiText(R.string.import_disabled)
+    "import_unknown" -> uiText(R.string.import_unknown)
     "upload_response", "invalid_response" -> uiText(R.string.ui_could_not_read_the_server_publication_resp_afcf21)
     "invalid_description", "publication_description" -> uiText(R.string.ui_leave_the_description_empty_or_enter_3_to_b7e8f0)
     "publication_parameters" -> uiText(R.string.ui_the_server_rejected_the_publication_parame_022749)

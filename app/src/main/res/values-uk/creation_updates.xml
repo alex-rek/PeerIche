@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="import_from_url">"Завантаження з URL"</string>
+    <string name="import_video_url">"URL відео"</string>
+    <string name="import_url_hint">"Сервер завантажить відео за цим посиланням. Обробка триватиме на сервері; результат з’явиться в розділі «Ваші відео»."</string>
+    <string name="import_disabled">"Цей сервер не дозволяє завантажувати відео з URL."</string>
+    <string name="import_invalid_url">"Введіть HTTP- або HTTPS-посилання на відео без вбудованих облікових даних."</string>
+    <string name="import_unknown">"Не вдалося підтвердити імпорт. Перед повторною спробою перевірте розділ «Ваші відео»."</string>
+</resources>

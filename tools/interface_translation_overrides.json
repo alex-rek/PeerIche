@@ -982,5 +982,141 @@
     "Usar o idioma da interface",
     "Arayüz diliyle aynı",
     "Як мова інтерфейсу"
+  ],
+  "Upload from URL": [
+    "Subir desde URL",
+    "Importer depuis une URL",
+    "Von URL hochladen",
+    "Enviar a partir de URL",
+    "URL’den yükle",
+    "Завантаження з URL"
+  ],
+  "Video URL": [
+    "URL del vídeo",
+    "URL de la vidéo",
+    "Video-URL",
+    "URL do vídeo",
+    "Video URL’si",
+    "URL відео"
+  ],
+  "The server downloads the video from this URL. Processing continues on the server; check Your videos for the result.": [
+    "El servidor descargará el vídeo desde esta URL. El procesamiento continúa en el servidor; consulta Tus vídeos para ver el resultado.",
+    "Le serveur téléchargera la vidéo depuis cette URL. Le traitement continue sur le serveur ; consultez Vos vidéos pour voir le résultat.",
+    "Der Server lädt das Video von dieser URL herunter. Die Verarbeitung läuft auf dem Server weiter; das Ergebnis findest du unter Deine Videos.",
+    "O servidor irá transferir o vídeo deste URL. O processamento continua no servidor; consulte Os seus vídeos para ver o resultado.",
+    "Sunucu videoyu bu URL’den indirecek. İşleme sunucuda devam eder; sonucu Videolarınız bölümünde kontrol edin.",
+    "Сервер завантажить відео за цим посиланням. Обробка триватиме на сервері; результат з’явиться в розділі «Ваші відео»."
+  ],
+  "This server does not allow video imports from URLs.": [
+    "Este servidor no permite importar vídeos desde URL.",
+    "Ce serveur ne permet pas d’importer des vidéos depuis une URL.",
+    "Dieser Server erlaubt keinen Videoimport von URLs.",
+    "Este servidor não permite importar vídeos a partir de URLs.",
+    "Bu sunucu URL’den video içe aktarmaya izin vermiyor.",
+    "Цей сервер не дозволяє завантажувати відео з URL."
+  ],
+  "Enter an HTTP or HTTPS video URL without embedded login details.": [
+    "Introduce una URL HTTP o HTTPS de vídeo sin credenciales de acceso.",
+    "Saisissez une URL vidéo HTTP ou HTTPS sans identifiants intégrés.",
+    "Gib eine HTTP- oder HTTPS-Video-URL ohne eingebettete Anmeldedaten ein.",
+    "Introduza um URL de vídeo HTTP ou HTTPS sem credenciais de acesso.",
+    "Gömülü giriş bilgileri içermeyen bir HTTP veya HTTPS video URL’si girin.",
+    "Введіть HTTP- або HTTPS-посилання на відео без вбудованих облікових даних."
+  ],
+  "The import could not be confirmed. Check Your videos before trying again.": [
+    "No se pudo confirmar la importación. Comprueba Tus vídeos antes de volver a intentarlo.",
+    "L’importation n’a pas pu être confirmée. Consultez Vos vidéos avant de réessayer.",
+    "Der Import konnte nicht bestätigt werden. Prüfe Deine Videos, bevor du es erneut versuchst.",
+    "Não foi possível confirmar a importação. Verifique Os seus vídeos antes de tentar novamente.",
+    "İçe aktarma doğrulanamadı. Yeniden denemeden önce Videolarınız bölümünü kontrol edin.",
+    "Не вдалося підтвердити імпорт. Перед повторною спробою перевірте розділ «Ваші відео»."
+  ],
+  "Broadcast logo": [
+    "Logotipo de la emisión",
+    "Logo de diffusion",
+    "Übertragungslogo",
+    "Logótipo da transmissão",
+    "Yayın logosu",
+    "Логотип трансляції"
+  ],
+  "The logo appears in the broadcast and recording. PNG transparency is supported. Size and margin are relative to the shorter frame edge.": [
+    "El logotipo aparece en la emisión y la grabación. Se admite transparencia PNG. El tamaño y el margen se calculan respecto al lado corto del fotograma.",
+    "Le logo apparaît dans la diffusion et l’enregistrement. La transparence PNG est prise en charge. La taille et la marge sont relatives au côté court de l’image.",
+    "Das Logo erscheint in der Übertragung und Aufnahme. PNG-Transparenz wird unterstützt. Größe und Abstand beziehen sich auf die kürzere Bildkante.",
+    "O logótipo aparece na transmissão e na gravação. Suporta transparência PNG. O tamanho e a margem são relativos ao lado mais curto da imagem.",
+    "Logo yayında ve kayıtta görünür. PNG saydamlığı desteklenir. Boyut ve kenar boşluğu, karenin kısa kenarına göredir.",
+    "Логотип видно в ефірі та записі. Підтримується прозорість PNG. Розмір і відступ задаються відносно короткої сторони кадру."
+  ],
+  "Choose logo": [
+    "Elegir logotipo",
+    "Choisir un logo",
+    "Logo auswählen",
+    "Escolher logótipo",
+    "Logo seç",
+    "Вибрати логотип"
+  ],
+  "Logo position": [
+    "Posición del logotipo",
+    "Position du logo",
+    "Logoposition",
+    "Posição do logótipo",
+    "Logo konumu",
+    "Положення логотипа"
+  ],
+  "Logo size": [
+    "Tamaño del logotipo",
+    "Taille du logo",
+    "Logogröße",
+    "Tamanho do logótipo",
+    "Logo boyutu",
+    "Розмір логотипа"
+  ],
+  "Logo opacity": [
+    "Opacidad del logotipo",
+    "Opacité du logo",
+    "Logodeckkraft",
+    "Opacidade do logótipo",
+    "Logo opaklığı",
+    "Непрозорість логотипа"
+  ],
+  "Logo margin": [
+    "Margen del logotipo",
+    "Marge du logo",
+    "Logoabstand",
+    "Margem do logótipo",
+    "Logo kenar boşluğu",
+    "Відступ логотипа"
+  ],
+  "Top left": [
+    "Arriba a la izquierda",
+    "En haut à gauche",
+    "Oben links",
+    "Superior esquerdo",
+    "Sol üst",
+    "Зліва вгорі"
+  ],
+  "Top right": [
+    "Arriba a la derecha",
+    "En haut à droite",
+    "Oben rechts",
+    "Superior direito",
+    "Sağ üst",
+    "Справа вгорі"
+  ],
+  "Bottom left": [
+    "Abajo a la izquierda",
+    "En bas à gauche",
+    "Unten links",
+    "Inferior esquerdo",
+    "Sol alt",
+    "Зліва внизу"
+  ],
+  "Bottom right": [
+    "Abajo a la derecha",
+    "En bas à droite",
+    "Unten rechts",
+    "Inferior direito",
+    "Sağ alt",
+    "Справа внизу"
   ]
 }

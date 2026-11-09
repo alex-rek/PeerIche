@@ -36,7 +36,19 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-@Composable internal fun CreatePage(onClose: () -> Unit, onVideos: () -> Unit) {
+internal val creationModes = listOf("upload", "live", "settings")
+internal fun creationModeLabel(mode: String) = when (mode) {
+    "upload" -> R.string.ui_upload_video_504c7b
+    "settings" -> R.string.ui_channel_settings_079a60
+    else -> R.string.ui_broadcast_84c258
+}
+internal fun creationModeIcon(mode: String) = when (mode) {
+    "upload" -> Icons.Default.Upload
+    "settings" -> Icons.Default.ManageAccounts
+    else -> Icons.Default.Videocam
+}
+
+@Composable internal fun CreatePage(mode: String, onMode: (String) -> Unit, wide: Boolean, onClose: () -> Unit, onVideos: () -> Unit) {
     val context = LocalContext.current
     val accounts = remember { PeerTubeAccounts.get(context) }
     val accountState by accounts.state.collectAsState()
@@ -47,17 +59,16 @@ import kotlinx.coroutines.launch
             TextButton(onClick = onClose) { Text(uiText(R.string.ui_home_9dd0b3)) }
         }; return
     }
-    key(owner.id) { CreationHub(owner, accounts, onClose, onVideos) }
+    key(owner.id) { CreationHub(owner, accounts, mode, onMode, wide, onClose, onVideos) }
 }
 
-@Composable private fun CreationHub(owner: AccountSummary, accounts: AccountSessionManager, onClose: () -> Unit, onVideos: () -> Unit) {
+@Composable private fun CreationHub(owner: AccountSummary, accounts: AccountSessionManager, mode: String, onMode: (String) -> Unit, wide: Boolean, onClose: () -> Unit, onVideos: () -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val repository = remember { CreatorRepository(accounts) }
     val preferences = remember { BroadcastPreferences(context) }
     val controller = remember { Broadcasts.get(context) }
     val stream by controller.state.collectAsState()
-    var mode by rememberSaveable { mutableStateOf("live") }
     var capabilities by remember { mutableStateOf<CreatorCapabilities?>(null) }
     var error by remember { mutableStateOf<String?>(null) }
     var retry by remember { mutableIntStateOf(0) }
@@ -69,7 +80,7 @@ import kotlinx.coroutines.launch
     }
     Column(Modifier.fillMaxSize()) {
         if (mode != "live") Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = { if (stream.busy) mode = "live" else onClose() }) { Icon(if (stream.busy) Icons.Default.Videocam else Icons.Default.Close, uiText(R.string.ui_close_641636)) }
+            IconButton(onClick = { if (stream.busy) onMode("live") else onClose() }) { Icon(if (stream.busy) Icons.Default.Videocam else Icons.Default.Close, uiText(R.string.ui_close_641636)) }
             Text(uiText(R.string.ui_create_514e39), style = MaterialTheme.typography.titleMedium)
         }
         error?.let { Text(broadcastErrorText(it), Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.error); TextButton(onClick = { retry++ }) { Text(uiText(R.string.ui_retry_e8368b)) } }
@@ -78,19 +89,18 @@ import kotlinx.coroutines.launch
             when (mode) {
                 "upload" -> UploadCreationPage(owner, capabilities, repository, onVideos)
                 "settings" -> BroadcastChannelSettings(owner, capabilities, repository, preferences, controller) { retry++ }
-                else -> PhoneBroadcastPage(owner, capabilities, repository, preferences, controller, onClose, onSettings = { mode = "settings" })
+                else -> PhoneBroadcastPage(owner, capabilities, repository, preferences, controller, onClose, onSettings = { onMode("settings") })
             }
         }
-        if (stream.busy && mode != "live") TextButton(onClick = { mode = "live" }, modifier = Modifier.fillMaxWidth()) { Text(uiText(R.string.ui_return_to_broadcast_fef56e)) }
-        Surface(color = MaterialTheme.colorScheme.surface) {
-            Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                listOf("upload" to uiText(R.string.ui_upload_video_504c7b), "live" to uiText(R.string.ui_broadcast_84c258), "settings" to uiText(R.string.ui_channel_settings_079a60)).forEach { (id, label) ->
-                    FilterChip(selected = mode == id, onClick = { mode = id }, label = { Text(label, maxLines = 1) })
-                }
+        if (stream.busy && mode != "live") TextButton(onClick = { onMode("live") }, modifier = Modifier.fillMaxWidth()) { Text(uiText(R.string.ui_return_to_broadcast_fef56e)) }
+        if (!wide) NavigationBar(containerColor = MaterialTheme.colorScheme.surface, tonalElevation = 8.dp) {
+            creationModes.forEach { id ->
+                NavigationBarItem(selected = mode == id, onClick = { onMode(id) },
+                    icon = { Icon(creationModeIcon(id), null) }, label = { Text(uiText(creationModeLabel(id)), maxLines = 2) })
             }
         }
     }
-    BackHandler(stream.busy && mode != "live") { mode = "live" }
+    BackHandler(stream.busy && mode != "live") { onMode("live") }
 }
 
 @Composable private fun UploadCreationPage(owner: AccountSummary, capabilities: CreatorCapabilities?, repository: CreatorRepository, onVideos: () -> Unit) {
@@ -98,13 +108,18 @@ import kotlinx.coroutines.launch
     val uploads = remember { VideoUploads.get(context) }
     val draft by uploads.state.collectAsState()
     var editor by remember { mutableStateOf(false) }
+    var urlEditor by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(Unit) { try { uploads.initialize() } catch (failure: Exception) { error = accountErrorCode(failure) } }
-    Column(Modifier.widthIn(max = 720.dp).fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+    Column(Modifier.widthIn(max = 720.dp).fillMaxWidth().verticalScroll(rememberScrollState()).padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
         Icon(Icons.Default.VideoLibrary, null, Modifier.size(48.dp), tint = MaterialTheme.colorScheme.primary)
         Text(uiText(R.string.ui_upload_video_504c7b), style = MaterialTheme.typography.headlineSmall)
         Text(uiText(R.string.ui_choose_a_video_on_your_device_its_channel_7a7d31))
         Button(enabled = capabilities != null && draft == null, onClick = { editor = true }) { Text(uiText(R.string.ui_choose_video_71bb7b)) }
+        OutlinedButton(enabled = capabilities?.httpImport == true, onClick = { urlEditor = true }) {
+            Icon(Icons.Default.Link, null, Modifier.size(20.dp)); Spacer(Modifier.width(8.dp)); Text(uiText(R.string.import_from_url))
+        }
+        if (capabilities != null && !capabilities.httpImport) Text(uiText(R.string.import_disabled), style = MaterialTheme.typography.bodySmall)
         draft?.let { task ->
             Text(if (task.accountId == owner.id) task.metadata.name else uiText(R.string.ui_another_account_has_an_upload_task_ce4ce5))
             if (task.accountId == owner.id) LinearProgressIndicator(progress = { (task.offset.toDouble() / task.file.size).toFloat().coerceIn(0f, 1f) }, modifier = Modifier.fillMaxWidth())
@@ -113,6 +128,8 @@ import kotlinx.coroutines.launch
         TextButton(onClick = onVideos) { Text(uiText(R.string.ui_your_videos_and_upload_tasks_65de76)) }
     }
     if (editor && capabilities != null) CreatorEditor(owner, capabilities, false, uploads, repository, onCreated = { editor = false; onVideos() }, onClose = { editor = false })
+    if (urlEditor && capabilities != null) CreatorEditor(owner, capabilities, false, uploads, repository,
+        onCreated = { urlEditor = false; onVideos() }, onClose = { urlEditor = false }, fromUrl = true)
 }
 
 @Composable private fun PhoneBroadcastPage(owner: AccountSummary, capabilities: CreatorCapabilities?, repository: CreatorRepository, preferences: BroadcastPreferences,
@@ -275,6 +292,18 @@ import kotlinx.coroutines.launch
     var busy by remember { mutableStateOf(false) }; var error by remember { mutableStateOf<String?>(null) }; var saved by remember { mutableStateOf(false) }
     var channelGeneration by remember { mutableIntStateOf(0) }
     var customImage by remember { mutableStateOf(preferences.hasImage(owner.id)) }
+    var customLogo by remember { mutableStateOf(preferences.hasLogo(owner.id)) }
+    fun saveLogoOptions(value: BroadcastOptions) {
+        options = value
+        preferences.save(owner.id, preferences.get(owner.id).copy(logoEnabled = value.logoEnabled, logoCorner = value.logoCorner,
+            logoSize = value.logoSize, logoOpacity = value.logoOpacity, logoMargin = value.logoMargin))
+        controller.refreshLogo(owner)
+    }
+    val logoPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri -> if (uri != null) scope.launch {
+        try { preferences.saveLogo(owner.id, uri); customLogo = true; saveLogoOptions(options.copy(logoEnabled = true)) }
+        catch (cancelled: CancellationException) { throw cancelled }
+        catch (failure: Exception) { error = accountErrorCode(failure) }
+    } }
     val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri -> if (uri != null) scope.launch {
         try { preferences.saveImage(owner.id, uri); customImage = true; controller.refreshSlate(owner) }
         catch (cancelled: CancellationException) { throw cancelled }
@@ -318,6 +347,24 @@ import kotlinx.coroutines.launch
         Text(if (customImage) uiText(R.string.ui_custom_image_selected_5d7182) else uiText(R.string.ui_account_avatar_or_user_initials_a1dfdc))
         OutlinedButton(onClick = { imagePicker.launch("image/*") }) { Text(uiText(R.string.ui_choose_image_4cd057)) }
         if (customImage) TextButton(onClick = { scope.launch { preferences.removeImage(owner.id); customImage = false; controller.refreshSlate(owner) } }) { Text(uiText(R.string.ui_use_avatar_a723a9)) }
+        HorizontalDivider()
+        Text(uiText(R.string.broadcast_logo), style = MaterialTheme.typography.titleMedium)
+        Text(uiText(R.string.broadcast_logo_hint), style = MaterialTheme.typography.bodySmall)
+        OutlinedButton(onClick = { logoPicker.launch("image/*") }) { Text(uiText(R.string.broadcast_logo_choose)) }
+        SettingsToggle(uiText(R.string.broadcast_logo), options.logoEnabled && customLogo) { enabled ->
+            if (customLogo) saveLogoOptions(options.copy(logoEnabled = enabled)) else logoPicker.launch("image/*")
+        }
+        if (customLogo) {
+            SettingsChoice(uiText(R.string.broadcast_logo_position), options.logoCorner, listOf(
+                "top_left" to uiText(R.string.logo_top_left), "top_right" to uiText(R.string.logo_top_right),
+                "bottom_left" to uiText(R.string.logo_bottom_left), "bottom_right" to uiText(R.string.logo_bottom_right))) { saveLogoOptions(options.copy(logoCorner = it)) }
+            SettingsSlider(uiText(R.string.broadcast_logo_size), options.logoSize.toFloat(), 5f..40f, "%") { saveLogoOptions(options.copy(logoSize = it.toInt())) }
+            SettingsSlider(uiText(R.string.broadcast_logo_opacity), options.logoOpacity.toFloat(), 10f..100f, "%") { saveLogoOptions(options.copy(logoOpacity = it.toInt())) }
+            SettingsSlider(uiText(R.string.broadcast_logo_margin), options.logoMargin.toFloat(), 0f..12f, "%") { saveLogoOptions(options.copy(logoMargin = it.toInt())) }
+            TextButton(onClick = { scope.launch {
+                preferences.removeLogo(owner.id); customLogo = false; saveLogoOptions(options.copy(logoEnabled = false))
+            } }) { Text(uiText(R.string.ui_delete_423009)) }
+        }
         if (stream.busy) Text(uiText(R.string.ui_frame_size_and_quality_can_be_changed_befo_eeda5d), style = MaterialTheme.typography.bodySmall)
         if (busy) LinearProgressIndicator(Modifier.fillMaxWidth())
         error?.let { Text(broadcastErrorText(it), color = MaterialTheme.colorScheme.error) }

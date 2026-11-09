@@ -202,6 +202,7 @@ class MainActivity : ComponentActivity() {
     var homeRefreshing by remember { mutableStateOf(false) }
     var homeJob by remember { mutableStateOf<kotlinx.coroutines.Job?>(null) }
     var page by rememberSaveable { mutableStateOf("Home") }
+    var creationMode by rememberSaveable { mutableStateOf("live") }
     val availableServers = remember(serverList) { serverList.lines().mapNotNull { runCatching { normalizeServer(it) }.getOrNull() }.distinct() }
     val server = remember(serverList, activeServerSetting) { activeServerSetting.takeIf { it in availableServers } ?: availableServers.firstOrNull() ?: "https://peertube.tv" }
     var videos by remember { mutableStateOf(emptyList<Video>()) }
@@ -372,7 +373,7 @@ class MainActivity : ComponentActivity() {
             try {
                 val response = ConfiguredSearch.search(context, searchTerm, sources, server, pageToLoad, options)
                 if (generation == searchGeneration) {
-                    videos = if (pageToLoad == 0) response.videos else deduplicateVideos(videos + response.videos, server)
+                    videos = sortSearchVideos(if (pageToLoad == 0) response.videos else videos + response.videos, options.searchSort, server)
                     resultPage = pageToLoad
                     hasMoreResults = response.hasMore
                     if (videos.isEmpty()) error = context.getString(R.string.no_results)
@@ -593,10 +594,11 @@ class MainActivity : ComponentActivity() {
             loadBrowse()
         }
     }
-    LaunchedEffect(query, serverList) { searchGridState.scrollToItem(0) }
+    LaunchedEffect(query, serverList, options.searchSort) { searchGridState.scrollToItem(0) }
     val searchSettingsKey = listOf(options.searchSources, options.searchOrder, options.searchMode, options.searchEnough, options.searchParallel, options.searchTimeout, options.customIndexes, options.availability, options.includeSensitive, options.sensitiveDisplay, options.searchSort).hashCode()
     LaunchedEffect(page, query, serverList, searchSettingsKey) {
         if (page == "Search") {
+            searchGeneration++; searchJob?.cancel(); hasMoreResults = false
             if (query.isBlank()) searchNow()
             else { delay(450); searchNow(0) }
         }
@@ -688,7 +690,8 @@ class MainActivity : ComponentActivity() {
             }
         }) { insets ->
             Row(Modifier.fillMaxSize().padding(insets)) {
-                if (wideLayout && !tabletFullscreen) TabletNavigation(page, collapsed = showVideo || LocalConfiguration.current.screenWidthDp < 840, authorized = selectedAccount != null && !selectedAccount.needsLogin) { destination ->
+                if (wideLayout && !tabletFullscreen) TabletNavigation(page, collapsed = showVideo || LocalConfiguration.current.screenWidthDp < 840, authorized = selectedAccount != null && !selectedAccount.needsLogin,
+                    creationMode = creationMode, onCreationMode = { creationMode = it }) { destination ->
                     if (destination == "Create") closePlayer()
                     tabletBrowsing = selectedVideo != null
                     navigateTo(destination)
@@ -734,6 +737,7 @@ class MainActivity : ComponentActivity() {
                             label = { Text(stringResource(R.string.search_hint)) },
                             colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = colors.primary, unfocusedBorderColor = colors.outlineVariant, focusedLabelColor = colors.primary)
                         )
+                        SearchSortMenu(options.searchSort) { value -> AppPreferences.get(context).update { it.copy(searchSort = value) } }
                     }
                     if (page == "Subscriptions") SubscriptionSourceMenu(selectedAccount, deviceSubscriptions,
                         onDevice = { deviceSubscriptions = it }, onRefresh = {
@@ -803,7 +807,8 @@ class MainActivity : ComponentActivity() {
                         if (page == "Server") TextButton(onClick = { settingsSection = "servers"; settingsOpen = true }) { Text(stringResource(R.string.choose_peer_server)) }
                     }
                     if (page == "Create") {
-                        CreatePage(onClose = { navigateTo("Home") }, onVideos = { navigateTo("You"); openYouSection(YouSection.Videos) })
+                        CreatePage(mode = creationMode, onMode = { creationMode = it }, wide = wideLayout,
+                            onClose = { navigateTo("Home") }, onVideos = { navigateTo("You"); openYouSection(YouSection.Videos) })
                     } else if (page == "You" && youSection == YouSection.Menu) {
                         YouPage(server, onOpenSection = ::openYouSection, onSettings = { settingsSection = null; settingsOpen = true },
                             onAccountServer = { host -> scope.launch { useAccountServer(context, host) } })

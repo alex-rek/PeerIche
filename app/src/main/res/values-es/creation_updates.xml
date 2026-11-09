@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="import_from_url">"Subir desde URL"</string>
+    <string name="import_video_url">"URL del vídeo"</string>
+    <string name="import_url_hint">"El servidor descargará el vídeo desde esta URL. El procesamiento continúa en el servidor; consulta Tus vídeos para ver el resultado."</string>
+    <string name="import_disabled">"Este servidor no permite importar vídeos desde URL."</string>
+    <string name="import_invalid_url">"Introduce una URL HTTP o HTTPS de vídeo sin credenciales de acceso."</string>
+    <string name="import_unknown">"No se pudo confirmar la importación. Comprueba Tus vídeos antes de volver a intentarlo."</string>
+</resources>

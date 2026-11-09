@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="import_from_url">"העלאה מכתובת URL"</string>
+    <string name="import_video_url">"כתובת הסרטון"</string>
+    <string name="import_url_hint">"השרת יוריד את הסרטון מכתובת זו. העיבוד נמשך בשרת; אפשר לבדוק את התוצאה בסרטונים שלך."</string>
+    <string name="import_disabled">"שרת זה אינו מאפשר ייבוא סרטונים מכתובות URL."</string>
+    <string name="import_invalid_url">"יש להזין כתובת סרטון מסוג HTTP או HTTPS ללא פרטי התחברות מוטמעים."</string>
+    <string name="import_unknown">"לא ניתן לאשר את הייבוא. יש לבדוק בסרטונים שלך לפני ניסיון נוסף."</string>
+</resources>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="broadcast_logo">"Yayın logosu"</string>
+    <string name="broadcast_logo_hint">"Logo yayında ve kayıtta görünür. PNG saydamlığı desteklenir. Boyut ve kenar boşluğu, karenin kısa kenarına göredir."</string>
+    <string name="broadcast_logo_choose">"Logo seç"</string>
+    <string name="broadcast_logo_position">"Logo konumu"</string>
+    <string name="broadcast_logo_size">"Logo boyutu"</string>
+    <string name="broadcast_logo_opacity">"Logo opaklığı"</string>
+    <string name="broadcast_logo_margin">"Logo kenar boşluğu"</string>
+    <string name="logo_top_left">"Sol üst"</string>
+    <string name="logo_top_right">"Sağ üst"</string>
+    <string name="logo_bottom_left">"Sol alt"</string>
+    <string name="logo_bottom_right">"Sağ alt"</string>
+</resources>

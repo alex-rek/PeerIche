@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="broadcast_logo">"לוגו השידור"</string>
+    <string name="broadcast_logo_hint">"הלוגו מופיע בשידור ובהקלטה. נתמכת שקיפות PNG. הגודל והשוליים יחסיים לצלע הקצרה של המסגרת."</string>
+    <string name="broadcast_logo_choose">"בחירת לוגו"</string>
+    <string name="broadcast_logo_position">"מיקום הלוגו"</string>
+    <string name="broadcast_logo_size">"גודל הלוגו"</string>
+    <string name="broadcast_logo_opacity">"אטימות הלוגו"</string>
+    <string name="broadcast_logo_margin">"שולי הלוגו"</string>
+    <string name="logo_top_left">"למעלה משמאל"</string>
+    <string name="logo_top_right">"למעלה מימין"</string>
+    <string name="logo_bottom_left">"למטה משמאל"</string>
+    <string name="logo_bottom_right">"למטה מימין"</string>
+</resources>

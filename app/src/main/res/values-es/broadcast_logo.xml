@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="broadcast_logo">"Logotipo de la emisión"</string>
+    <string name="broadcast_logo_hint">"El logotipo aparece en la emisión y la grabación. Se admite transparencia PNG. El tamaño y el margen se calculan respecto al lado corto del fotograma."</string>
+    <string name="broadcast_logo_choose">"Elegir logotipo"</string>
+    <string name="broadcast_logo_position">"Posición del logotipo"</string>
+    <string name="broadcast_logo_size">"Tamaño del logotipo"</string>
+    <string name="broadcast_logo_opacity">"Opacidad del logotipo"</string>
+    <string name="broadcast_logo_margin">"Margen del logotipo"</string>
+    <string name="logo_top_left">"Arriba a la izquierda"</string>
+    <string name="logo_top_right">"Arriba a la derecha"</string>
+    <string name="logo_bottom_left">"Abajo a la izquierda"</string>
+    <string name="logo_bottom_right">"Abajo a la derecha"</string>
+</resources>

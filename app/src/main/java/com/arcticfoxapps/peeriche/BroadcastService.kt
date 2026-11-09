@@ -32,6 +32,7 @@ internal class BroadcastCoordinator(private val context: Context, private val ac
     private var preparation: Job? = null
     private var publication: Job? = null
     private var timeout: Job? = null
+    private var logoUpdate: Job? = null
     private var owner: AccountSummary? = null
     init { scope.launch { accounts.state.collect { current ->
         val activeOwner = mutable.value.accountId
@@ -74,6 +75,7 @@ internal class BroadcastCoordinator(private val context: Context, private val ac
                 if (options.cameraOff) stream.setOrientation(0)
                 mutable.value = state.value.copy(phase = "preview", actualWidth = if (options.portrait) size.height else size.width, actualHeight = if (options.portrait) size.width else size.height)
                 attachAvailableSurface()
+                refreshLogo(account)
             } catch (cancelled: CancellationException) { throw cancelled }
             catch (failure: Exception) { if (token == generation) stop(if (failure is AuthFailure) failure.reason else "broadcast_camera") }
         }
@@ -102,6 +104,7 @@ internal class BroadcastCoordinator(private val context: Context, private val ac
         if (!stream.isOnPreview && state.value.phase in listOf("preview", "creating", "connecting", "live") && surfaceWidth > 0 && surfaceHeight > 0) {
             try { stream.startPreview(output, surfaceWidth, surfaceHeight) }
             catch (_: Exception) { stop("broadcast_camera") }
+            owner?.let { refreshLogo(it) }
         }
     }
     fun detach() {
@@ -172,6 +175,29 @@ internal class BroadcastCoordinator(private val context: Context, private val ac
             catch (_: Exception) { if (token == generation) mutable.value = state.value.copy(error = "invalid_cover") }
         }
     }
+    fun refreshLogo(account: AccountSummary) {
+        if (owner?.id != account.id || accounts.state.value.activeId != account.id) return
+        logoUpdate?.cancel()
+        val token = generation
+        val stream = engine ?: return
+        val current = preferences.get(account.id)
+        val options = state.value.options.copy(logoEnabled = current.logoEnabled, logoCorner = current.logoCorner,
+            logoSize = current.logoSize, logoOpacity = current.logoOpacity, logoMargin = current.logoMargin)
+        val width = state.value.actualWidth; val height = state.value.actualHeight
+        mutable.value = state.value.copy(options = options)
+        logoUpdate = scope.launch {
+            try {
+                val filter = withContext(Dispatchers.IO) {
+                    val image = if (options.logoEnabled) preferences.logo(account.id) else null
+                    try { image?.let { broadcastLogoFilter(it, width, height, options) } }
+                    finally { image?.recycle() }
+                }
+                if (token != generation || engine !== stream) return@launch
+                stream.getGlInterface().setFilter(filter ?: com.pedro.encoder.input.gl.render.filters.NoFilterRender())
+            } catch (cancelled: CancellationException) { throw cancelled }
+            catch (_: Exception) { if (token == generation) mutable.value = state.value.copy(error = "invalid_cover") }
+        }
+    }
     private fun saveOptions(options: BroadcastOptions) { owner?.let { preferences.save(it.id, options) } }
     fun begin(metadata: CreatorMetadata, replay: Boolean, existingUuid: String?) {
         if (state.value.phase != "preview" || engine == null || !permissionGranted()) return
@@ -214,7 +240,7 @@ internal class BroadcastCoordinator(private val context: Context, private val ac
         releaseEngine()
         mutable.value = state.value.copy(phase = if (reason == null) "stopped" else "error", error = reason, bitrate = 0, torch = false)
     }
-    private fun releaseEngine() { val previous = engine; engine = null; runCatching { previous?.release() }; slate = null }
+    private fun releaseEngine() { logoUpdate?.cancel(); val previous = engine; engine = null; runCatching { previous?.release() }; slate = null }
     internal fun close() { stop(); scope.cancel() }
 }
 internal object Broadcasts {

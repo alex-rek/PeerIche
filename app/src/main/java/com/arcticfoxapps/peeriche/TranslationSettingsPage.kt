@@ -21,7 +21,7 @@ import java.util.Locale
     return remember(locale) { TranslateLanguage.getAllLanguages().map { code -> code to Locale.forLanguageTag(code).getDisplayLanguage(locale) }.sortedBy { it.second } }
 }
 
-@Composable internal fun TranslationSettingsPage(options: AppOptions, preferences: AppPreferences) {
+@Composable internal fun TranslationSettingsPage(options: AppOptions, preferences: AppPreferences, onSpeech: () -> Unit) {
     val scope = rememberCoroutineScope()
     val languages = translationLanguages()
     var downloaded by remember { mutableStateOf(emptySet<String>()) }
@@ -41,6 +41,7 @@ import java.util.Locale
     LazyColumn(Modifier.fillMaxSize()) {
         item { SettingsToggle(uiText(R.string.ui_translate_titles_descriptions_and_comments_234bae), options.translateMetadata) { value -> preferences.update { it.copy(translateMetadata = value) } } }
         item { SettingsToggle(uiText(R.string.ui_translate_subtitles_92ac18), options.translateSubtitles) { value -> preferences.update { it.copy(translateSubtitles = value) } } }
+        item { SettingsRow(uiText(R.string.ui_subtitles_speech_ab081c), uiText(R.string.ui_voice_language_timing_and_original_audio_afa432), onClick = onSpeech) }
         item { SettingsChoice(uiText(R.string.ui_translation_language_401967), if (options.translationFollowsInterface) "" else options.translateTo,
             listOf("" to uiText(R.string.translation_follow_interface)) + languages) { value ->
             preferences.update { it.copy(translateTo = value.ifBlank { it.translateTo }, translationFollowsInterface = value.isBlank()) }

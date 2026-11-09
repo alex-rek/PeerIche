@@ -45,6 +45,7 @@ import java.util.Locale
     val preferences = remember { AppPreferences.get(context) }
     val options by preferences.options.collectAsState()
     var section by rememberSaveable { mutableStateOf(initialSection) }
+    var speechParent by rememberSaveable { mutableStateOf("player") }
     val categories = listOf(
         Triple("general", uiText(R.string.ui_general_4d7c8e), Icons.Default.Settings),
         Triple("search", uiText(R.string.ui_search_c2faca), Icons.Default.Search),
@@ -54,11 +55,11 @@ import java.util.Locale
         Triple("about", uiText(R.string.ui_about_9a8919), Icons.Default.Info)
     )
     Dialog(onDismissRequest = onClose, properties = DialogProperties(usePlatformDefaultWidth = false)) {
-        BackHandler { if (section == "speech") section = "player" else if (section != null) section = null else onClose() }
+        BackHandler { if (section == "speech") section = speechParent else if (section != null) section = null else onClose() }
         Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
             Column(Modifier.fillMaxSize()) {
                 Row(Modifier.fillMaxWidth().heightIn(min = 64.dp).padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = { if (section == "speech") section = "player" else if (section != null) section = null else onClose() }) {
+                    IconButton(onClick = { if (section == "speech") section = speechParent else if (section != null) section = null else onClose() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, uiText(R.string.ui_back_02b74f))
                     }
                     Text(if (section == "speech") uiText(R.string.ui_subtitle_speech_4f7011) else categories.firstOrNull { it.first == section }?.second ?: uiText(R.string.ui_settings_2bca56),
@@ -73,8 +74,8 @@ import java.util.Locale
                     "general" -> GeneralSettings(options, preferences)
                     "search" -> SearchSettingsPage(options, preferences)
                     "servers" -> ServerSettingsPage(options)
-                    "translations" -> TranslationSettingsPage(options, preferences)
-                    "player" -> PlayerSettingsPage(options, preferences) { section = "speech" }
+                    "translations" -> TranslationSettingsPage(options, preferences) { speechParent = "translations"; section = "speech" }
+                    "player" -> PlayerSettingsPage(options, preferences) { speechParent = "player"; section = "speech" }
                     "speech" -> SubtitleSpeechSettingsPage(options, preferences)
                     "about" -> Column(Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
                         Text("PeerIche", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)

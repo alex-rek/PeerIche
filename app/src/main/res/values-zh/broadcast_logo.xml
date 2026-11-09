@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="broadcast_logo">"直播标志"</string>
+    <string name="broadcast_logo_hint">"标志将显示在直播和录像中。支持 PNG 透明背景。大小和边距相对于画面短边设置。"</string>
+    <string name="broadcast_logo_choose">"选择标志"</string>
+    <string name="broadcast_logo_position">"标志位置"</string>
+    <string name="broadcast_logo_size">"标志大小"</string>
+    <string name="broadcast_logo_opacity">"标志不透明度"</string>
+    <string name="broadcast_logo_margin">"标志边距"</string>
+    <string name="logo_top_left">"左上角"</string>
+    <string name="logo_top_right">"右上角"</string>
+    <string name="logo_bottom_left">"左下角"</string>
+    <string name="logo_bottom_right">"右下角"</string>
+</resources>

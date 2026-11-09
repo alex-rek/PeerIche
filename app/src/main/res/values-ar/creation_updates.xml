@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="import_from_url">"تحميل من رابط"</string>
+    <string name="import_video_url">"رابط الفيديو"</string>
+    <string name="import_url_hint">"سيُنزّل الخادم الفيديو من هذا الرابط. تستمر المعالجة على الخادم؛ تحقّق من قسم فيديوهاتك لمعرفة النتيجة."</string>
+    <string name="import_disabled">"لا يسمح هذا الخادم باستيراد الفيديوهات من الروابط."</string>
+    <string name="import_invalid_url">"أدخل رابط فيديو HTTP أو HTTPS دون بيانات تسجيل دخول مضمّنة."</string>
+    <string name="import_unknown">"تعذّر تأكيد الاستيراد. تحقّق من قسم فيديوهاتك قبل المحاولة مجددًا."</string>
+</resources>

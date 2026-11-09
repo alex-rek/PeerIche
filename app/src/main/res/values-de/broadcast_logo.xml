@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="broadcast_logo">"Übertragungslogo"</string>
+    <string name="broadcast_logo_hint">"Das Logo erscheint in der Übertragung und Aufnahme. PNG-Transparenz wird unterstützt. Größe und Abstand beziehen sich auf die kürzere Bildkante."</string>
+    <string name="broadcast_logo_choose">"Logo auswählen"</string>
+    <string name="broadcast_logo_position">"Logoposition"</string>
+    <string name="broadcast_logo_size">"Logogröße"</string>
+    <string name="broadcast_logo_opacity">"Logodeckkraft"</string>
+    <string name="broadcast_logo_margin">"Logoabstand"</string>
+    <string name="logo_top_left">"Oben links"</string>
+    <string name="logo_top_right">"Oben rechts"</string>
+    <string name="logo_bottom_left">"Unten links"</string>
+    <string name="logo_bottom_right">"Unten rechts"</string>
+</resources>

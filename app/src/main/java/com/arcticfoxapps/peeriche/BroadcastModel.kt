@@ -3,9 +3,13 @@ package com.arcticfoxapps.peeriche
 import java.net.URI
 
 internal data class BroadcastOptions(val channelId: Long = 0, val portrait: Boolean = true, val resolution: Int = 720, val bitrate: Int = 2_000_000,
-    val fps: Int = 30, val front: Boolean = true, val muted: Boolean = false, val cameraOff: Boolean = false) {
+    val fps: Int = 30, val front: Boolean = true, val muted: Boolean = false, val cameraOff: Boolean = false,
+    val logoEnabled: Boolean = false, val logoCorner: String = "top_right", val logoSize: Int = 20,
+    val logoOpacity: Int = 100, val logoMargin: Int = 3) {
     fun checked(): BroadcastOptions {
         require(resolution in listOf(480, 720, 1080) && fps in listOf(24, 30) && bitrate in 500_000..6_000_000 && channelId >= 0)
+        require(logoCorner in listOf("top_left", "top_right", "bottom_left", "bottom_right") &&
+            logoSize in 5..40 && logoOpacity in 10..100 && logoMargin in 0..12)
         return this
     }
 }

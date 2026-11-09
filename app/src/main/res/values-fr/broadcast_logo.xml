@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="broadcast_logo">"Logo de diffusion"</string>
+    <string name="broadcast_logo_hint">"Le logo apparaît dans la diffusion et l’enregistrement. La transparence PNG est prise en charge. La taille et la marge sont relatives au côté court de l’image."</string>
+    <string name="broadcast_logo_choose">"Choisir un logo"</string>
+    <string name="broadcast_logo_position">"Position du logo"</string>
+    <string name="broadcast_logo_size">"Taille du logo"</string>
+    <string name="broadcast_logo_opacity">"Opacité du logo"</string>
+    <string name="broadcast_logo_margin">"Marge du logo"</string>
+    <string name="logo_top_left">"En haut à gauche"</string>
+    <string name="logo_top_right">"En haut à droite"</string>
+    <string name="logo_bottom_left">"En bas à gauche"</string>
+    <string name="logo_bottom_right">"En bas à droite"</string>
+</resources>

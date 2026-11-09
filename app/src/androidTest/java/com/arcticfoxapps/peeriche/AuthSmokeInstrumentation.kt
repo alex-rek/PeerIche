@@ -16,8 +16,15 @@ class AuthSmokeInstrumentation : Instrumentation() {
     private var interfaceLocales = false
     private var startupUpdate = false
     private var playbackPosition = false
-    override fun onCreate(arguments: Bundle?) { super.onCreate(arguments); playbackPosition = arguments?.getString("playback-position") == "true"; startupUpdate = arguments?.getString("startup-update") == "true"; interfaceLocales = arguments?.getString("interface-locales") == "true"; interfaceTranslations = arguments?.getString("interface-translations") == "true"; creatorUi = arguments?.getString("creator-ui") == "true"; broadcastRtmp = arguments?.getString("broadcast-rtmp") == "true"; broadcastCamera = arguments?.getString("broadcast-camera") == "true"; start() }
+    private var broadcastLogo = false
+    override fun onCreate(arguments: Bundle?) { super.onCreate(arguments); broadcastLogo = arguments?.getString("broadcast-logo") == "true"; playbackPosition = arguments?.getString("playback-position") == "true"; startupUpdate = arguments?.getString("startup-update") == "true"; interfaceLocales = arguments?.getString("interface-locales") == "true"; interfaceTranslations = arguments?.getString("interface-translations") == "true"; creatorUi = arguments?.getString("creator-ui") == "true"; broadcastRtmp = arguments?.getString("broadcast-rtmp") == "true"; broadcastCamera = arguments?.getString("broadcast-camera") == "true"; start() }
     override fun onStart() {
+        if (broadcastLogo) {
+            val result = Bundle(); var code = Activity.RESULT_OK
+            try { runBlocking { broadcastLogoSmoke(targetContext) }; result.putString("stream", "PASS: encoded logo, PNG transparency, source switch and disable in both orientations\n") }
+            catch (failure: Throwable) { code = Activity.RESULT_CANCELED; result.putString("stream", "FAIL logo: ${failure.message}\n") }
+            finish(code, result); return
+        }
         if (playbackPosition) { playbackPositionSmoke(this); return }
         if (startupUpdate) { startupUpdateSmoke(this); return }
         if (interfaceTranslations) { exportInterfaceTranslations(this); return }

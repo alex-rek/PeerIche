@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="import_from_url">"从 URL 上传"</string>
+    <string name="import_video_url">"视频 URL"</string>
+    <string name="import_url_hint">"服务器将从此 URL 下载视频。处理将在服务器上继续，请在“你的视频”中查看结果。"</string>
+    <string name="import_disabled">"此服务器不允许通过 URL 导入视频。"</string>
+    <string name="import_invalid_url">"请输入不含登录信息的 HTTP 或 HTTPS 视频 URL。"</string>
+    <string name="import_unknown">"无法确认导入结果。请先查看“你的视频”，再重试。"</string>
+</resources>

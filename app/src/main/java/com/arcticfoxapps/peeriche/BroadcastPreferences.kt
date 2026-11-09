@@ -15,14 +15,20 @@ internal class BroadcastPreferences(private val context: Context) {
     private val settings = context.getSharedPreferences("broadcast-options", Context.MODE_PRIVATE)
     private fun key(id: String) = MessageDigest.getInstance("SHA-256").digest(id.toByteArray()).joinToString("") { "%02x".format(it) }.take(32)
     private fun file(id: String) = File(context.noBackupFilesDir, "broadcast-slate-${key(id)}.png")
+    private fun logoFile(id: String) = File(context.noBackupFilesDir, "broadcast-logo-${key(id)}.png")
     fun get(id: String): BroadcastOptions = runCatching {
         com.google.gson.Gson().fromJson(settings.getString(key(id), "{}"), BroadcastOptions::class.java)?.checked() ?: BroadcastOptions()
     }.getOrDefault(BroadcastOptions())
     fun save(id: String, options: BroadcastOptions) { settings.edit().putString(key(id), com.google.gson.Gson().toJson(options.checked())).apply() }
     fun hasImage(id: String) = file(id).exists()
-    internal fun forget(id: String) { settings.edit().remove(key(id)).apply(); file(id).delete() }
+    internal fun forget(id: String) { settings.edit().remove(key(id)).apply(); file(id).delete(); logoFile(id).delete() }
+    fun hasLogo(id: String) = logoFile(id).exists()
+    suspend fun removeLogo(id: String) = withContext(Dispatchers.IO) { logoFile(id).delete(); Unit }
+    suspend fun logo(id: String): Bitmap? = withContext(Dispatchers.IO) { BitmapFactory.decodeFile(logoFile(id).path) }
+    suspend fun saveLogo(id: String, uri: Uri) = saveBitmap(logoFile(id), uri)
     suspend fun removeImage(id: String) = withContext(Dispatchers.IO) { file(id).delete(); Unit }
-    suspend fun saveImage(id: String, uri: Uri) = withContext(Dispatchers.IO) {
+    suspend fun saveImage(id: String, uri: Uri) = saveBitmap(file(id), uri)
+    private suspend fun saveBitmap(target: File, uri: Uri) = withContext(Dispatchers.IO) {
         if (uri.scheme != "content") throw AuthFailure("invalid_cover")
         val bytes = context.contentResolver.openInputStream(uri)?.use { input ->
             val out = java.io.ByteArrayOutputStream(); val buffer = ByteArray(8192)
@@ -35,7 +41,7 @@ internal class BroadcastPreferences(private val context: Context) {
         var sample = 1
         while (maxOf(bounds.outWidth, bounds.outHeight) / sample > 1600) sample *= 2
         val bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size, BitmapFactory.Options().apply { inSampleSize = sample }) ?: throw AuthFailure("invalid_cover")
-        val atomic = android.util.AtomicFile(file(id)); val output = atomic.startWrite()
+        val atomic = android.util.AtomicFile(target); val output = atomic.startWrite()
         try { bitmap.compress(Bitmap.CompressFormat.PNG, 100, output); atomic.finishWrite(output) }
         catch (failure: Exception) { atomic.failWrite(output); throw failure }
         finally { bitmap.recycle() }

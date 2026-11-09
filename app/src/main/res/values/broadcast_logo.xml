@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="broadcast_logo">"Broadcast logo"</string>
+    <string name="broadcast_logo_hint">"The logo appears in the broadcast and recording. PNG transparency is supported. Size and margin are relative to the shorter frame edge."</string>
+    <string name="broadcast_logo_choose">"Choose logo"</string>
+    <string name="broadcast_logo_position">"Logo position"</string>
+    <string name="broadcast_logo_size">"Logo size"</string>
+    <string name="broadcast_logo_opacity">"Logo opacity"</string>
+    <string name="broadcast_logo_margin">"Logo margin"</string>
+    <string name="logo_top_left">"Top left"</string>
+    <string name="logo_top_right">"Top right"</string>
+    <string name="logo_bottom_left">"Bottom left"</string>
+    <string name="logo_bottom_right">"Bottom right"</string>
+</resources>

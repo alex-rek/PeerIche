@@ -9,7 +9,8 @@ internal fun JsonObject.boolAt(key: String): Boolean = runCatching { get(key).as
 internal fun JsonObject.stringAt(key: String): String = runCatching { get(key).asString }.getOrDefault("")
 internal data class CreatorChannel(val id: Long, val title: String, val name: String = "")
 internal data class CreatorCapabilities(val channels: List<CreatorChannel>, val quota: Long, val dailyQuota: Long, val used: Long, val dailyUsed: Long,
-    val extensions: List<String>, val minChunk: Int, val maxChunk: Int, val live: Boolean, val replay: Boolean, val coverMax: Long, val coverExtensions: List<String>) {
+    val extensions: List<String>, val minChunk: Int, val maxChunk: Int, val live: Boolean, val replay: Boolean, val coverMax: Long, val coverExtensions: List<String>,
+    val httpImport: Boolean = false) {
     fun validateFile(filename: String, size: Long) {
         if (size <= 0) throw AuthFailure("invalid_file")
         if (extensions.isNotEmpty() && extensions.none { filename.endsWith(it, ignoreCase = true) }) throw AuthFailure("upload_format")
@@ -36,7 +37,8 @@ internal fun creatorCapabilities(me: JsonObject, config: JsonObject, used: JsonO
         extensions(file), limits?.longAt("minChunkSize", 0)?.coerceIn(0, Int.MAX_VALUE.toLong())?.toInt() ?: 0,
         limits?.longAt("maxChunkSize", 0)?.coerceIn(0, Int.MAX_VALUE.toLong())?.toInt() ?: 0,
         config.objectAt("live")?.boolAt("enabled") == true, config.objectAt("live")?.boolAt("allowReplay") == true,
-        image?.objectAt("size")?.longAt("max", 8_388_608) ?: 8_388_608, extensions(image))
+        image?.objectAt("size")?.longAt("max", 8_388_608) ?: 8_388_608, extensions(image),
+        config.objectAt("import", "videos", "http")?.boolAt("enabled") == true)
 }
 internal data class CreatorVideo(val video: Video, val privacy: Int, val state: Int, val stateLabel: String)
 internal data class CreatorPage(val rows: List<CreatorVideo>, val total: Int)
@@ -81,6 +83,13 @@ internal class CreatorRepository(private val accounts: AccountSessionManager) {
         if (capabilities.channels.none { it.id == metadata.channelId }) throw AuthFailure("invalid_channel")
         // Only a user-initiated request: never automatically replay after network failure.
         return uploadedUuid(accounts.request(id, AccountOperation.createLive(metadata, replay, permanent)))
+    }
+    suspend fun importVideo(id: String, metadata: CreatorMetadata, url: String): String {
+        val caps = capabilities(id)
+        if (!caps.httpImport) throw AuthFailure("import_disabled")
+        if (caps.channels.none { it.id == metadata.channelId }) throw AuthFailure("invalid_channel")
+        // Import is a publication: one explicit request, without automatic retries.
+        return uploadedUuid(accounts.request(id, AccountOperation.importVideo(metadata, url)))
     }
     suspend fun liveCredentials(id: String, uuid: String): LiveCredentials {
         val account = owner(id)

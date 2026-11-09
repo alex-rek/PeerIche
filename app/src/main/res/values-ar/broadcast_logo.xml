@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="broadcast_logo">"شعار البث"</string>
+    <string name="broadcast_logo_hint">"يظهر الشعار في البث والتسجيل. يدعم شفافية PNG. يُحسب الحجم والهامش بالنسبة إلى الحافة الأقصر للإطار."</string>
+    <string name="broadcast_logo_choose">"اختيار الشعار"</string>
+    <string name="broadcast_logo_position">"موضع الشعار"</string>
+    <string name="broadcast_logo_size">"حجم الشعار"</string>
+    <string name="broadcast_logo_opacity">"عتامة الشعار"</string>
+    <string name="broadcast_logo_margin">"هامش الشعار"</string>
+    <string name="logo_top_left">"أعلى اليسار"</string>
+    <string name="logo_top_right">"أعلى اليمين"</string>
+    <string name="logo_bottom_left">"أسفل اليسار"</string>
+    <string name="logo_bottom_right">"أسفل اليمين"</string>
+</resources>

@@ -61,7 +61,7 @@ object ConfiguredSearch {
         val batches = collectSearchBatches(requests, options, active)
         if (batches.isEmpty()) error("No search source responded")
         var videos = deduplicateVideos(batches.flatMap { it.videos }, active).filter { sensitive || !it.nsfw }
-        videos = when (options.searchSort) { "-views" -> videos.sortedByDescending { it.views }; "-publishedAt" -> videos.sortedByDescending { it.publishedAt.orEmpty() }; else -> videos }
+        videos = sortSearchVideos(videos, options.searchSort, active)
         if (options.availability != "all") {
             if (options.availability == "available_only") coroutineScope {
                 val semaphore = Semaphore(options.searchParallel.coerceIn(1, 6))
@@ -95,6 +95,12 @@ object ConfiguredSearch {
         check(results.isNotEmpty()) { "No server responded" }
         SearchPage(results.flatMap { it.videos }, results.any { it.hasMore })
     }
+}
+
+internal fun sortSearchVideos(videos: List<Video>, sort: String, server: String): List<Video> = when (sort) {
+    "-views" -> sortHomeVideos(videos, "views", server)
+    "-publishedAt" -> sortHomeVideos(videos, "newest", server)
+    else -> deduplicateVideos(videos, server)
 }
 
 internal suspend fun collectSearchBatches(requests: List<suspend () -> SearchPage>, options: AppOptions, active: String): List<SearchPage> {
