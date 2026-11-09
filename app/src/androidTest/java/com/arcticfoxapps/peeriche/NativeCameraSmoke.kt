@@ -32,7 +32,10 @@ internal suspend fun nativeCameraSmoke(test: Instrumentation) {
                         override fun onAuthSuccess() {}
                     }, Camera2Source(context), BroadcastSilenceSource()).apply {
                         check(prepareVideo(640, 480, 800_000, 24, 2, broadcastRotation(portrait)))
-                        check(prepareAudio(44100, false, 96000)); setOrientation(0)
+                        check(prepareAudio(44100, false, 96000))
+                        val transform = broadcastPreviewTransform(portrait, true, 90)
+                        setOrientation(transform.first); getGlInterface().setPreviewRotation(transform.second)
+                        getGlInterface().setAspectRatioMode(com.pedro.encoder.utils.gl.AspectRatioMode.NONE)
                         startRecord(file.path) { if (it == com.pedro.library.base.recording.RecordController.Status.RECORDING) ready.complete(Unit) }
                     }
                 }

@@ -152,7 +152,7 @@ internal fun creationModeIcon(mode: String) = when (mode) {
     val context = LocalContext.current
     val lifecycle = LocalLifecycleOwner.current
     val stream by controller.state.collectAsState()
-    val compact = (fixedPhone && !stream.options.portrait) || LocalConfiguration.current.screenHeightDp < 500
+    val compact = !fixedPhone && LocalConfiguration.current.screenHeightDp < 500
     var allowed by remember { mutableStateOf(controller.permissionGranted()) }
     var permissionRequested by remember { mutableStateOf(false) }
     val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
@@ -184,6 +184,7 @@ internal fun creationModeIcon(mode: String) = when (mode) {
         catch (failure: Exception) { livesError = accountErrorCode(failure) }
     }
     DisposableEffect(lifecycle, owner.id) {
+        controller.setFixedPortraitPreview(fixedPhone)
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_START) {
                 allowed = controller.permissionGranted()
@@ -202,6 +203,9 @@ internal fun creationModeIcon(mode: String) = when (mode) {
         val rotated = fixedPhone && !stream.options.portrait
         val contentWidth = if (rotated) maxHeight else maxWidth
         val contentHeight = if (rotated) maxWidth else maxHeight
+        val previewAspect = broadcastPreviewAspect(stream.actualWidth, stream.actualHeight)
+        val previewWidth = if (fixedPhone) minOf(maxWidth, maxHeight * previewAspect) else maxWidth
+        val previewHeight = if (fixedPhone) previewWidth / previewAspect else maxHeight
         if (allowed) AndroidView(factory = { ctx -> android.view.TextureView(ctx).apply {
             surfaceTextureListener = object : android.view.TextureView.SurfaceTextureListener {
                 private var output: android.view.Surface? = null
@@ -212,8 +216,7 @@ internal fun creationModeIcon(mode: String) = when (mode) {
                 override fun onSurfaceTextureDestroyed(texture: android.graphics.SurfaceTexture): Boolean { controller.detach(); output?.release(); output = null; return true }
                 override fun onSurfaceTextureUpdated(texture: android.graphics.SurfaceTexture) {}
             }
-        } }, modifier = Modifier.fillMaxSize())
-        Box(Modifier.requiredSize(contentWidth, contentHeight).align(Alignment.Center).graphicsLayer { rotationZ = if (rotated) 90f else 0f }) {
+        } }, modifier = Modifier.requiredSize(previewWidth, previewHeight).align(Alignment.Center))
         if (!allowed) Column(Modifier.align(Alignment.Center).padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Icon(Icons.Default.Videocam, null, Modifier.size(56.dp), tint = Color.White)
             Text(uiText(R.string.ui_camera_and_microphone_access_384ace), color = Color.White, style = MaterialTheme.typography.titleLarge)
@@ -222,11 +225,13 @@ internal fun creationModeIcon(mode: String) = when (mode) {
                 context.startActivity(Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS, android.net.Uri.parse("package:${context.packageName}")))
             }) { Text(uiText(R.string.ui_android_permission_settings_d74962)) }
         }
+        Box(Modifier.requiredSize(contentWidth, contentHeight).align(Alignment.Center).graphicsLayer { rotationZ = if (rotated) 90f else 0f }) {
         Row(Modifier.align(Alignment.TopCenter).fillMaxWidth().padding(10.dp), horizontalArrangement = Arrangement.SpaceBetween) {
             BroadcastOverlayButton(Icons.Default.Close, uiText(R.string.ui_close_641636)) { if (stream.busy) confirmStop = true else onClose() }
             if (stream.watchUrl != null) BroadcastOverlayButton(Icons.Default.Share, uiText(R.string.ui_share_live_23cbbf)) {
                 context.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, stream.watchUrl), null))
             }
+        }
         }
         val controls: @Composable () -> Unit = {
             BroadcastControl(Icons.Default.Cameraswitch, uiText(R.string.ui_switch_camera_515854), expanded, enabled = allowed && !stream.options.cameraOff) { controller.camera() }
@@ -239,7 +244,8 @@ internal fun creationModeIcon(mode: String) = when (mode) {
         }
         if (compact) Row(Modifier.align(Alignment.TopCenter).padding(top = 10.dp, start = 64.dp, end = 64.dp).horizontalScroll(rememberScrollState()).background(Color.Black.copy(alpha = .55f), RoundedCornerShape(28.dp)), verticalAlignment = Alignment.CenterVertically) { controls() }
         else Column(Modifier.align(Alignment.CenterEnd).padding(10.dp).heightIn(max = 380.dp).background(Color.Black.copy(alpha = .55f), RoundedCornerShape(28.dp)).verticalScroll(rememberScrollState()).padding(4.dp), horizontalAlignment = Alignment.End) { controls() }
-        Column(Modifier.align(Alignment.BottomCenter).fillMaxWidth().background(Color.Black.copy(alpha = .62f)).padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(Modifier.align(Alignment.BottomCenter).fillMaxWidth().padding(bottom = 72.dp)
+            .background(Color.Black.copy(alpha = .62f)).padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
                     Text(if (stream.busy) stream.title else title, color = Color.White, fontWeight = FontWeight.SemiBold, maxLines = 2)
@@ -255,6 +261,10 @@ internal fun creationModeIcon(mode: String) = when (mode) {
             }
             if (capabilities?.live == false) Text(uiText(R.string.ui_this_server_disables_live_streaming_local_fcce38), color = Color.White, style = MaterialTheme.typography.bodySmall)
             stream.error?.let { Text(broadcastErrorText(it), color = Color(0xFFFFC0A8), style = MaterialTheme.typography.bodySmall, maxLines = 3) }
+        }
+        Box(Modifier.requiredSize(contentWidth, contentHeight).align(Alignment.Center).graphicsLayer { rotationZ = if (rotated) 90f else 0f }) {
+        Column(Modifier.align(if (rotated) Alignment.BottomStart else Alignment.BottomCenter)
+            .width(if (rotated) contentWidth * .65f else contentWidth).padding(14.dp)) {
             if (stream.busy) Button(onClick = { confirmStop = true }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFB62B29)), modifier = Modifier.fillMaxWidth()) { Text(uiText(R.string.ui_end_broadcast_4e87f9)) }
             else {
                 Button(enabled = allowed && capabilities?.live == true && channelId > 0 && title.trim().length in 3..120, onClick = {

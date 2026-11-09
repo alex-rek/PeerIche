@@ -28,6 +28,19 @@ internal class BroadcastCoordinator(private val context: Context, private val ac
     private var slate: Bitmap? = null
     private var surface: Surface? = null
     private var surfaceWidth = 0; private var surfaceHeight = 0
+    private var fixedPortraitPreview = false
+    fun setFixedPortraitPreview(enabled: Boolean) { fixedPortraitPreview = enabled; configurePreview() }
+    private fun configurePreview() {
+        val stream = engine ?: return
+        val camera = stream.videoSource is Camera2Source
+        val portrait = state.value.options.portrait
+        val display = com.pedro.encoder.input.video.CameraHelper.getCameraOrientation(context)
+        val transform = broadcastPreviewTransform(portrait, fixedPortraitPreview, display)
+        stream.setOrientation(if (camera) transform.first else 0)
+        stream.getGlInterface().setPreviewRotation(if (camera) transform.second else 0)
+        stream.getGlInterface().setAspectRatioMode(if (fixedPortraitPreview && camera)
+            com.pedro.encoder.utils.gl.AspectRatioMode.NONE else com.pedro.encoder.utils.gl.AspectRatioMode.Adjust)
+    }
     private var generation = 0
     private var preparation: Job? = null
     private var publication: Job? = null
@@ -72,8 +85,8 @@ internal class BroadcastCoordinator(private val context: Context, private val ac
                 })
                 if (!stream.prepareVideo(size.width, size.height, options.bitrate, options.fps, 2, broadcastRotation(options.portrait)) ||
                     !stream.prepareAudio(44100, false, 96000)) throw AuthFailure("broadcast_encoder")
-                if (options.cameraOff) stream.setOrientation(0)
                 mutable.value = state.value.copy(phase = "preview", actualWidth = if (options.portrait) size.height else size.width, actualHeight = if (options.portrait) size.width else size.height)
+                configurePreview()
                 attachAvailableSurface()
                 refreshLogo(account)
             } catch (cancelled: CancellationException) { throw cancelled }
@@ -97,10 +110,7 @@ internal class BroadcastCoordinator(private val context: Context, private val ac
     private fun attachAvailableSurface() {
         val output = surface?.takeIf { it.isValid } ?: return
         val stream = engine ?: return
-        if (stream.videoSource is Camera2Source) {
-            val rotation = com.pedro.encoder.input.video.CameraHelper.getCameraOrientation(context)
-            stream.setOrientation(if (rotation == 0) 270 else rotation - 90)
-        }
+        configurePreview()
         if (!stream.isOnPreview && state.value.phase in listOf("preview", "creating", "connecting", "live") && surfaceWidth > 0 && surfaceHeight > 0) {
             try { stream.startPreview(output, surfaceWidth, surfaceHeight) }
             catch (_: Exception) { stop("broadcast_camera") }
@@ -145,6 +155,7 @@ internal class BroadcastCoordinator(private val context: Context, private val ac
             // of the chosen encoded aspect ratio. changeVideoSource applies it.
             val options = state.value.options.copy(cameraOff = hidden)
             mutable.value = state.value.copy(options = options, torch = false); saveOptions(options); stream.requestKeyframe()
+            configurePreview()
             owner?.let { refreshLogo(it) }
         } catch (_: Exception) { stop("broadcast_camera") }
     }
