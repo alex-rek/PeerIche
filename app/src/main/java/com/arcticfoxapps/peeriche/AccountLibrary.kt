@@ -6,6 +6,8 @@ import com.google.gson.JsonObject
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 internal data class AccountLibrarySnapshot(val own: List<PeerTubeChannel> = emptyList(), val subscriptions: List<PeerTubeChannel> = emptyList(),
     val loaded: Boolean = false, val busy: Boolean = false, val error: String? = null)
@@ -14,6 +16,9 @@ internal class AccountLibrary(private val accounts: AccountSessionManager) {
     private val gson = Gson()
     private val lock = Any()
     private val generations = mutableMapOf<String, Long>()
+    private data class PendingSubscription(val channel: PeerTubeChannel, val wanted: Boolean)
+    private val pending = mutableMapOf<String, MutableMap<String, PendingSubscription>>()
+    private val subscriptionWrites = Mutex()
     private val mutable = MutableStateFlow<Map<String, AccountLibrarySnapshot>>(emptyMap())
     val snapshots = mutable.asStateFlow()
     private val changed = MutableStateFlow(0L)
@@ -25,6 +30,7 @@ internal class AccountLibrary(private val accounts: AccountSessionManager) {
             val ids = state.accounts.map { it.id }.toSet()
             mutable.value = mutable.value.filterKeys { it in ids }
             generations.keys.retainAll(ids)
+            pending.keys.retainAll(ids)
         } }
     } }
     private fun account(id: String): AccountSummary = accounts.state.value.accounts.firstOrNull { it.id == id && !it.needsLogin }
@@ -62,7 +68,15 @@ internal class AccountLibrary(private val accounts: AccountSessionManager) {
                 if (rows.isEmpty() || start >= total) break
             }
             synchronized(lock) { if (generations[id] == generation && accounts.state.value.accounts.any { it.id == id }) {
-                mutable.value = mutable.value + (id to AccountLibrarySnapshot(own, followed.distinctBy { it.subscriptionHandle(owner.server) }, loaded = true))
+                var subscriptions = followed.distinctBy { it.subscriptionHandle(owner.server) }
+                pending[id]?.entries?.removeAll { (handle, request) ->
+                    subscriptions.any { it.subscriptionHandle(owner.server) == handle } == request.wanted
+                }
+                pending[id]?.forEach { (handle, request) ->
+                    subscriptions = subscriptions.filterNot { it.subscriptionHandle(owner.server) == handle } +
+                        if (request.wanted) listOf(request.channel) else emptyList()
+                }
+                mutable.value = mutable.value + (id to AccountLibrarySnapshot(own, subscriptions, loaded = true))
             } }
         } catch (cancelled: CancellationException) {
             synchronized(lock) { if (generations[id] == generation) mutable.value = mutable.value + (id to (mutable.value[id] ?: AccountLibrarySnapshot()).copy(busy = false)) }
@@ -84,10 +98,19 @@ internal class AccountLibrary(private val accounts: AccountSessionManager) {
     suspend fun isSubscribed(id: String, handle: String): Boolean = try {
         accounts.request(id, AccountOperation.subscription(handle)); true
     } catch (failure: AuthFailure) { if (failure.status == 404) false else throw failure }
-    suspend fun setSubscribed(id: String, channel: PeerTubeChannel, wanted: Boolean) {
+    suspend fun setSubscribed(id: String, channel: PeerTubeChannel, wanted: Boolean) = subscriptionWrites.withLock {
+        updateSubscription(id, channel, wanted)
+    }
+    private suspend fun updateSubscription(id: String, channel: PeerTubeChannel, wanted: Boolean) {
         val owner = account(id)
         val handle = channel.subscriptionHandle(owner.server)
+        // PeerTube enqueues follows and returns 204 before its subscription list changes.
         val actual = isSubscribed(id, handle)
+        val waiting = synchronized(lock) { pending[id]?.get(handle) }
+        if (waiting != null) {
+            if (waiting.wanted != actual) return
+            synchronized(lock) { pending[id]?.remove(handle) }
+        }
         if (wanted != actual) try {
             accounts.request(id, if (wanted) AccountOperation.subscribe(handle) else AccountOperation.unsubscribe(handle))
         } catch (failure: AuthFailure) {
@@ -97,9 +120,20 @@ internal class AccountLibrary(private val accounts: AccountSessionManager) {
             if (accounts.state.value.accounts.none { it.id == id }) return@synchronized
             generations[id] = (generations[id] ?: 0) + 1
             val previous = mutable.value[id] ?: AccountLibrarySnapshot()
+            if (wanted != actual) pending.getOrPut(id) { mutableMapOf() }[handle] = PendingSubscription(channel, wanted)
             val updated = previous.subscriptions.filterNot { it.subscriptionHandle(owner.server) == handle } + if (wanted) listOf(channel) else emptyList()
             mutable.value = mutable.value + (id to previous.copy(subscriptions = updated, busy = false, error = null))
             changed.value++
+        }
+        val request = synchronized(lock) { pending[id]?.get(handle) }
+        if (request != null) scope.launch {
+            for (wait in listOf(1_000L, 3_000L, 10_000L, 30_000L, 60_000L)) {
+                delay(wait)
+                if (synchronized(lock) { pending[id]?.get(handle) !== request }) return@launch
+                refresh(id)
+            }
+            synchronized(lock) { if (pending[id]?.get(handle) === request) pending[id]?.remove(handle) }
+            refresh(id)
         }
     }
     suspend fun resolveVideo(id: String, video: Video, fallback: String): Video {

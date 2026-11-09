@@ -923,11 +923,14 @@ internal fun Video.toSavedVideo(fallbackServer: String, kind: String) = SavedVid
     channelName = channel?.displayName ?: account?.displayName, views = views, updatedAt = System.currentTimeMillis()
 )
 
-private fun Video.subscriptionIdentity(fallbackServer: String): String = "${sourceServer(fallbackServer).lowercase()}|${channel?.name.orEmpty().lowercase()}"
+internal fun Video.subscriptionIdentity(fallbackServer: String): String = runCatching {
+    val handle = accountChannelHandle(fallbackServer)
+    "${authServerOrigin("https://${handle.substringAfterLast('@')}").lowercase()}|${handle.substringBeforeLast('@').lowercase()}"
+}.getOrElse { "${sourceServer(fallbackServer).lowercase()}|${channel?.name.orEmpty().lowercase()}" }
 
 private fun Video.toSubscription(fallbackServer: String): SavedVideo? {
     val handle = channel?.name?.takeIf(String::isNotBlank) ?: return null
-    val origin = sourceServer(fallbackServer)
+    val origin = channel?.host?.let { authServerOrigin("https://$it") } ?: sourceServer(fallbackServer)
     return SavedVideo(identity = subscriptionIdentity(fallbackServer), kind = "subscription", title = channel.displayName ?: handle,
         videoUrl = null, server = origin, thumbnailUrl = null, channelName = handle, views = 0, updatedAt = System.currentTimeMillis())
 }

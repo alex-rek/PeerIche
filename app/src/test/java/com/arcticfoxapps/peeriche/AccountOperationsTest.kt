@@ -38,6 +38,29 @@ class AccountOperationsTest {
         manager.initialize(); return manager to api
     }
     private fun route(op: AccountOperation) = op.segments.drop(2).joinToString("/")
+    @Test fun queuedSubscriptionSurvivesStaleRefreshUntilServerConfirms() = runBlocking {
+        val (manager, api) = setup()
+        var confirmed = false
+        api.handler = { op -> when {
+            route(op) == "users/me" -> json("""{"id":1,"videoChannels":[]}""")
+            route(op) == "users/me/subscriptions" && op.method == "GET" ->
+                json(if (confirmed) """{"total":1,"data":[{"name":"news","host":"remote.example"}]}""" else """{"total":0,"data":[]}""")
+            op.method == "GET" && !confirmed -> throw AuthFailure("account_resource_missing", 404)
+            else -> JsonObject()
+        } }
+        val library = AccountLibrary(manager)
+        try {
+            val channel = PeerTubeChannel("News", "news", "remote.example")
+            library.setSubscribed("https://account.example|1", channel, true)
+            library.refresh("https://account.example|1")
+            assertEquals("news", library.snapshots.value.values.single().subscriptions.single().name)
+            library.setSubscribed("https://account.example|1", channel, true)
+            assertEquals(1, api.calls.count { it.third.method == "POST" })
+            confirmed = true
+            library.refresh("https://account.example|1")
+            assertEquals(1, library.snapshots.value.values.single().subscriptions.size)
+        } finally { library.close() }
+    }
     @Test fun writesAreRejectedAfterAccountSwitchBeforeSending() = runBlocking {
         val (manager, api) = setup(two = true); manager.activate("https://other.example|1")
         try { manager.request("https://account.example|1", AccountOperation.comment(uuid, "hello")); fail() }

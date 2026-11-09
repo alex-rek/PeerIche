@@ -15,8 +15,10 @@ class AuthSmokeInstrumentation : Instrumentation() {
     private var interfaceTranslations = false
     private var interfaceLocales = false
     private var startupUpdate = false
-    override fun onCreate(arguments: Bundle?) { super.onCreate(arguments); startupUpdate = arguments?.getString("startup-update") == "true"; interfaceLocales = arguments?.getString("interface-locales") == "true"; interfaceTranslations = arguments?.getString("interface-translations") == "true"; creatorUi = arguments?.getString("creator-ui") == "true"; broadcastRtmp = arguments?.getString("broadcast-rtmp") == "true"; broadcastCamera = arguments?.getString("broadcast-camera") == "true"; start() }
+    private var playbackPosition = false
+    override fun onCreate(arguments: Bundle?) { super.onCreate(arguments); playbackPosition = arguments?.getString("playback-position") == "true"; startupUpdate = arguments?.getString("startup-update") == "true"; interfaceLocales = arguments?.getString("interface-locales") == "true"; interfaceTranslations = arguments?.getString("interface-translations") == "true"; creatorUi = arguments?.getString("creator-ui") == "true"; broadcastRtmp = arguments?.getString("broadcast-rtmp") == "true"; broadcastCamera = arguments?.getString("broadcast-camera") == "true"; start() }
     override fun onStart() {
+        if (playbackPosition) { playbackPositionSmoke(this); return }
         if (startupUpdate) { startupUpdateSmoke(this); return }
         if (interfaceTranslations) { exportInterfaceTranslations(this); return }
         if (interfaceLocales) { verifyInterfaceLocales(this); return }

@@ -116,7 +116,8 @@ data class VideoCaption(val language: CaptionLanguage? = null, val captionPath: 
             player.currentMediaItem?.mediaMetadata?.extras?.getString("playback_account") == video.playbackAccountId &&
             player.currentMediaItem?.mediaMetadata?.extras?.getInt("quality", -1) == options.quality &&
             player.currentMediaItem?.mediaMetadata?.extras?.getString("translation", "") == desiredTranslation) return@LaunchedEffect
-        val previousPosition = if (player.currentMediaItem?.mediaId == identity) player.currentPosition else 0L
+        val previousPosition = if (player.currentMediaItem?.mediaId == identity) player.currentPosition
+            else PlaybackPositions(context).read(identity, video.isLive)
         val wasPlaying = if (player.currentMediaItem?.mediaId == identity) player.playWhenReady else options.autoplay
         val accounts = PeerTubeAccounts.get(context)
         val playbackAccount = video.playbackAccountId
@@ -149,6 +150,7 @@ data class VideoCaption(val language: CaptionLanguage? = null, val captionPath: 
                     putString("translation", if (nativeTranslation) options.translateTo else "")
                     putString("history", com.google.gson.Gson().toJson(video.toSavedVideo(server, "history")))
                     putString("playback_account", playbackAccount)
+                    putBoolean("is_live", video.isLive)
                 }).build())
             .setSubtitleConfigurations(tracks).build()
         if (playbackAccount != null && accounts.state.value.active?.let { it.id == playbackAccount && !it.needsLogin } != true) return@LaunchedEffect

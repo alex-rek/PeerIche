@@ -26,6 +26,15 @@ class PlaybackService : MediaSessionService() {
     private var session: MediaSession? = null
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private var subtitleSpeech: SubtitleSpeechManager? = null
+    private var completedIdentity: String? = null
+    private fun savePosition(player: Player) {
+        val item = player.currentMediaItem ?: return
+        if (player.playbackState == Player.STATE_ENDED) completedIdentity = item.mediaId
+        else if (item.mediaId == completedIdentity && player.duration > 0 && player.currentPosition < player.duration - 1_000) completedIdentity = null
+        PlaybackPositions(this).save(item.mediaId, player.currentPosition, player.duration,
+            item.mediaMetadata.extras?.getBoolean("is_live") == true || player.isCurrentMediaItemLive,
+            player.playbackState == Player.STATE_ENDED)
+    }
     private val noisyReceiver = object : android.content.BroadcastReceiver() {
         override fun onReceive(context: android.content.Context?, intent: Intent?) {
             if (intent?.action == android.media.AudioManager.ACTION_AUDIO_BECOMING_NOISY) pausePlayback()
@@ -79,6 +88,7 @@ class PlaybackService : MediaSessionService() {
             }
         }
         serviceScope.launch { while (isActive) { sampleWatchTime(); delay(250) } }
+        serviceScope.launch { while (isActive) { delay(2_000); savePosition(player) } }
         // Headset next/previous buttons seek within the current single-video session.
         val controls = object : ForwardingPlayer(player) {
             override fun pause() { subtitleSpeech?.userPause(); player.pause() }
@@ -100,8 +110,16 @@ class PlaybackService : MediaSessionService() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         session = MediaSession.Builder(this, controls).setSessionActivity(activity).build()
         player.addListener(object : Player.Listener {
-            override fun onIsPlayingChanged(isPlaying: Boolean) { sampleWatchTime() }
+            override fun onIsPlayingChanged(isPlaying: Boolean) { sampleWatchTime(); savePosition(player) }
+            override fun onPositionDiscontinuity(oldPosition: Player.PositionInfo, newPosition: Player.PositionInfo, reason: Int) {
+                val oldItem = oldPosition.mediaItem
+                if (oldItem != null && oldItem.mediaId != newPosition.mediaItem?.mediaId && oldItem.mediaId != completedIdentity) {
+                    PlaybackPositions(this@PlaybackService).save(oldItem.mediaId, oldPosition.positionMs, 0,
+                        oldItem.mediaMetadata.extras?.getBoolean("is_live") == true)
+                } else if (reason == Player.DISCONTINUITY_REASON_SEEK) savePosition(player)
+            }
             override fun onPlaybackStateChanged(playbackState: Int) {
+                savePosition(player)
                 if (playbackState == Player.STATE_ENDED) ended.value = player.currentMediaItem?.mediaId
             }
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
@@ -123,6 +141,7 @@ class PlaybackService : MediaSessionService() {
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? = session
 
     override fun onDestroy() {
+        session?.player?.let(::savePosition)
         AccountVideoPlayback.clear()
         subtitleSpeech?.close(resumeVideo = false); subtitleSpeech = null
         unregisterReceiver(noisyReceiver)
