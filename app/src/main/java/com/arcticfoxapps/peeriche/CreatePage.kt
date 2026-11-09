@@ -193,7 +193,7 @@ import kotlinx.coroutines.launch
             BroadcastControl(Icons.Default.Cameraswitch, uiText("Выбор камеры", "Switch camera"), expanded, enabled = allowed && !stream.options.cameraOff) { controller.camera() }
             BroadcastControl(if (stream.options.muted) Icons.Default.MicOff else Icons.Default.Mic, uiText(if (stream.options.muted) "Включить микрофон" else "Выключить микрофон", if (stream.options.muted) "Enable microphone" else "Mute microphone"), expanded, allowed) { controller.mute() }
             BroadcastControl(if (stream.options.cameraOff) Icons.Default.VideocamOff else Icons.Default.Videocam, uiText(if (stream.options.cameraOff) "Включить камеру" else "Выключить камеру", if (stream.options.cameraOff) "Enable camera" else "Hide camera"), expanded, allowed) { controller.hideCamera() }
-            BroadcastControl(Icons.Default.ScreenRotation, uiText("Ориентация", "Orientation"), expanded, allowed) { controller.orientation() }
+            BroadcastControl(Icons.Default.ScreenRotation, uiText("Ориентация: ", "Orientation: ") + if (stream.options.portrait) uiText("вертикальная", "portrait") else uiText("горизонтальная", "landscape"), expanded, allowed) { controller.orientation() }
             if (!stream.options.front && !stream.options.cameraOff) BroadcastControl(if (stream.torch) Icons.Default.FlashOn else Icons.Default.FlashOff, uiText("Свет", "Light"), expanded, allowed) { controller.torch() }
             BroadcastControl(Icons.Default.Settings, uiText("Параметры", "Settings"), expanded) { onSettings() }
             BroadcastOverlayButton(if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore, uiText("Подписи кнопок", "Control labels")) { expanded = !expanded }
@@ -205,6 +205,9 @@ import kotlinx.coroutines.launch
                 Column(Modifier.weight(1f)) {
                     Text(if (stream.busy) stream.title else title, color = Color.White, fontWeight = FontWeight.SemiBold, maxLines = 2)
                     if (!stream.busy) Text(if (selectedUuid == null) visibilityName(privacy) else uiText("Выбран существующий эфир", "Existing live selected"), color = Color.LightGray, style = MaterialTheme.typography.bodySmall)
+                    if (stream.actualWidth > 0 && stream.actualHeight > 0) Text(
+                        "${stream.actualWidth} × ${stream.actualHeight} · " + if (stream.options.portrait) uiText("Вертикальный кадр", "Portrait frame") else uiText("Горизонтальный кадр", "Landscape frame"),
+                        color = Color.LightGray, style = MaterialTheme.typography.bodySmall)
                     Text(if (stream.phase == "live") "● LIVE · ${elapsed / 60}:${(elapsed % 60).toString().padStart(2, '0')} · ${stream.bitrate / 1000} kb/s"
                         else if (stream.phase == "creating") uiText("Подготовка эфира…", "Preparing live…") else if (stream.phase == "connecting") uiText("Подключение…", "Connecting…")
                         else uiText("Предпросмотр · не в эфире", "Preview · not live"), color = if (stream.phase == "live") Color(0xFFFF8A70) else Color.LightGray, style = MaterialTheme.typography.bodySmall)
@@ -340,7 +343,7 @@ import kotlinx.coroutines.launch
     "broadcast_service", "broadcast_interrupted" -> uiText("Android остановил трансляцию. Вернитесь на страницу камеры для повторного запуска.", "Android stopped broadcasting. Return to the camera page to restart.")
     "broadcast_camera_switch" -> uiText("Не удалось переключить камеру.", "Could not switch the camera.")
     "broadcast_torch" -> uiText("Свет недоступен для этой камеры.", "Light is unavailable for this camera.")
-    "broadcast_fixed_frame" -> uiText("Изображение повёрнуто. Размер кадра сохраняется до завершения текущего эфира.", "Image rotated. Frame dimensions stay fixed until this broadcast ends.")
+    "broadcast_fixed_frame" -> uiText("Ориентацию кадра выбирают до начала эфира. Чтобы изменить её, завершите текущую трансляцию.", "Choose the frame orientation before starting. End the current broadcast to change it.")
     "broadcast_endpoint" -> uiText("Сервер вернул неподдерживаемый адрес или ключ вещания.", "The server returned an unsupported stream URL or key.")
     "invalid_channel_settings" -> uiText("Название: 3–120 символов, описание — до 1000.", "Name: 3–120 characters; description: up to 1,000.")
     else -> creatorErrorText(reason)

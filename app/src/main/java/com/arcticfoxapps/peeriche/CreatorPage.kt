@@ -48,6 +48,7 @@ import kotlinx.coroutines.launch
     val repository = remember { CreatorRepository(accounts) }
     val uploads = remember { VideoUploads.get(context) }
     val transfer by uploads.state.collectAsState()
+    val completionRevision by uploads.completionRevision.collectAsState()
     val draft = transfer?.takeIf { it.accountId == owner.id }
     val scope = rememberCoroutineScope()
     var rows by remember { mutableStateOf(emptyList<CreatorVideo>()) }
@@ -83,7 +84,7 @@ import kotlinx.coroutines.launch
         try { uploads.initialize(); uploadStorageError = false } catch (_: Exception) { uploadStorageError = true }
         load()
     }
-    LaunchedEffect(draft?.status) { if (draft?.status == "done") load() }
+    LaunchedEffect(completionRevision) { if (completionRevision > 0) load() }
     fun action(block: suspend () -> Unit) { scope.launch {
         try { block() } catch (cancelled: CancellationException) { throw cancelled }
         catch (failure: Exception) { error = accountErrorCode(failure) }

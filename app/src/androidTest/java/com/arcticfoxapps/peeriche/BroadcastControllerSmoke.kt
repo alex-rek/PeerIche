@@ -69,12 +69,43 @@ internal suspend fun broadcastControllerSmoke(instrumentation: Instrumentation) 
         activity = instrumentation.startActivitySync(Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
         delay(700)
         val controller = coordinator!!
+        suspend fun verifyEncodedDimensions() {
+            val current = controller.state.value
+            val recording = CompletableDeferred<Unit>()
+            val file = java.io.File(context.cacheDir, "broadcast-frame-${System.nanoTime()}.mp4")
+            val engine = controller.javaClass.getDeclaredField("engine").apply { isAccessible = true }.get(controller) as com.pedro.library.rtmp.RtmpStream
+            try {
+                withContext(Dispatchers.Main) { engine.startRecord(file.path) { status ->
+                    if (status == com.pedro.library.base.recording.RecordController.Status.RECORDING) recording.complete(Unit)
+                } }
+                withTimeout(15000) { recording.await() }; delay(800)
+                withContext(Dispatchers.Main) { engine.stopRecord() }
+                val extractor = android.media.MediaExtractor()
+                try {
+                    extractor.setDataSource(file.path)
+                    val video = (0 until extractor.trackCount).map { extractor.getTrackFormat(it) }.first { it.getString(android.media.MediaFormat.KEY_MIME) == "video/avc" }
+                    check(video.getInteger(android.media.MediaFormat.KEY_WIDTH) == current.actualWidth && video.getInteger(android.media.MediaFormat.KEY_HEIGHT) == current.actualHeight)
+                } finally { extractor.release() }
+            } finally {
+                withContext(NonCancellable + Dispatchers.Main) { if (engine.isRecording) engine.stopRecord() }
+                file.delete()
+            }
+        }
         withContext(Dispatchers.Main) {
             check(activity!!.hasWindowFocus() && controller.permissionGranted())
             controller.preview(accounts.state.value.active!!, BroadcastOptions(channelId = 7, portrait = false, resolution = 480, bitrate = 500_000, fps = 24, front = false, muted = true, cameraOff = true))
         }
         withTimeout(15000) { controller.state.first { it.phase in listOf("preview", "error") } }
         check(controller.state.value.phase == "preview")
+        check(controller.state.value.actualWidth > controller.state.value.actualHeight)
+        verifyEncodedDimensions()
+        withContext(Dispatchers.Main) { controller.orientation() }
+        withTimeout(15000) { controller.state.first { it.phase in listOf("preview", "error") } }
+        check(controller.state.value.phase == "preview" && controller.state.value.actualHeight > controller.state.value.actualWidth)
+        verifyEncodedDimensions()
+        withContext(Dispatchers.Main) { controller.orientation() }
+        withTimeout(15000) { controller.state.first { it.phase in listOf("preview", "error") } }
+        check(controller.state.value.phase == "preview" && controller.state.value.actualWidth > controller.state.value.actualHeight)
         withContext(Dispatchers.Main) { controller.begin(CreatorMetadata("Loopback fixture", "Synthetic test", 7, 3), false, "11111111-1111-4111-8111-111111111111") }
         val connected = withTimeout(25000) { controller.state.first { it.phase in listOf("live", "error") } }
         check(connected.phase == "live")
@@ -83,7 +114,11 @@ internal suspend fun broadcastControllerSmoke(instrumentation: Instrumentation) 
         delay(700)
         withContext(Dispatchers.Main) { controller.camera() }
         delay(700)
-        withContext(Dispatchers.Main) { controller.orientation(); controller.hideCamera() }
+        val beforeOrientation = controller.state.value
+        withContext(Dispatchers.Main) { controller.orientation() }
+        check(controller.state.value.options.portrait == beforeOrientation.options.portrait && controller.state.value.actualWidth == beforeOrientation.actualWidth && controller.state.value.actualHeight == beforeOrientation.actualHeight)
+        check(controller.state.value.error == "broadcast_fixed_frame")
+        withContext(Dispatchers.Main) { controller.hideCamera() }
         delay(700)
         check(controller.state.value.options.cameraOff && controller.state.value.options.muted && usedCamera.get())
         withTimeout(5000) { while (unavailable.isNotEmpty()) delay(50) }

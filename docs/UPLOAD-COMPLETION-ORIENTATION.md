@@ -1,0 +1,9 @@
+# Upload completion and broadcast orientation
+
+- Successful uploads now persist completion and remove their local task automatically, after any cover upload succeeds. The local file permissions are released; the server video and source files are not deleted. A completion revision refreshes Your videos without depending on the transient task state. Completed tasks left by older versions are cleaned on initialization. Failed, paused and incomplete cover tasks remain resumable.
+- The broadcast orientation button selects encoded portrait/landscape dimensions before starting. It no longer rotates the camera image inside an unchanged live frame. A running broadcast keeps its encoder dimensions and displays a message explaining that the broadcast must end before switching frame format. No automatic disconnection or replacement publication is triggered.
+- Camera correction follows the display independently of the selected encoder aspect. Removed the fixed 270-degree camera rotation when switching back from a slate. The UI shows actual encoded dimensions and the chosen frame orientation.
+
+Verification: Android fixture tests confirmed task removal after successful cover retry, cleanup of a legacy completed task without network requests, pause/cancel/recovery preservation, and encoded H.264 file dimensions in both orientations. The camera controller test verified that pressing orientation while live preserves dimensions and options, then exercised source switching and account-switch shutdown on emulator 5556. A localhost RTMP receiver received 32 video frames, 133 audio frames, 3 video configurations and 1 audio configuration. No external publication or physical camera/microphone capture was used.
+
+RootEncoder API audit: https://github.com/pedroSG94/RootEncoder/blob/2.5.4/library/src/main/java/com/pedro/library/base/StreamBase.kt

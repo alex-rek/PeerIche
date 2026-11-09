@@ -95,11 +95,17 @@ internal suspend fun creatorSmoke(context: Context) {
         restored.close()
         val coverRetry = coordinator()
         coverRetry.initialize(); coverRetry.run()
-        check(settled(coverRetry).status == "done" && initCount == 1 && coverCount == 2)
-        val disk = File(context.noBackupFilesDir, storage).readText()
-        check(!disk.contains("fixture-access") && !disk.contains("fixture-refresh") && !disk.contains("fixture-client-secret"))
-        coverRetry.close(); check(coverRetry.state.value!!.status == "done")
-        coverRetry.discard()
+        withTimeout(15000) { coverRetry.completionRevision.first { it > 0 } }
+        check(coverRetry.state.value == null)
+        check(initCount == 1 && coverCount == 2 && coverRetry.completionRevision.value == 1L)
+        check(!File(context.noBackupFilesDir, storage).exists())
+        // A completed task from an older app version is cleaned without another request.
+        val oldDone = coverFailure.copy(status = "done", error = null)
+        File(context.noBackupFilesDir, storage).writeText(gson.toJson(oldDone))
+        val migrated = coordinator(); migrated.initialize()
+        check(migrated.state.value == null && migrated.completionRevision.value == 1L)
+        check(!File(context.noBackupFilesDir, storage).exists() && initCount == 1 && coverCount == 2)
+        coverRetry.close()
 
         val pausable = coordinator()
         pausable.prepare(session.id, file, metadata, null)

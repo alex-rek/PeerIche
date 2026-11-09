@@ -48,6 +48,8 @@ internal class VideoUploadCoordinator(private val context: Context, private val 
     private val gson = Gson()
     private val mutable = MutableStateFlow<UploadDraft?>(null)
     val state = mutable.asStateFlow()
+    private val completed = MutableStateFlow(0L)
+    val completionRevision = completed.asStateFlow()
     private var loaded = false
     private var job: Job? = null
     internal suspend fun close() { job?.cancelAndJoin(); scope.cancel() }
@@ -64,7 +66,9 @@ internal class VideoUploadCoordinator(private val context: Context, private val 
                 }
             } } catch (_: Exception) { throw AuthFailure("upload_storage") }
         } else null
-        mutable.value = draft?.let { if (it.active) it.copy(status = "paused", error = "upload_interrupted") else it }
+        if (draft?.status == "done") {
+            save(null); releaseFiles(draft); completed.value++
+        } else mutable.value = draft?.let { if (it.active) it.copy(status = "paused", error = "upload_interrupted") else it }
         loaded = true
     }
     private suspend fun save(draft: UploadDraft?) = withContext(NonCancellable + Dispatchers.IO) {
@@ -78,6 +82,16 @@ internal class VideoUploadCoordinator(private val context: Context, private val 
     private suspend fun update(id: String, change: (UploadDraft) -> UploadDraft) = lock.withLock {
         mutable.value?.takeIf { it.id == id }?.let { save(change(it)) }
     }
+    private fun releaseFiles(draft: UploadDraft) {
+        listOfNotNull(draft.file, draft.cover).forEach { releaseUploadFile(context, it) }
+    }
+    private suspend fun complete(id: String) = withContext(NonCancellable) { lock.withLock {
+        mutable.value?.takeIf { it.id == id }?.let { draft ->
+            // Persist completion first so a process interruption can safely clean it on startup.
+            save(draft.copy(status = "done", error = null))
+            save(null); releaseFiles(draft); completed.value++
+        }
+    } }
     suspend fun prepare(account: String, file: UploadFileInfo, metadata: CreatorMetadata, cover: UploadFileInfo?) {
         initialize()
         val capabilities = CreatorRepository(accounts).capabilities(account)
@@ -177,7 +191,7 @@ internal class VideoUploadCoordinator(private val context: Context, private val 
                 } ?: throw AuthFailure("file_unavailable")
                 accounts.upload(owner.id, UploadOperation.cover(uuid, bytes, cover.mime))
             }
-            update(id) { it.copy(status = "done", error = null) }
+            complete(id)
         } catch (cancelled: CancellationException) {
             withContext(NonCancellable) { runCatching { update(id) { if (it.active) it.copy(status = "paused", error = null) else it } } }
         } catch (error: Exception) {

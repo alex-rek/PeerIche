@@ -95,6 +95,10 @@ internal class BroadcastCoordinator(private val context: Context, private val ac
     private fun attachAvailableSurface() {
         val output = surface?.takeIf { it.isValid } ?: return
         val stream = engine ?: return
+        if (stream.videoSource is Camera2Source) {
+            val rotation = com.pedro.encoder.input.video.CameraHelper.getCameraOrientation(context)
+            stream.setOrientation(if (rotation == 0) 270 else rotation - 90)
+        }
         if (!stream.isOnPreview && state.value.phase in listOf("preview", "creating", "connecting", "live") && surfaceWidth > 0 && surfaceHeight > 0) {
             try { stream.startPreview(output, surfaceWidth, surfaceHeight) }
             catch (_: Exception) { stop("broadcast_camera") }
@@ -133,7 +137,9 @@ internal class BroadcastCoordinator(private val context: Context, private val ac
         try {
             val hidden = !state.value.options.cameraOff
             stream.changeVideoSource(if (hidden) BroadcastSlateSource(slate ?: return) else Camera2Source(context).apply { if (state.value.options.front) switchCamera() })
-            stream.setOrientation(if (hidden || state.value.options.portrait) 0 else 270)
+            if (hidden) stream.setOrientation(0)
+            // Camera2Source's default orientation follows the display, independently
+            // of the chosen encoded aspect ratio. changeVideoSource applies it.
             val options = state.value.options.copy(cameraOff = hidden)
             mutable.value = state.value.copy(options = options, torch = false); saveOptions(options); stream.requestKeyframe()
         } catch (_: Exception) { stop("broadcast_camera") }
@@ -142,8 +148,7 @@ internal class BroadcastCoordinator(private val context: Context, private val ac
         val account = owner ?: return
         val options = state.value.options.copy(portrait = !state.value.options.portrait)
         if (state.value.busy) {
-            try { engine?.setOrientation(if (options.cameraOff || options.portrait) 0 else 270); mutable.value = state.value.copy(options = options, error = "broadcast_fixed_frame"); saveOptions(options) }
-            catch (_: Exception) { mutable.value = state.value.copy(error = "broadcast_camera") }
+            mutable.value = state.value.copy(error = "broadcast_fixed_frame")
             return
         }
         saveOptions(options); preview(account, options)
