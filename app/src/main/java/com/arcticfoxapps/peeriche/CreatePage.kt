@@ -4,8 +4,6 @@ import android.Manifest
 import android.content.Intent
 import android.os.Build
 import android.os.SystemClock
-import android.view.SurfaceHolder
-import android.view.SurfaceView
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -23,6 +21,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.foundation.clickable
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalConfiguration
@@ -69,6 +71,12 @@ internal fun creationModeIcon(mode: String) = when (mode) {
     val preferences = remember { BroadcastPreferences(context) }
     val controller = remember { Broadcasts.get(context) }
     val stream by controller.state.collectAsState()
+    DisposableEffect(wide) {
+        val activity = context.playerActivity()
+        val previous = activity?.requestedOrientation
+        if (!wide) activity?.requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        onDispose { if (!wide && previous != null) activity?.requestedOrientation = previous }
+    }
     var capabilities by remember { mutableStateOf<CreatorCapabilities?>(null) }
     var error by remember { mutableStateOf<String?>(null) }
     var retry by remember { mutableIntStateOf(0) }
@@ -89,14 +97,21 @@ internal fun creationModeIcon(mode: String) = when (mode) {
             when (mode) {
                 "upload" -> UploadCreationPage(owner, capabilities, repository, onVideos)
                 "settings" -> BroadcastChannelSettings(owner, capabilities, repository, preferences, controller) { retry++ }
-                else -> PhoneBroadcastPage(owner, capabilities, repository, preferences, controller, onClose, onSettings = { onMode("settings") })
+                else -> PhoneBroadcastPage(owner, capabilities, repository, preferences, controller, onClose, fixedPhone = !wide, onSettings = { onMode("settings") })
             }
         }
         if (stream.busy && mode != "live") TextButton(onClick = { onMode("live") }, modifier = Modifier.fillMaxWidth()) { Text(uiText(R.string.ui_return_to_broadcast_fef56e)) }
-        if (!wide) NavigationBar(containerColor = MaterialTheme.colorScheme.surface, tonalElevation = 8.dp) {
-            creationModes.forEach { id ->
-                NavigationBarItem(selected = mode == id, onClick = { onMode(id) },
-                    icon = { Icon(creationModeIcon(id), null) }, label = { Text(uiText(creationModeLabel(id)), maxLines = 2) })
+        if (!wide) Surface(color = MaterialTheme.colorScheme.surface, tonalElevation = 8.dp) {
+            Row(Modifier.fillMaxWidth().height(72.dp)) {
+                creationModes.forEach { id ->
+                    Column(Modifier.weight(1f).fillMaxHeight().clickable { onMode(id) }.padding(top = 4.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                        Surface(shape = RoundedCornerShape(18.dp), color = if (mode == id) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent) {
+                            Box(Modifier.size(56.dp, 28.dp), contentAlignment = Alignment.Center) { Icon(creationModeIcon(id), null, Modifier.size(22.dp)) }
+                        }
+                        Text(uiText(creationModeLabel(id)), Modifier.fillMaxWidth().padding(horizontal = 4.dp), textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.labelSmall, minLines = 2, maxLines = 2)
+                    }
+                }
             }
         }
     }
@@ -133,11 +148,11 @@ internal fun creationModeIcon(mode: String) = when (mode) {
 }
 
 @Composable private fun PhoneBroadcastPage(owner: AccountSummary, capabilities: CreatorCapabilities?, repository: CreatorRepository, preferences: BroadcastPreferences,
-    controller: BroadcastCoordinator, onClose: () -> Unit, onSettings: () -> Unit) {
+    controller: BroadcastCoordinator, onClose: () -> Unit, fixedPhone: Boolean, onSettings: () -> Unit) {
     val context = LocalContext.current
     val lifecycle = LocalLifecycleOwner.current
-    val compact = LocalConfiguration.current.screenHeightDp < 500
     val stream by controller.state.collectAsState()
+    val compact = (fixedPhone && !stream.options.portrait) || LocalConfiguration.current.screenHeightDp < 500
     var allowed by remember { mutableStateOf(controller.permissionGranted()) }
     var permissionRequested by remember { mutableStateOf(false) }
     val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
@@ -183,13 +198,21 @@ internal fun creationModeIcon(mode: String) = when (mode) {
     BackHandler(stream.busy) { confirmStop = true }
     var elapsed by remember { mutableLongStateOf(0) }
     LaunchedEffect(stream.startedAt, stream.phase) { while (stream.phase == "live") { elapsed = (SystemClock.elapsedRealtime() - stream.startedAt) / 1000; delay(1000) } }
-    Box(Modifier.fillMaxSize().background(Color.Black)) {
-        if (allowed) AndroidView(factory = { ctx -> SurfaceView(ctx).apply {
-            holder.addCallback(object : SurfaceHolder.Callback {
-                override fun surfaceCreated(holder: SurfaceHolder) { controller.attach(holder.surface, width, height) }
-                override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) { controller.attach(holder.surface, width, height) }
-                override fun surfaceDestroyed(holder: SurfaceHolder) { controller.detach() }
-            })
+    BoxWithConstraints(Modifier.fillMaxSize().clipToBounds().background(Color.Black)) {
+        val rotated = fixedPhone && !stream.options.portrait
+        val contentWidth = if (rotated) maxHeight else maxWidth
+        val contentHeight = if (rotated) maxWidth else maxHeight
+        Box(Modifier.requiredSize(contentWidth, contentHeight).align(Alignment.Center).graphicsLayer { rotationZ = if (rotated) 90f else 0f }) {
+        if (allowed) AndroidView(factory = { ctx -> android.view.TextureView(ctx).apply {
+            surfaceTextureListener = object : android.view.TextureView.SurfaceTextureListener {
+                private var output: android.view.Surface? = null
+                override fun onSurfaceTextureAvailable(texture: android.graphics.SurfaceTexture, width: Int, height: Int) {
+                    output = android.view.Surface(texture); controller.attach(output!!, width, height)
+                }
+                override fun onSurfaceTextureSizeChanged(texture: android.graphics.SurfaceTexture, width: Int, height: Int) { output?.let { controller.attach(it, width, height) } }
+                override fun onSurfaceTextureDestroyed(texture: android.graphics.SurfaceTexture): Boolean { controller.detach(); output?.release(); output = null; return true }
+                override fun onSurfaceTextureUpdated(texture: android.graphics.SurfaceTexture) {}
+            }
         } }, modifier = Modifier.fillMaxSize())
         if (!allowed) Column(Modifier.align(Alignment.Center).padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Icon(Icons.Default.Videocam, null, Modifier.size(56.dp), tint = Color.White)
@@ -243,6 +266,7 @@ internal fun creationModeIcon(mode: String) = when (mode) {
                 }, modifier = Modifier.fillMaxWidth()) { Text(uiText(if (stream.phase == "preview") R.string.ui_start_broadcast_ca85c4 else R.string.ui_enable_preview_5b929b)) }
             }
         }
+    }
     }
     if (confirmStop) AlertDialog(onDismissRequest = { confirmStop = false }, title = { Text(uiText(R.string.ui_end_broadcast_6bfccc)) },
         text = { Text(uiText(R.string.ui_camera_and_microphone_transmission_will_st_82b4a0)) },
