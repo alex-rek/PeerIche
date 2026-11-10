@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="live_schedule">תזמון שידור</string>
+    <string name="live_schedule_unsupported">תזמון דורש PeerTube 7.3 ומעלה.</string>
+    <string name="live_schedule_hint">השעה משמשת להכרזה. יש להתחיל את השידור ידנית.</string>
+    <string name="live_schedule_edit">שינוי מועד השידור</string>
+    <string name="live_schedule_past">יש לבחור תאריך ושעה עתידיים.</string>
+    <string name="live_schedule_create">יצירת שידור מתוזמן</string>
+    <string name="live_scheduled_for">מתוזמן ל־</string>
+    <string name="import_source_title">כותרת (ריק: מהמקור)</string>
+    <string name="import_source_description">תיאור (ריק: מהמקור)</string>
+    <string name="import_source_hint">השאירו שדות ריקים כדי שהשרת ימשוך כותרת ותיאור מהסרטון, או הזינו טקסט משלכם.</string>
+    <string name="import_source_failed">השרת לא הצליח לקרוא את הסרטון. בדקו שהקישור ציבורי ושהמקור נתמך.</string>
+</resources>

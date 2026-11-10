@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="live_schedule">Canlı yayın planla</string>
+    <string name="live_schedule_unsupported">Planlama için PeerTube 7.3 veya üstü gerekir.</string>
+    <string name="live_schedule_hint">Saat etkinliği duyurur. Yayını elle başlatın.</string>
+    <string name="live_schedule_edit">Yayın saatini değiştir</string>
+    <string name="live_schedule_past">Gelecekteki bir tarih ve saat seçin.</string>
+    <string name="live_schedule_create">Planlanmış yayın oluştur</string>
+    <string name="live_scheduled_for">Planlanan zaman</string>
+    <string name="import_source_title">Başlık (boş: kaynaktan)</string>
+    <string name="import_source_description">Açıklama (boş: kaynaktan)</string>
+    <string name="import_source_hint">Başlık ve açıklamanın sunucu tarafından kaynaktan alınması için alanları boş bırakın. Kendi metninizi de yazabilirsiniz.</string>
+    <string name="import_source_failed">Sunucu video kaynağını okuyamadı. Bağlantının herkese açık ve desteklenen bir kaynak olduğunu kontrol edin.</string>
+</resources>

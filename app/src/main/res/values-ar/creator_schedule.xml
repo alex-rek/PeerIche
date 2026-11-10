@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="live_schedule">جدولة البث</string>
+    <string name="live_schedule_unsupported">تتطلب الجدولة PeerTube 7.3 أو أحدث.</string>
+    <string name="live_schedule_hint">الوقت للإعلان عن الحدث. ابدأ البث يدويًا.</string>
+    <string name="live_schedule_edit">تغيير موعد البث</string>
+    <string name="live_schedule_past">اختر تاريخًا ووقتًا في المستقبل.</string>
+    <string name="live_schedule_create">إنشاء بث مجدول</string>
+    <string name="live_scheduled_for">موعد البث</string>
+    <string name="import_source_title">العنوان (فارغ: من المصدر)</string>
+    <string name="import_source_description">الوصف (فارغ: من المصدر)</string>
+    <string name="import_source_hint">اترك الحقول فارغة ليجلب الخادم العنوان والوصف من رابط الفيديو، أو أدخل نصك الخاص.</string>
+    <string name="import_source_failed">تعذر على الخادم قراءة الفيديو. تحقق من أن الرابط عام وأن المصدر مدعوم.</string>
+</resources>

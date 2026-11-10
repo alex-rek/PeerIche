@@ -29,10 +29,13 @@ internal class AccountOperation private constructor(val method: String, val segm
         }
         fun ownVideos(start: Int) = AccountOperation("GET", path("users", "me", "videos"), mapOf("start" to start.coerceAtLeast(0).toString(), "count" to "20", "sort" to "-createdAt", "includeScheduledLive" to "true"))
         fun live(uuid: String) = AccountOperation("GET", path("videos", "live", id(uuid)))
-        fun createLive(metadata: CreatorMetadata, replay: Boolean, permanent: Boolean) = AccountOperation("POST", path("videos", "live"),
-            body = metadata.json().apply { addProperty("saveReplay", replay); addProperty("permanentLive", permanent) }, multipart = true)
+        fun createLive(metadata: CreatorMetadata, replay: Boolean, permanent: Boolean, startAt: Long? = null) = AccountOperation("POST", path("videos", "live"),
+            body = metadata.json().apply { addProperty("saveReplay", replay); addProperty("permanentLive", permanent); startAt?.let { add("schedules", liveSchedules(it)) } }, multipart = true)
         fun importVideo(metadata: CreatorMetadata, url: String) = AccountOperation("POST", path("videos", "imports"),
-            body = metadata.json().apply { addProperty("targetUrl", validatedImportUrl(url)) }, multipart = true)
+            body = importMetadata(metadata).apply { addProperty("targetUrl", validatedImportUrl(url)) }, multipart = true)
+        fun imports(url: String) = AccountOperation("GET", path("users", "me", "videos", "imports"), mapOf("targetUrl" to validatedImportUrl(url), "count" to "100", "sort" to "-createdAt"))
+        fun scheduleLive(uuid: String, startAt: Long?) = AccountOperation("PUT", path("videos", "live", id(uuid)),
+            body = JsonObject().apply { add("schedules", liveSchedules(startAt)) }, empty = true)
         fun subscription(handle: String) = AccountOperation("GET", path("users", "me", "subscriptions", validSubscriptionHandle(handle)))
         fun subscribe(handle: String) = AccountOperation("POST", path("users", "me", "subscriptions"), body = JsonObject().apply { addProperty("uri", validSubscriptionHandle(handle)) }, empty = true)
         fun unsubscribe(handle: String) = AccountOperation("DELETE", path("users", "me", "subscriptions", validSubscriptionHandle(handle)), empty = true)

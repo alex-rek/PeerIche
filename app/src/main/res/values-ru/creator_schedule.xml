@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="live_schedule">Запланировать эфир</string>
+    <string name="live_schedule_unsupported">Для планирования нужен PeerTube 7.3 или новее.</string>
+    <string name="live_schedule_hint">Время указано для анонса. Запуск трансляции — вручную.</string>
+    <string name="live_schedule_edit">Изменить время эфира</string>
+    <string name="live_schedule_past">Выберите будущую дату и время.</string>
+    <string name="live_schedule_create">Создать запланированный эфир</string>
+    <string name="live_scheduled_for">Запланировано на</string>
+    <string name="import_source_title">Название (пусто — из источника)</string>
+    <string name="import_source_description">Описание (пусто — из источника)</string>
+    <string name="import_source_hint">Оставьте поля пустыми, чтобы сервер получил название и описание из видео по ссылке. Можно указать свой текст.</string>
+    <string name="import_source_failed">Сервер не смог прочитать видео по ссылке. Проверьте, что ссылка общедоступна и источник поддерживается сервером.</string>
+</resources>

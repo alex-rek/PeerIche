@@ -62,6 +62,58 @@ class AccountOperationsTest {
         catch (failure: AuthFailure) { assertEquals("import_disabled", failure.reason) }
         assertTrue(api.calls.none { it.third.writes })
     }
+    @Test fun timedOutImportIsReconciledWithoutAnotherPublication() = runBlocking {
+        val (manager, api) = setup(); var published = false
+        val time = liveSchedules(System.currentTimeMillis()).first().asJsonObject.get("startAt").asString
+        api.handler = { op -> when (route(op)) {
+            "users/me" -> json("""{"videoChannels":[{"id":7,"name":"mine"}]}""")
+            "config" -> json("""{"import":{"videos":{"http":{"enabled":true}}}}""")
+            "users/me/video-quota-used" -> JsonObject()
+            "users/me/videos/imports" -> json(if (published) """{"data":[{"id":9,"targetUrl":"https://media.example/video.mp4","createdAt":"$time","video":{"uuid":"$uuid"}}]}""" else """{"data":[]}""")
+            "videos/imports" -> { published = true; throw java.io.IOException("timeout") }
+            else -> error("Unexpected request")
+        } }
+        assertEquals(uuid, CreatorRepository(manager).importVideo("https://account.example|1", CreatorMetadata("", "", 7, 3), "https://media.example/video.mp4"))
+        val writes = api.calls.filter { it.third.writes }
+        assertEquals(1, writes.size)
+        assertFalse(writes.single().third.body!!.has("name"))
+        assertFalse(writes.single().third.body!!.has("description"))
+    }
+    @Test fun oldImportDoesNotConfirmAnUncertainNewRequest() = runBlocking {
+        val (manager, api) = setup()
+        val time = liveSchedules(System.currentTimeMillis()).first().asJsonObject.get("startAt").asString
+        api.handler = { op -> when (route(op)) {
+            "users/me" -> json("""{"videoChannels":[{"id":7,"name":"mine"}]}""")
+            "config" -> json("""{"import":{"videos":{"http":{"enabled":true}}}}""")
+            "users/me/video-quota-used" -> JsonObject()
+            "users/me/videos/imports" -> json("""{"data":[{"id":9,"targetUrl":"https://media.example/video.mp4","createdAt":"$time","video":{"uuid":"$uuid"}}]}""")
+            "videos/imports" -> throw java.io.IOException("timeout")
+            else -> error("Unexpected request")
+        } }
+        try { CreatorRepository(manager).importVideo("https://account.example|1", CreatorMetadata("", "", 7, 3), "https://media.example/video.mp4"); fail() }
+        catch (failure: AuthFailure) { assertEquals("import_unknown", failure.reason) }
+        assertEquals(1, api.calls.count { it.third.writes })
+    }
+    @Test fun schedulingChecksServerSupportAndWritesUtcTime() = runBlocking {
+        val (manager, api) = setup(); var version = "7.2.0"
+        api.handler = { op -> when (route(op)) {
+            "users/me" -> json("""{"videoChannels":[{"id":7,"name":"mine"}]}""")
+            "config" -> json("""{"serverVersion":"$version","live":{"enabled":true,"allowReplay":true}}""")
+            "users/me/video-quota-used" -> JsonObject()
+            "videos/live" -> json("""{"video":{"uuid":"$uuid"}}""")
+            "videos/live/$uuid" -> JsonObject()
+            else -> error("Unexpected request")
+        } }
+        val repo = CreatorRepository(manager); val future = System.currentTimeMillis() + 3_600_000
+        try { repo.createLive("https://account.example|1", CreatorMetadata("Planned live", "", 7, 2), true, false, future); fail() }
+        catch (failure: AuthFailure) { assertEquals("schedule_unsupported", failure.reason) }
+        assertTrue(api.calls.none { it.third.writes })
+        version = "8.3.0"
+        assertEquals(uuid, repo.createLive("https://account.example|1", CreatorMetadata("Planned live", "", 7, 2), true, false, future))
+        assertEquals(future, scheduledLiveTime(api.calls.last().third.body!!))
+        repo.updateLiveSchedule("https://account.example|1", uuid, null)
+        assertEquals(0, api.calls.last().third.body!!.getAsJsonArray("schedules").size())
+    }
     @Test fun queuedSubscriptionSurvivesStaleRefreshUntilServerConfirms() = runBlocking {
         val (manager, api) = setup()
         var confirmed = false

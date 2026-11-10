@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="live_schedule">Livestream planen</string>
+    <string name="live_schedule_unsupported">Planung erfordert PeerTube 7.3 oder neuer.</string>
+    <string name="live_schedule_hint">Die Zeit kündigt das Ereignis an. Starten Sie den Stream manuell.</string>
+    <string name="live_schedule_edit">Sendezeit ändern</string>
+    <string name="live_schedule_past">Wählen Sie einen zukünftigen Zeitpunkt.</string>
+    <string name="live_schedule_create">Geplanten Livestream erstellen</string>
+    <string name="live_scheduled_for">Geplant für</string>
+    <string name="import_source_title">Titel (leer: aus Quelle)</string>
+    <string name="import_source_description">Beschreibung (leer: aus Quelle)</string>
+    <string name="import_source_hint">Leere Felder werden vom Server mit Titel und Beschreibung der Videoquelle ergänzt. Eigener Text ist ebenfalls möglich.</string>
+    <string name="import_source_failed">Der Server konnte die Videoquelle nicht lesen. Prüfen Sie, ob der Link öffentlich ist und unterstützt wird.</string>
+</resources>

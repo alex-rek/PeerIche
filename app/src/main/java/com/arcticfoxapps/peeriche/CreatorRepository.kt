@@ -10,7 +10,7 @@ internal fun JsonObject.stringAt(key: String): String = runCatching { get(key).a
 internal data class CreatorChannel(val id: Long, val title: String, val name: String = "")
 internal data class CreatorCapabilities(val channels: List<CreatorChannel>, val quota: Long, val dailyQuota: Long, val used: Long, val dailyUsed: Long,
     val extensions: List<String>, val minChunk: Int, val maxChunk: Int, val live: Boolean, val replay: Boolean, val coverMax: Long, val coverExtensions: List<String>,
-    val httpImport: Boolean = false) {
+    val httpImport: Boolean = false, val scheduledLives: Boolean = false) {
     fun validateFile(filename: String, size: Long) {
         if (size <= 0) throw AuthFailure("invalid_file")
         if (extensions.isNotEmpty() && extensions.none { filename.endsWith(it, ignoreCase = true) }) throw AuthFailure("upload_format")
@@ -38,9 +38,9 @@ internal fun creatorCapabilities(me: JsonObject, config: JsonObject, used: JsonO
         limits?.longAt("maxChunkSize", 0)?.coerceIn(0, Int.MAX_VALUE.toLong())?.toInt() ?: 0,
         config.objectAt("live")?.boolAt("enabled") == true, config.objectAt("live")?.boolAt("allowReplay") == true,
         image?.objectAt("size")?.longAt("max", 8_388_608) ?: 8_388_608, extensions(image),
-        config.objectAt("import", "videos", "http")?.boolAt("enabled") == true)
+        config.objectAt("import", "videos", "http")?.boolAt("enabled") == true, supportsLiveSchedules(config.stringAt("serverVersion")))
 }
-internal data class CreatorVideo(val video: Video, val privacy: Int, val state: Int, val stateLabel: String)
+internal data class CreatorVideo(val video: Video, val privacy: Int, val state: Int, val stateLabel: String, val scheduledAt: Long? = null)
 internal data class CreatorPage(val rows: List<CreatorVideo>, val total: Int)
 internal class LiveCredentials(val url: String, val key: String, val watchUrl: String) {
     override fun toString() = "LiveCredentials(redacted)"
@@ -64,7 +64,7 @@ internal class CreatorRepository(private val accounts: AccountSessionManager) {
             val raw = item.asJsonObject
             val video = gson.fromJson(raw, Video::class.java).copy(host = java.net.URI(account.server).authority, playbackAccountId = id)
             CreatorVideo(video, raw.objectAt("privacy")?.longAt("id", 0)?.toInt() ?: 0,
-                raw.objectAt("state")?.longAt("id", 0)?.toInt() ?: 0, raw.objectAt("state")?.stringAt("label").orEmpty())
+                raw.objectAt("state")?.longAt("id", 0)?.toInt() ?: 0, raw.objectAt("state")?.stringAt("label").orEmpty(), scheduledLiveTime(raw))
         }, json.longAt("total", rows.size().toLong()).toInt())
     }
     suspend fun playbackVideo(id: String, uuid: String): Video {
@@ -77,19 +77,58 @@ internal class CreatorRepository(private val accounts: AccountSessionManager) {
         return video.copy(host = java.net.URI(account.server).authority,
             url = "${account.server}/videos/watch/$uuid", playbackAccountId = id.takeIf { restricted })
     }
-    suspend fun createLive(id: String, metadata: CreatorMetadata, replay: Boolean, permanent: Boolean): String {
+    suspend fun createLive(id: String, metadata: CreatorMetadata, replay: Boolean, permanent: Boolean, startAt: Long? = null): String {
         val capabilities = capabilities(id)
         if (!capabilities.live || (replay && !capabilities.replay)) throw AuthFailure("live_disabled")
         if (capabilities.channels.none { it.id == metadata.channelId }) throw AuthFailure("invalid_channel")
+        if (startAt != null && !capabilities.scheduledLives) throw AuthFailure("schedule_unsupported")
+        validateLiveSchedule(startAt)
         // Only a user-initiated request: never automatically replay after network failure.
-        return uploadedUuid(accounts.request(id, AccountOperation.createLive(metadata, replay, permanent)))
+        return uploadedUuid(accounts.request(id, AccountOperation.createLive(metadata, replay, permanent, startAt)))
     }
-    suspend fun importVideo(id: String, metadata: CreatorMetadata, url: String): String {
+    suspend fun importVideo(id: String, metadata: CreatorMetadata, url: String): String? {
         val caps = capabilities(id)
         if (!caps.httpImport) throw AuthFailure("import_disabled")
         if (caps.channels.none { it.id == metadata.channelId }) throw AuthFailure("invalid_channel")
-        // Import is a publication: one explicit request, without automatic retries.
-        return uploadedUuid(accounts.request(id, AccountOperation.importVideo(metadata, url)))
+        val target = validatedImportUrl(url)
+        val operation = AccountOperation.importVideo(metadata, target)
+        // Remember existing jobs: a failed response must not confuse an older import with a new one.
+        val before = runCatching { importJobs(id, target).map { it.longAt("id") }.toSet() }.getOrElse { failure ->
+            if (failure is kotlinx.coroutines.CancellationException) throw failure
+            null
+        }
+        try {
+            return importedUuid(accounts.request(id, operation))
+        } catch (failure: Exception) {
+            if (failure is kotlinx.coroutines.CancellationException) throw failure
+            if (failure is AuthFailure && failure.status == 0 && failure.reason != "invalid_response") throw failure
+            if (failure is AuthFailure && failure.status in 400..499) {
+                if (failure.status == 409) throw AuthFailure("import_disabled", 409)
+                if (failure.status == 400 && failure.reason == "request_failed") throw AuthFailure("import_source_failed", 400)
+                throw failure
+            }
+            // Read-only reconciliation; never issue a second publication automatically.
+            val created = runCatching { importJobs(id, target).firstOrNull { before != null && it.longAt("id") !in before &&
+                it.stringAt("targetUrl") == target && recentImport(it) } }.getOrElse {
+                if (it is kotlinx.coroutines.CancellationException) throw it
+                null
+            }
+            if (created != null) return importedUuid(created)
+            throw AuthFailure("import_unknown")
+        }
+    }
+    private suspend fun importJobs(id: String, url: String): List<JsonObject> =
+        accounts.request(id, AccountOperation.imports(url)).getAsJsonArray("data")?.map { it.asJsonObject }.orEmpty()
+    suspend fun liveSchedule(id: String, uuid: String): Long? {
+        owner(id)
+        val data = accounts.request(id, AccountOperation.live(uuid)); owner(id)
+        return scheduledLiveTime(data)
+    }
+    suspend fun updateLiveSchedule(id: String, uuid: String, startAt: Long?) {
+        if (!capabilities(id).scheduledLives) throw AuthFailure("schedule_unsupported")
+        validateLiveSchedule(startAt)
+        // The server checks ownership and rejects updates after the broadcast starts.
+        accounts.request(id, AccountOperation.scheduleLive(uuid, startAt))
     }
     suspend fun liveCredentials(id: String, uuid: String): LiveCredentials {
         val account = owner(id)

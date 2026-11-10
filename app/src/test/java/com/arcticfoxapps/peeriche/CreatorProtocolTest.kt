@@ -67,6 +67,17 @@ class CreatorProtocolTest {
             assertEquals(uuid, uploadedUuid(live))
         }
     }
+    @Test fun scheduledLiveMultipartUsesNestedFieldNames() = runBlocking {
+        val time = 1893456000000L
+        val http = client { request ->
+            assertEquals("/api/v1/videos/live", request.url.encodedPath)
+            val body = Buffer().also { request.body!!.writeTo(it) }.readUtf8()
+            assertTrue(body.contains("name=\"schedules[0][startAt]\""))
+            assertTrue(body.contains("2030-01-01T00:00:00.000Z"))
+            response(request, 200, """{"video":{"uuid":"$uuid"}}""")
+        }
+        assertEquals(uuid, uploadedUuid(PeerTubeAuthTransport(http).accountRequest(server, "fixture", AccountOperation.createLive(metadata, true, false, time))))
+    }
     @Test fun nonEmptyDescriptionMustMeetServerMinimumAndIsPreserved() {
         for (description in listOf("a", "ab")) failure("invalid_description") { metadata.copy(description = description).json() }
         assertEquals("abc", metadata.copy(description = "abc").json().get("description").asString)

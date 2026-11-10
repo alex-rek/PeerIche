@@ -69,6 +69,8 @@ internal fun authErrorReason(status: Int, json: JsonObject?): String {
     // Only recognize field names in the structured validation response.
     val invalid = runCatching { json?.getAsJsonObject("invalid-params") }.getOrNull()
     if (status == 400 && invalid != null) {
+        if (invalid.has("targetUrl")) return "invalid_import_url"
+        if (invalid.has("schedules")) return "schedule_past"
         if (invalid.has("description")) return "publication_description"
         if (listOf("name", "channelId", "privacy", "saveReplay", "permanentLive", "filename", "commentsPolicy").any(invalid::has)) return "publication_parameters"
     }
@@ -91,9 +93,9 @@ internal class PeerTubeAuthTransport(client: OkHttpClient = OkHttpClient()) : Au
         }
     }
     @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
-    private suspend fun execute(request: Request, empty: Boolean = false): JsonObject = withContext(Dispatchers.IO) {
+    private suspend fun execute(request: Request, empty: Boolean = false, client: OkHttpClient = http): JsonObject = withContext(Dispatchers.IO) {
         val response = suspendCancellableCoroutine<Response> { continuation ->
-            val call = http.newCall(request)
+            val call = client.newCall(request)
             continuation.invokeOnCancellation { call.cancel() }
             call.enqueue(object : Callback {
                 override fun onFailure(call: Call, error: IOException) { if (continuation.isActive) continuation.resumeWithException(error) }
@@ -168,10 +170,20 @@ internal class PeerTubeAuthTransport(client: OkHttpClient = OkHttpClient()) : Au
         operation.query.forEach { (key, value) -> url.addQueryParameter(key, value) }
         val request = Request.Builder().url(url.build()).header("Accept", "application/json").header("Authorization", "Bearer $token")
         val body = if (operation.multipart) okhttp3.MultipartBody.Builder().setType(okhttp3.MultipartBody.FORM).apply {
-            operation.body?.entrySet()?.forEach { (key, value) -> addFormDataPart(key, value.asString) }
+            fun part(key: String, value: com.google.gson.JsonElement) {
+                when {
+                    value.isJsonArray -> value.asJsonArray.forEachIndexed { index, item -> part("$key[$index]", item) }
+                    value.isJsonObject -> value.asJsonObject.entrySet().forEach { (field, item) -> part("$key[$field]", item) }
+                    !value.isJsonNull -> addFormDataPart(key, value.asString)
+                }
+            }
+            operation.body?.entrySet()?.forEach { (key, value) -> part(key, value) }
         }.build() else operation.body?.toString()?.toRequestBody("application/json; charset=utf-8".toMediaType())
         request.method(operation.method, if (operation.method in listOf("POST", "PUT")) body ?: FormBody.Builder().build() else null)
-        return try { execute(request.build(), operation.empty) }
+        // Import first probes the remote source on the server and can take longer than ordinary API calls.
+        val client = if (operation.method == "POST" && operation.segments.takeLast(2) == listOf("videos", "imports"))
+            http.newBuilder().callTimeout(120, TimeUnit.SECONDS).readTimeout(120, TimeUnit.SECONDS).build() else http
+        return try { execute(request.build(), operation.empty, client) }
         catch (failure: AuthFailure) { if (failure.status == 404) throw AuthFailure("account_resource_missing", 404) else throw failure }
     }
     override suspend fun uploadRequest(server: String, token: String, operation: UploadOperation): UploadReply =

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="live_schedule">Agendar transmissão</string>
+    <string name="live_schedule_unsupported">O agendamento requer PeerTube 7.3 ou posterior.</string>
+    <string name="live_schedule_hint">A hora anuncia o evento. Inicie a transmissão manualmente.</string>
+    <string name="live_schedule_edit">Alterar agendamento</string>
+    <string name="live_schedule_past">Escolha uma data e hora futuras.</string>
+    <string name="live_schedule_create">Criar transmissão agendada</string>
+    <string name="live_scheduled_for">Agendado para</string>
+    <string name="import_source_title">Título (vazio: da origem)</string>
+    <string name="import_source_description">Descrição (vazia: da origem)</string>
+    <string name="import_source_hint">Deixe os campos vazios para o servidor obter o título e a descrição do vídeo. Também pode escrever o seu texto.</string>
+    <string name="import_source_failed">O servidor não conseguiu ler o vídeo. Verifique se o link é público e compatível.</string>
+</resources>

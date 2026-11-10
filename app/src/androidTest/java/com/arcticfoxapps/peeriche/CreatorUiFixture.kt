@@ -40,7 +40,8 @@ internal fun creatorUiFixture(instrumentation: Instrumentation) {
                 override suspend fun save(accounts: StoredAccounts) { value = accounts }
                 override suspend fun clear() { value = StoredAccounts() }
             }
-            var created = false
+            var created = true
+            var scheduled = System.currentTimeMillis() + 86_400_000
             var accepted = 0L
             var uploadTotal = 0L
             val liveUuid = "33333333-3333-4333-8333-333333333333"
@@ -54,14 +55,16 @@ internal fun creatorUiFixture(instrumentation: Instrumentation) {
                     check(server == session.server)
                     return when (operation.segments.drop(2).joinToString("/")) {
                         "users/me" -> json("""{"id":1,"videoQuota":10737418240,"videoQuotaDaily":2147483648,"videoChannels":[{"id":7,"name":"creator","displayName":"Мой канал","host":"fixture.invalid"}]}""")
-                        "config" -> json("""{"video":{"file":{"extensions":[".mp4"]},"image":{"size":{"max":8388608},"extensions":[".jpg",".png"]}},"live":{"enabled":true,"allowReplay":true},"import":{"videos":{"http":{"enabled":true}}}}""")
+                        "config" -> json("""{"serverVersion":"8.3.0","video":{"file":{"extensions":[".mp4"]},"image":{"size":{"max":8388608},"extensions":[".jpg",".png"]}},"live":{"enabled":true,"allowReplay":true},"import":{"videos":{"http":{"enabled":true}}}}""")
                         "users/me/video-quota-used" -> json("""{"videoQuotaUsed":123456789,"videoQuotaUsedDaily":1234567}""")
                         "users/me/subscriptions", "users/me/subscriptions/videos" -> json("""{"total":0,"data":[]}""")
                         "video-channels/creator" -> if (operation.method == "PUT") json("{}") else json("""{"id":7,"name":"creator","displayName":"Мой канал","description":"Описание тестового канала"}""")
-                        "users/me/videos" -> json("""{"total":${if (created) 3 else 2},"data":[{"uuid":"11111111-1111-4111-8111-111111111111","name":"Поход в горы","privacy":{"id":1},"state":{"id":1}},{"uuid":"22222222-2222-4222-8222-222222222222","name":"Новый ролик — обработка на сервере","privacy":{"id":3},"state":{"id":2}}${if (created) ",{\"uuid\":\"$liveUuid\",\"name\":\"Тестовый эфир\",\"privacy\":{\"id\":2},\"state\":{\"id\":4},\"isLive\":true}" else ""}]}""")
-                        "videos/live" -> { created = true; json("""{"video":{"uuid":"$liveUuid"}}""") }
+                        "users/me/videos" -> json("""{"total":${if (created) 3 else 2},"data":[{"uuid":"11111111-1111-4111-8111-111111111111","name":"Поход в горы","privacy":{"id":1},"state":{"id":1}},{"uuid":"22222222-2222-4222-8222-222222222222","name":"Новый ролик — обработка на сервере","privacy":{"id":3},"state":{"id":2}}${if (created) ",{\"uuid\":\"$liveUuid\",\"name\":\"Тестовый эфир\",\"privacy\":{\"id\":2},\"state\":{\"id\":4},\"isLive\":true,\"liveSchedules\":[{\"startAt\":\"${liveSchedules(scheduled)[0].asJsonObject.stringAt("startAt")}\"}]}" else ""}]}""")
+                        "videos/live" -> { created = true; operation.body?.let { scheduledLiveTime(it) }?.let { scheduled = it }; json("""{"video":{"uuid":"$liveUuid"}}""") }
                         "videos/imports" -> json("""{"video":{"uuid":"11111111-1111-4111-8111-111111111111"}}""")
-                        "videos/live/$liveUuid" -> json("""{"rtmpsUrl":"rtmps://fixture.invalid:1936/live","streamKey":"test-fixture-key-not-real"}""")
+                        "users/me/videos/imports" -> json("""{"data":[]}""")
+                        "videos/$liveUuid" -> json("""{"uuid":"$liveUuid","name":"Тестовый эфир","isLive":true,"state":{"id":4},"privacy":{"id":2}}""")
+                        "videos/live/$liveUuid" -> if (operation.method == "PUT") { scheduled = operation.body?.let(::scheduledLiveTime) ?: 0; json("{}") } else json("""{"schedules":${liveSchedules(scheduled)},"rtmpsUrl":"rtmps://fixture.invalid:1936/live","streamKey":"test-fixture-key-not-real"}""")
                         else -> throw AuthFailure("account_resource_missing", 404)
                     }
                 }

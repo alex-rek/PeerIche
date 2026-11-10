@@ -56,7 +56,7 @@ internal fun creationModeIcon(mode: String) = when (mode) {
     else -> Icons.Default.Videocam
 }
 
-@Composable internal fun CreatePage(mode: String, onMode: (String) -> Unit, wide: Boolean, onClose: () -> Unit, onVideos: () -> Unit) {
+@Composable internal fun CreatePage(initialLiveUuid: String? = null, onLiveConsumed: () -> Unit = {}, mode: String, onMode: (String) -> Unit, wide: Boolean, onClose: () -> Unit, onVideos: () -> Unit) {
     val context = LocalContext.current
     val accounts = remember { PeerTubeAccounts.get(context) }
     val accountState by accounts.state.collectAsState()
@@ -67,10 +67,10 @@ internal fun creationModeIcon(mode: String) = when (mode) {
             TextButton(onClick = onClose) { Text(uiText(R.string.ui_home_9dd0b3)) }
         }; return
     }
-    key(owner.id) { CreationHub(owner, accounts, mode, onMode, wide, onClose, onVideos) }
+    key(owner.id) { CreationHub(owner, accounts, initialLiveUuid, onLiveConsumed, mode, onMode, wide, onClose, onVideos) }
 }
 
-@Composable private fun CreationHub(owner: AccountSummary, accounts: AccountSessionManager, mode: String, onMode: (String) -> Unit, wide: Boolean, onClose: () -> Unit, onVideos: () -> Unit) {
+@Composable private fun CreationHub(owner: AccountSummary, accounts: AccountSessionManager, initialLiveUuid: String?, onLiveConsumed: () -> Unit, mode: String, onMode: (String) -> Unit, wide: Boolean, onClose: () -> Unit, onVideos: () -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val repository = remember { CreatorRepository(accounts) }
@@ -103,7 +103,7 @@ internal fun creationModeIcon(mode: String) = when (mode) {
             when (mode) {
                 "upload" -> UploadCreationPage(owner, capabilities, repository, onVideos)
                 "settings" -> BroadcastChannelSettings(owner, capabilities, repository, preferences, controller) { retry++ }
-                else -> PhoneBroadcastPage(owner, capabilities, repository, preferences, controller, onClose, fixedPhone = !wide, onSettings = { onMode("settings") })
+                else -> PhoneBroadcastPage(owner, capabilities, repository, preferences, controller, initialLiveUuid, onLiveConsumed, onClose, fixedPhone = !wide, onSettings = { onMode("settings") })
             }
         }
         if (stream.busy && mode != "live") TextButton(onClick = { onMode("live") }, modifier = Modifier.fillMaxWidth()) { Text(uiText(R.string.ui_return_to_broadcast_fef56e)) }
@@ -158,7 +158,7 @@ internal fun creationModeIcon(mode: String) = when (mode) {
 }
 
 @Composable private fun PhoneBroadcastPage(owner: AccountSummary, capabilities: CreatorCapabilities?, repository: CreatorRepository, preferences: BroadcastPreferences,
-    controller: BroadcastCoordinator, onClose: () -> Unit, fixedPhone: Boolean, onSettings: () -> Unit) {
+    controller: BroadcastCoordinator, initialLiveUuid: String?, onLiveConsumed: () -> Unit, onClose: () -> Unit, fixedPhone: Boolean, onSettings: () -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val lifecycle = LocalLifecycleOwner.current
@@ -178,12 +178,26 @@ internal fun creationModeIcon(mode: String) = when (mode) {
     var replay by rememberSaveable(owner.id) { mutableStateOf(true) }
     var channelId by rememberSaveable(owner.id) { mutableLongStateOf(preferences.get(owner.id).channelId) }
     var selectedUuid by rememberSaveable(owner.id) { mutableStateOf<String?>(null) }
+    var selectingLive by remember { mutableStateOf(initialLiveUuid != null) }
+    var selectionError by remember { mutableStateOf<String?>(null) }
     var details by remember { mutableStateOf(false) }
     var confirmStop by remember { mutableStateOf(false) }
     var expanded by remember { mutableStateOf(false) }
     var lives by remember { mutableStateOf(emptyList<CreatorVideo>()) }
     var livesError by remember { mutableStateOf<String?>(null) }
     var refreshLives by remember { mutableIntStateOf(0) }
+    LaunchedEffect(initialLiveUuid) {
+        if (initialLiveUuid != null) {
+            selectingLive = true; selectionError = null
+            try {
+                val video = repository.playbackVideo(owner.id, initialLiveUuid)
+                if (!video.isLive || video.state?.id != 4) throw AuthFailure("account_video_unavailable")
+                selectedUuid = initialLiveUuid; title = video.name
+            } catch (cancelled: CancellationException) { throw cancelled }
+            catch (failure: Exception) { selectionError = accountErrorCode(failure) }
+            finally { selectingLive = false; onLiveConsumed() }
+        }
+    }
     LaunchedEffect(capabilities) { if (capabilities?.channels?.none { it.id == channelId } == true) channelId = capabilities.channels.firstOrNull()?.id ?: 0 }
     LaunchedEffect(stream.uuid, stream.phase, owner.id) {
         resumableBroadcastUuid(stream, owner.id)?.let { selectedUuid = it }
@@ -271,6 +285,7 @@ internal fun creationModeIcon(mode: String) = when (mode) {
                 IconButton(enabled = !stream.busy, onClick = { details = true }) { Icon(Icons.Default.Edit, uiText(R.string.ui_title_and_visibility_b072fd), tint = Color.White) }
             }
             if (capabilities?.live == false) Text(uiText(R.string.ui_this_server_disables_live_streaming_local_fcce38), color = Color.White, style = MaterialTheme.typography.bodySmall)
+            selectionError?.let { Text(creatorErrorText(it), color = Color(0xFFFFC0A8), style = MaterialTheme.typography.bodySmall) }
             stream.error?.let { Text(broadcastErrorText(it), color = Color(0xFFFFC0A8), style = MaterialTheme.typography.bodySmall, maxLines = 3) }
             if (stream.busy) Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(onClick = { confirmStop = true }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFB62B29)), modifier = Modifier.weight(1f)) { Text(uiText(R.string.ui_end_broadcast_4e87f9)) }
@@ -280,7 +295,7 @@ internal fun creationModeIcon(mode: String) = when (mode) {
                 }
             }
             else {
-                Button(enabled = allowed && capabilities?.live == true && channelId > 0 && title.trim().length in 3..120, onClick = {
+                Button(enabled = !selectingLive && selectionError == null && allowed && capabilities?.live == true && channelId > 0 && title.trim().length in 3..120, onClick = {
                     if (controller.state.value.phase != "preview") controller.preview(owner)
                     else {
                         if (Build.VERSION.SDK_INT >= 33) notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
@@ -298,9 +313,9 @@ internal fun creationModeIcon(mode: String) = when (mode) {
             if (controller.state.value.phase == "stopped") controller.preview(owner)
         }
     }
-    if (details && capabilities != null) BroadcastDetails(capabilities, lives, livesError, title, description, channelId, privacy, replay, selectedUuid,
+    if (details && capabilities != null) BroadcastDetails(owner, repository, capabilities, lives, livesError, title, description, channelId, privacy, replay, selectedUuid,
         onRefresh = { refreshLives++ }, onSave = { name, desc, channel, access, saveReplay, uuid ->
-            title = name; description = desc; channelId = channel; privacy = access; replay = saveReplay; selectedUuid = uuid
+            title = name; description = desc; channelId = channel; privacy = access; replay = saveReplay; selectedUuid = uuid; selectionError = null
             preferences.save(owner.id, preferences.get(owner.id).copy(channelId = channel)); details = false
         }, onClose = { details = false })
 }
@@ -335,11 +350,13 @@ internal fun creationModeIcon(mode: String) = when (mode) {
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Composable private fun BroadcastDetails(caps: CreatorCapabilities, lives: List<CreatorVideo>, loadError: String?, title: String, description: String, channel: Long, privacy: Int, replay: Boolean, uuid: String?,
+@Composable private fun BroadcastDetails(owner: AccountSummary, repository: CreatorRepository, caps: CreatorCapabilities, lives: List<CreatorVideo>, loadError: String?, title: String, description: String, channel: Long, privacy: Int, replay: Boolean, uuid: String?,
     onRefresh: () -> Unit, onSave: (String, String, Long, Int, Boolean, String?) -> Unit, onClose: () -> Unit) {
     var name by remember { mutableStateOf(title) }; var desc by remember { mutableStateOf(description) }; var selectedChannel by remember { mutableLongStateOf(channel) }
+    val scope = rememberCoroutineScope()
+    var scheduledAt by remember { mutableStateOf<Long?>(null) }; var saving by remember { mutableStateOf(false) }; var saveError by remember { mutableStateOf<String?>(null) }
     var access by remember { mutableIntStateOf(privacy) }; var saveReplay by remember { mutableStateOf(replay && caps.replay) }; var selectedLive by remember { mutableStateOf(uuid) }
-    ModalBottomSheet(onDismissRequest = onClose, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
+    ModalBottomSheet(onDismissRequest = { if (!saving) onClose() }, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
         Column(Modifier.fillMaxWidth().heightIn(max = 650.dp).imePadding().verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text(uiText(R.string.ui_broadcast_details_fb7ead), style = MaterialTheme.typography.titleLarge)
             OptionPicker(uiText(R.string.ui_live_13cd53), selectedLive?.let { id -> lives.firstOrNull { it.video.apiId() == id }?.video?.name ?: uiText(R.string.ui_created_live_7a0340) } ?: uiText(R.string.ui_new_live_57d293),
@@ -352,7 +369,23 @@ internal fun creationModeIcon(mode: String) = when (mode) {
             OptionPicker(uiText(R.string.ui_visibility_cb41fd), visibilityName(access), listOf(3, 2, 1), { visibilityName(it) }, enabled = selectedLive == null) { access = it }
             Row(verticalAlignment = Alignment.CenterVertically) { Checkbox(saveReplay, { saveReplay = it }, enabled = caps.replay && selectedLive == null); Text(uiText(R.string.ui_save_replay_on_server_c7d724)) }
             if (selectedLive != null) Text(uiText(R.string.ui_existing_live_streams_keep_their_server_se_ece468), style = MaterialTheme.typography.bodySmall)
-            Button(enabled = name.trim().length in 3..120 && desc.length <= 10000 && selectedChannel > 0, onClick = { onSave(name, desc, selectedChannel, access, saveReplay, selectedLive) }, modifier = Modifier.fillMaxWidth()) { Text(uiText(R.string.ui_done_76ab9d)) }
+            if (selectedLive == null) LiveScheduleFields(caps.scheduledLives, scheduledAt, { scheduledAt = it }, !saving)
+            saveError?.let { Text(creatorErrorText(it), color = MaterialTheme.colorScheme.error) }
+            if (saving) LinearProgressIndicator(Modifier.fillMaxWidth())
+            Button(enabled = !saving && name.trim().length in 3..120 && desc.length <= 10000 && selectedChannel > 0, onClick = {
+                if (scheduledAt == null || selectedLive != null) onSave(name, desc, selectedChannel, access, saveReplay, selectedLive)
+                else {
+                    saving = true; saveError = null
+                    scope.launch {
+                        try {
+                            val id = repository.createLive(owner.id, CreatorMetadata(name, desc, selectedChannel, access), saveReplay, false, scheduledAt)
+                            onRefresh(); onSave(name, desc, selectedChannel, access, saveReplay, id)
+                        } catch (cancelled: CancellationException) { throw cancelled }
+                        catch (failure: Exception) { saveError = if (failure !is AuthFailure || failure.status >= 500 || failure.reason == "invalid_response") "live_create_unknown" else accountErrorCode(failure) }
+                        finally { saving = false }
+                    }
+                }
+            }, modifier = Modifier.fillMaxWidth()) { Text(uiText(if (scheduledAt != null && selectedLive == null) R.string.live_schedule_create else R.string.ui_done_76ab9d)) }
         }
     }
 }

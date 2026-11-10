@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="live_schedule">Planifier le direct</string>
+    <string name="live_schedule_unsupported">La planification nécessite PeerTube 7.3 ou ultérieur.</string>
+    <string name="live_schedule_hint">Cette heure annonce le direct. Démarrez la diffusion manuellement.</string>
+    <string name="live_schedule_edit">Modifier la date du direct</string>
+    <string name="live_schedule_past">Choisissez une date et une heure futures.</string>
+    <string name="live_schedule_create">Créer le direct planifié</string>
+    <string name="live_scheduled_for">Prévu le</string>
+    <string name="import_source_title">Titre (vide : depuis la source)</string>
+    <string name="import_source_description">Description (vide : depuis la source)</string>
+    <string name="import_source_hint">Laissez les champs vides pour récupérer le titre et la description depuis la source. Vous pouvez aussi saisir votre texte.</string>
+    <string name="import_source_failed">Le serveur ne peut pas lire cette source. Vérifiez que le lien est public et pris en charge.</string>
+</resources>

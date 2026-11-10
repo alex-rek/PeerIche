@@ -202,6 +202,7 @@ class MainActivity : ComponentActivity() {
     var homeRefreshing by remember { mutableStateOf(false) }
     var homeJob by remember { mutableStateOf<kotlinx.coroutines.Job?>(null) }
     var page by rememberSaveable { mutableStateOf("Home") }
+    var creationLiveUuid by remember { mutableStateOf<String?>(null) }
     var creationMode by rememberSaveable { mutableStateOf("live") }
     val availableServers = remember(serverList) { serverList.lines().mapNotNull { runCatching { normalizeServer(it) }.getOrNull() }.distinct() }
     val server = remember(serverList, activeServerSetting) { activeServerSetting.takeIf { it in availableServers } ?: availableServers.firstOrNull() ?: "https://peertube.tv" }
@@ -807,13 +808,13 @@ class MainActivity : ComponentActivity() {
                         if (page == "Server") TextButton(onClick = { settingsSection = "servers"; settingsOpen = true }) { Text(stringResource(R.string.choose_peer_server)) }
                     }
                     if (page == "Create") {
-                        CreatePage(mode = creationMode, onMode = { creationMode = it }, wide = wideLayout,
+                        CreatePage(initialLiveUuid = creationLiveUuid, onLiveConsumed = { creationLiveUuid = null }, mode = creationMode, onMode = { creationMode = it }, wide = wideLayout,
                             onClose = { navigateTo("Home") }, onVideos = { navigateTo("You"); openYouSection(YouSection.Videos) })
                     } else if (page == "You" && youSection == YouSection.Menu) {
                         YouPage(server, onOpenSection = ::openYouSection, onSettings = { settingsSection = null; settingsOpen = true },
                             onAccountServer = { host -> scope.launch { useAccountServer(context, host) } })
                     } else if (page == "You" && youSection == YouSection.Videos) {
-                        CreatorPage(onOpenVideo = ::openVideo)
+                        CreatorPage(onOpenVideo = ::openVideo, onStartLive = { uuid -> creationLiveUuid = uuid; creationMode = "live"; navigateTo("Create") })
                     } else if (page == "You" && youSection == YouSection.Channels && !channelVideosMode) {
                         if (channelDirectoryServer == null) AccountChannelsPage(selectedAccount, accountSnapshot, subscriptionRows, server,
                             onOpen = ::openChannelVideos, onBrowse = ::openServerChannels,

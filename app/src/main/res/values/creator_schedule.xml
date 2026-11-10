@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="live_schedule">Schedule live</string>
+    <string name="live_schedule_unsupported">Scheduling requires PeerTube 7.3 or later.</string>
+    <string name="live_schedule_hint">The time announces the event. Start the broadcast manually.</string>
+    <string name="live_schedule_edit">Change live schedule</string>
+    <string name="live_schedule_past">Choose a future date and time.</string>
+    <string name="live_schedule_create">Create scheduled live</string>
+    <string name="live_scheduled_for">Scheduled for</string>
+    <string name="import_source_title">Title (blank: from source)</string>
+    <string name="import_source_description">Description (blank: from source)</string>
+    <string name="import_source_hint">Leave fields blank to let the server get the title and description from the video link. You can also enter your own text.</string>
+    <string name="import_source_failed">The server could not read this video source. Check that the link is public and supported by the server.</string>
+</resources>

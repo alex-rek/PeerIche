@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="live_schedule">Programar directo</string>
+    <string name="live_schedule_unsupported">La programación requiere PeerTube 7.3 o posterior.</string>
+    <string name="live_schedule_hint">La hora anuncia el evento. Inicia la emisión manualmente.</string>
+    <string name="live_schedule_edit">Cambiar horario</string>
+    <string name="live_schedule_past">Elige una fecha y hora futuras.</string>
+    <string name="live_schedule_create">Crear directo programado</string>
+    <string name="live_scheduled_for">Programado para</string>
+    <string name="import_source_title">Título (vacío: del origen)</string>
+    <string name="import_source_description">Descripción (vacío: del origen)</string>
+    <string name="import_source_hint">Deja los campos vacíos para que el servidor obtenga el título y la descripción del enlace. También puedes escribir tu propio texto.</string>
+    <string name="import_source_failed">El servidor no pudo leer el vídeo. Comprueba que el enlace sea público y compatible.</string>
+</resources>

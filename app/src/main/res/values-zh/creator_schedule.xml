@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="live_schedule">预约直播</string>
+    <string name="live_schedule_unsupported">预约需要 PeerTube 7.3 或更高版本。</string>
+    <string name="live_schedule_hint">此时间用于预告，直播需要手动开始。</string>
+    <string name="live_schedule_edit">修改直播时间</string>
+    <string name="live_schedule_past">请选择将来的日期和时间。</string>
+    <string name="live_schedule_create">创建预约直播</string>
+    <string name="live_scheduled_for">预约时间</string>
+    <string name="import_source_title">标题（留空使用来源标题）</string>
+    <string name="import_source_description">描述（留空使用来源描述）</string>
+    <string name="import_source_hint">留空时服务器将从视频链接获取标题和描述，也可以输入自己的文字。</string>
+    <string name="import_source_failed">服务器无法读取此视频。请检查链接是否公开以及服务器是否支持该来源。</string>
+</resources>

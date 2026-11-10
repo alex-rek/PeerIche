@@ -32,7 +32,7 @@ import androidx.compose.ui.window.SecureFlagPolicy
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 
-@Composable internal fun CreatorPage(onOpenVideo: (Video) -> Unit) {
+@Composable internal fun CreatorPage(onOpenVideo: (Video) -> Unit, onStartLive: (String) -> Unit) {
     val context = LocalContext.current
     val accounts = remember(context) { PeerTubeAccounts.get(context) }
     val state by accounts.state.collectAsState()
@@ -40,10 +40,10 @@ import kotlinx.coroutines.launch
     if (owner == null) {
         Text(uiText(R.string.ui_sign_in_on_the_you_page_15ac8e), Modifier.padding(20.dp)); return
     }
-    key(owner.id) { CreatorAccountPage(owner, accounts, onOpenVideo) }
+    key(owner.id) { CreatorAccountPage(owner, accounts, onOpenVideo, onStartLive) }
 }
 
-@Composable private fun CreatorAccountPage(owner: AccountSummary, accounts: AccountSessionManager, onOpenVideo: (Video) -> Unit) {
+@Composable private fun CreatorAccountPage(owner: AccountSummary, accounts: AccountSessionManager, onOpenVideo: (Video) -> Unit, onStartLive: (String) -> Unit) {
     val context = LocalContext.current
     val repository = remember { CreatorRepository(accounts) }
     val uploads = remember { VideoUploads.get(context) }
@@ -58,6 +58,7 @@ import kotlinx.coroutines.launch
     var error by remember { mutableStateOf<String?>(null) }
     var capabilities by remember { mutableStateOf<CreatorCapabilities?>(null) }
     var editor by remember { mutableStateOf<String?>(null) }
+    var scheduleFor by remember { mutableStateOf<String?>(null) }
     var credentialsFor by remember { mutableStateOf<String?>(null) }
     var discard by remember { mutableStateOf(false) }
     var uploadStorageError by remember { mutableStateOf(false) }
@@ -136,14 +137,25 @@ import kotlinx.coroutines.launch
                 VideoThumbnail(item.video, owner.server, Modifier.fillMaxWidth().aspectRatio(16f / 9f)
                     .clickable(enabled = item.state == 1) { onOpenVideo(item.video) })
                 Text(item.video.name, style = MaterialTheme.typography.titleMedium)
+                item.scheduledAt?.let { Text(uiText(R.string.live_scheduled_for) + " " + scheduleLabel(it), style = MaterialTheme.typography.bodySmall) }
                 Text(creatorVideoStatus(item), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     if (item.state == 1) TextButton(onClick = { onOpenVideo(item.video) }) { Text(uiText(R.string.ui_watch_5f1a41)) }
                     TextButton(onClick = {
                         context.playerActivity()?.pipSupport?.suspendForExternalUi()
                         context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("${owner.server}/videos/watch/${item.video.apiId()}")))
                     }) { Text(uiText(R.string.ui_website_633681)) }
+                    if (item.video.isLive && item.state == 4) {
+                        TextButton(onClick = { onStartLive(item.video.apiId()) }) { Text(uiText(R.string.ui_start_broadcast_ca85c4)) }
+                    }
                     if (item.video.isLive) TextButton(onClick = { credentialsFor = item.video.apiId() }) { Text(uiText(R.string.ui_stream_settings_16c86b)) }
+                }
+                if (item.video.isLive && item.state == 4) Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    if (capabilities?.scheduledLives == true) TextButton(onClick = { scheduleFor = item.video.apiId() }) { Text(uiText(R.string.live_schedule_edit)) }
+                    TextButton(onClick = {
+                        context.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).setType("text/plain")
+                            .putExtra(Intent.EXTRA_TEXT, "${owner.server}/videos/watch/${item.video.apiId()}"), null))
+                    }) { Text(uiText(R.string.ui_share_live_23cbbf)) }
                 }
             } }
         }
@@ -155,6 +167,8 @@ import kotlinx.coroutines.launch
         dismissButton = { TextButton(onClick = { discard = false }) { Text(uiText(R.string.ui_keep_7058e4)) } })
     if (editor != null && capabilities != null) CreatorEditor(owner, capabilities!!, live = editor == "live", uploads, repository,
         onCreated = { uuid -> editor = null; reload++; if (uuid != null) credentialsFor = uuid }, onClose = { editor = null })
+    scheduleFor?.let { uuid -> EditLiveSchedule(owner.id, uuid, repository,
+        onSaved = { scheduleFor = null; reload++ }, onClose = { scheduleFor = null }) }
     credentialsFor?.let { uuid -> LiveCredentialsDialog(owner.id, uuid, repository) { credentialsFor = null } }
 }
 
@@ -176,6 +190,7 @@ import kotlinx.coroutines.launch
     var nsfw by remember { mutableStateOf(false) }
     var replay by remember { mutableStateOf(capabilities.replay) }
     var permanent by remember { mutableStateOf(false) }
+    var scheduledAt by remember { mutableStateOf<Long?>(null) }
     var busy by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     val notificationPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
@@ -212,6 +227,7 @@ import kotlinx.coroutines.launch
                     keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Uri),
                     modifier = Modifier.fillMaxWidth())
                 Text(uiText(R.string.import_url_hint), style = MaterialTheme.typography.bodySmall)
+                Text(uiText(R.string.import_source_hint), style = MaterialTheme.typography.bodySmall)
             }
             if (!live && !fromUrl) {
                 OutlinedButton(enabled = !busy, onClick = { picker.launch(arrayOf("video/*")) }) { Text(file?.name ?: uiText(R.string.ui_choose_video_71bb7b)) }
@@ -219,8 +235,8 @@ import kotlinx.coroutines.launch
                 OutlinedButton(enabled = !busy, onClick = { coverPicker.launch(arrayOf("image/jpeg", "image/png", "image/webp")) }) { Text(cover?.name ?: uiText(R.string.ui_choose_cover_optional_9a60e9)) }
                 if (cover != null) TextButton(enabled = !busy, onClick = { releaseUploadFile(context, cover); cover = null }) { Text(uiText(R.string.ui_no_cover_564f04)) }
             }
-            OutlinedTextField(title, { title = it }, enabled = !busy, label = { Text(uiText(R.string.ui_title_3_120_characters_205170)) }, isError = title.length > 120, modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(description, { description = it }, enabled = !busy, label = { Text(uiText(R.string.ui_description_70bc2e)) }, minLines = 2, maxLines = 5, isError = description.length > 10000, modifier = Modifier.fillMaxWidth())
+            OutlinedTextField(title, { title = it }, enabled = !busy, label = { Text(uiText(if (fromUrl) R.string.import_source_title else R.string.ui_title_3_120_characters_205170)) }, isError = title.length > 120, modifier = Modifier.fillMaxWidth())
+            OutlinedTextField(description, { description = it }, enabled = !busy, label = { Text(uiText(if (fromUrl) R.string.import_source_description else R.string.ui_description_70bc2e)) }, minLines = 2, maxLines = 5, isError = description.length > 10000, modifier = Modifier.fillMaxWidth())
             var chooseChannel by remember { mutableStateOf(false) }
             Box {
                 OutlinedButton(enabled = !busy, onClick = { chooseChannel = true }) { Text(channel?.title ?: uiText(R.string.ui_no_channel_available_f2ae51)) }
@@ -236,12 +252,13 @@ import kotlinx.coroutines.launch
             if (live) {
                 Row(verticalAlignment = Alignment.CenterVertically) { Checkbox(replay, { replay = it }, enabled = !busy && capabilities.replay); Text(uiText(R.string.ui_save_replay_6cbd4e)) }
                 Row(verticalAlignment = Alignment.CenterVertically) { Checkbox(permanent, { permanent = it }, enabled = !busy); Text(uiText(R.string.ui_recurring_live_526a88)) }
+                LiveScheduleFields(capabilities.scheduledLives, scheduledAt, { scheduledAt = it }, !busy)
                 Text(uiText(R.string.ui_after_creation_use_the_server_url_and_stre_1eddbc), style = MaterialTheme.typography.bodySmall)
             }
             error?.let { Text(creatorErrorText(it), color = MaterialTheme.colorScheme.error) }
             if (busy) LinearProgressIndicator(Modifier.fillMaxWidth())
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(enabled = !busy && title.trim().length in 3..120 && description.length <= 10000 && channel != null && validUrl && (live || fromUrl || file != null), onClick = {
+                Button(enabled = !busy && (title.trim().length in 3..120 || fromUrl && title.isBlank()) && description.length <= 10000 && channel != null && validUrl && (live || fromUrl || file != null), onClick = {
                     busy = true; error = null
                     scope.launch {
                         try {
@@ -250,7 +267,7 @@ import kotlinx.coroutines.launch
                                 repository.importVideo(owner.id, metadata, importUrl)
                                 onCreated(null)
                             } else if (live) {
-                                val uuid = repository.createLive(owner.id, metadata, replay, permanent)
+                                val uuid = repository.createLive(owner.id, metadata, replay, permanent, scheduledAt)
                                 onCreated(uuid)
                             } else {
                                 retained = true
@@ -345,6 +362,9 @@ internal fun formatBytes(value: Long): String = when {
     "cancelling" -> uiText(R.string.ui_cancelling_6a8032); else -> uiText(R.string.ui_upload_stopped_86c348)
 }
 @Composable internal fun creatorErrorText(reason: String): String = when (reason) {
+    "schedule_unsupported" -> uiText(R.string.live_schedule_unsupported)
+    "schedule_past" -> uiText(R.string.live_schedule_past)
+    "import_source_failed" -> uiText(R.string.import_source_failed)
     "invalid_import_url" -> uiText(R.string.import_invalid_url)
     "import_disabled" -> uiText(R.string.import_disabled)
     "import_unknown" -> uiText(R.string.import_unknown)
