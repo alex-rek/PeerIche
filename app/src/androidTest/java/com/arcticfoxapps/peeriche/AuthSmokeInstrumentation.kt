@@ -9,6 +9,8 @@ import java.util.UUID
 
 /** Isolated device-side Keystore/AtomicFile integration test, without a real account or new dependencies. */
 class AuthSmokeInstrumentation : Instrumentation() {
+    private var hiddenUi = false
+    private var hiddenChannels = false
     private var creatorUi = false
     private var broadcastRtmp = false
     private var broadcastCamera = false
@@ -18,8 +20,15 @@ class AuthSmokeInstrumentation : Instrumentation() {
     private var playbackPosition = false
     private var broadcastLogo = false
     private var nativeCamera = false
-    override fun onCreate(arguments: Bundle?) { super.onCreate(arguments); nativeCamera = arguments?.getString("native-camera") == "true"; broadcastLogo = arguments?.getString("broadcast-logo") == "true"; playbackPosition = arguments?.getString("playback-position") == "true"; startupUpdate = arguments?.getString("startup-update") == "true"; interfaceLocales = arguments?.getString("interface-locales") == "true"; interfaceTranslations = arguments?.getString("interface-translations") == "true"; creatorUi = arguments?.getString("creator-ui") == "true"; broadcastRtmp = arguments?.getString("broadcast-rtmp") == "true"; broadcastCamera = arguments?.getString("broadcast-camera") == "true"; start() }
+    override fun onCreate(arguments: Bundle?) { super.onCreate(arguments); hiddenUi = arguments?.getString("hidden-ui") == "true"; hiddenChannels = arguments?.getString("hidden-channels") == "true"; nativeCamera = arguments?.getString("native-camera") == "true"; broadcastLogo = arguments?.getString("broadcast-logo") == "true"; playbackPosition = arguments?.getString("playback-position") == "true"; startupUpdate = arguments?.getString("startup-update") == "true"; interfaceLocales = arguments?.getString("interface-locales") == "true"; interfaceTranslations = arguments?.getString("interface-translations") == "true"; creatorUi = arguments?.getString("creator-ui") == "true"; broadcastRtmp = arguments?.getString("broadcast-rtmp") == "true"; broadcastCamera = arguments?.getString("broadcast-camera") == "true"; start() }
     override fun onStart() {
+        if (hiddenUi) { hiddenChannelsUiFixture(this); return }
+        if (hiddenChannels) {
+            val result = Bundle(); var code = Activity.RESULT_OK
+            try { runBlocking { hiddenChannelsSmoke(targetContext) }; result.putString("stream", "PASS: hidden channels survive database reopen; restoring does not remove subscription\n") }
+            catch (failure: Throwable) { code = Activity.RESULT_CANCELED; result.putString("stream", "FAIL hidden channels: ${failure.message}\n") }
+            finish(code, result); return
+        }
         if (nativeCamera) {
             val result = Bundle(); var code = Activity.RESULT_OK
             try { runBlocking { nativeCameraSmoke(this@AuthSmokeInstrumentation) }; result.putString("stream", "PASS: native Camera2 encoded frames in both formats without double fitting; no network publication\n") }

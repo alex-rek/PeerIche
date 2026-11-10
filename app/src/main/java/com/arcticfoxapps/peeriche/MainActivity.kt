@@ -265,6 +265,8 @@ class MainActivity : ComponentActivity() {
     var channelDirectoryServer by remember { mutableStateOf<String?>(null) }
     var channelVideosParentServer by remember { mutableStateOf<String?>(null) }
     var serverChannelList by remember { mutableStateOf(emptyList<PeerTubeChannel>()) }
+    val hiddenRows by database.library().observe(HIDDEN_CHANNEL).collectAsState(initial = emptyList())
+    val hiddenChannels = remember(hiddenRows) { hiddenRows.map { it.identity }.toSet() }
     val favoriteRows by database.library().observe("favorite").collectAsState(initial = emptyList())
     val historyRows by database.library().observe("history").collectAsState(initial = emptyList())
     val subscriptionRows by database.library().observe("subscription").collectAsState(initial = emptyList())
@@ -776,9 +778,9 @@ class MainActivity : ComponentActivity() {
                     } }
                     val browsingFeed = page == "Server" || page == "Live"
                     val watchedIds = remember(historyRows) { historyRows.map { it.identity.substringBefore('|') }.toSet() }
-                    val homeFollowing = (if (serverSubscriptions) accountFeed else subscriptionFeed).filterNot { it.apiId() in watchedIds }
-                    val homeRecommended = recommendedVideos.filterNot { it.apiId() in watchedIds }
-                    val homeRecent = homeVideos.filterNot { it.apiId() in watchedIds }
+                    val homeFollowing = (if (serverSubscriptions) accountFeed else subscriptionFeed).filterNot { it.apiId() in watchedIds }.withoutHiddenChannels(hiddenChannels, server)
+                    val homeRecommended = recommendedVideos.filterNot { it.apiId() in watchedIds }.withoutHiddenChannels(hiddenChannels, server)
+                    val homeRecent = homeVideos.filterNot { it.apiId() in watchedIds }.withoutHiddenChannels(hiddenChannels, server)
                     val visibleVideos = when (page) {
                         "Server" -> serverVideos
                         "Live" -> liveVideos

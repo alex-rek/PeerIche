@@ -52,6 +52,7 @@ import java.util.Locale
         Triple("servers", uiText(R.string.ui_servers_d9002c), Icons.Default.Dns),
         Triple("translations", uiText(R.string.ui_language_and_translations_29d99b), Icons.Default.Translate),
         Triple("player", uiText(R.string.ui_player_cd0260), Icons.Default.PlayCircle),
+        Triple("hidden_channels", uiText(R.string.hidden_channels), Icons.Default.VisibilityOff),
         Triple("about", uiText(R.string.ui_about_9a8919), Icons.Default.Info)
     )
     Dialog(onDismissRequest = onClose, properties = DialogProperties(usePlatformDefaultWidth = false)) {
@@ -71,6 +72,7 @@ import java.util.Locale
                             SettingsRow(category.second, icon = category.third, onClick = { section = category.first })
                         }
                     }
+                    "hidden_channels" -> HiddenChannelsSettings()
                     "general" -> GeneralSettings(options, preferences)
                     "search" -> SearchSettingsPage(options, preferences)
                     "servers" -> ServerSettingsPage(options)

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="channel_hide">Скрыть канал</string>
+    <string name="channel_show">Показать канал</string>
+    <string name="hidden_channels">Скрытые каналы</string>
+    <string name="hidden_channels_hint">Видео этих каналов скрыты только на главной на этом устройстве. Поиск и подписки остаются доступными.</string>
+    <string name="hidden_channels_empty">Нет скрытых каналов.</string>
+    <string name="hidden_channels_error">Не удалось сохранить изменение. Повторите попытку.</string>
+</resources>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="channel_hide">Hide channel</string>
+    <string name="channel_show">Show channel</string>
+    <string name="hidden_channels">Hidden channels</string>
+    <string name="hidden_channels_hint">Videos from these channels are hidden only on Home on this device. Search and subscriptions remain available.</string>
+    <string name="hidden_channels_empty">No hidden channels.</string>
+    <string name="hidden_channels_error">Could not save the change. Try again.</string>
+</resources>

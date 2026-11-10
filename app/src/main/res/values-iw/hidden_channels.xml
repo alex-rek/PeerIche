@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="channel_hide">הסתרת הערוץ</string>
+    <string name="channel_show">הצגת הערוץ</string>
+    <string name="hidden_channels">ערוצים מוסתרים</string>
+    <string name="hidden_channels_hint">סרטונים מערוצים אלה מוסתרים רק בדף הבית במכשיר הזה. החיפוש והמינויים נשארים זמינים.</string>
+    <string name="hidden_channels_empty">אין ערוצים מוסתרים.</string>
+    <string name="hidden_channels_error">לא ניתן לשמור את השינוי. נסו שוב.</string>
+</resources>

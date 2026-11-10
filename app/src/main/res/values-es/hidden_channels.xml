@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="channel_hide">Ocultar canal</string>
+    <string name="channel_show">Mostrar canal</string>
+    <string name="hidden_channels">Canales ocultos</string>
+    <string name="hidden_channels_hint">Los vídeos de estos canales solo se ocultan en Inicio en este dispositivo. La búsqueda y las suscripciones siguen disponibles.</string>
+    <string name="hidden_channels_empty">No hay canales ocultos.</string>
+    <string name="hidden_channels_error">No se pudo guardar el cambio. Inténtalo de nuevo.</string>
+</resources>

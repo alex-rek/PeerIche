@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="channel_hide">隐藏频道</string>
+    <string name="channel_show">显示频道</string>
+    <string name="hidden_channels">已隐藏的频道</string>
+    <string name="hidden_channels_hint">这些频道的视频仅在本设备的首页隐藏，搜索和订阅仍然可用。</string>
+    <string name="hidden_channels_empty">没有隐藏的频道。</string>
+    <string name="hidden_channels_error">无法保存更改，请重试。</string>
+</resources>

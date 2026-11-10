@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="channel_hide">Kanal ausblenden</string>
+    <string name="channel_show">Kanal anzeigen</string>
+    <string name="hidden_channels">Ausgeblendete Kanäle</string>
+    <string name="hidden_channels_hint">Videos dieser Kanäle werden nur auf der Startseite dieses Geräts ausgeblendet. Suche und Abonnements bleiben verfügbar.</string>
+    <string name="hidden_channels_empty">Keine ausgeblendeten Kanäle.</string>
+    <string name="hidden_channels_error">Änderung konnte nicht gespeichert werden. Erneut versuchen.</string>
+</resources>

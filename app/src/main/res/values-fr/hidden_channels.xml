@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="channel_hide">Masquer la chaîne</string>
+    <string name="channel_show">Afficher la chaîne</string>
+    <string name="hidden_channels">Chaînes masquées</string>
+    <string name="hidden_channels_hint">Les vidéos de ces chaînes sont masquées uniquement sur la page Accueil de cet appareil. La recherche et les abonnements restent accessibles.</string>
+    <string name="hidden_channels_empty">Aucune chaîne masquée.</string>
+    <string name="hidden_channels_error">Impossible de sauvegarder la modification. Réessayez.</string>
+</resources>

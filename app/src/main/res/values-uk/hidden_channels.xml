@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="channel_hide">Приховати канал</string>
+    <string name="channel_show">Показати канал</string>
+    <string name="hidden_channels">Приховані канали</string>
+    <string name="hidden_channels_hint">Відео цих каналів приховані лише на головній на цьому пристрої. Пошук і підписки залишаються доступними.</string>
+    <string name="hidden_channels_empty">Немає прихованих каналів.</string>
+    <string name="hidden_channels_error">Не вдалося зберегти зміну. Спробуйте ще раз.</string>
+</resources>

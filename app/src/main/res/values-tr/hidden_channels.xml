@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="channel_hide">Kanalı gizle</string>
+    <string name="channel_show">Kanalı göster</string>
+    <string name="hidden_channels">Gizli kanallar</string>
+    <string name="hidden_channels_hint">Bu kanalların videoları yalnızca bu cihazın Ana Sayfasında gizlenir. Arama ve abonelikler kullanılabilir.</string>
+    <string name="hidden_channels_empty">Gizli kanal yok.</string>
+    <string name="hidden_channels_error">Değişiklik kaydedilemedi. Tekrar deneyin.</string>
+</resources>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="channel_hide">إخفاء القناة</string>
+    <string name="channel_show">إظهار القناة</string>
+    <string name="hidden_channels">القنوات المخفية</string>
+    <string name="hidden_channels_hint">تُخفى فيديوهات هذه القنوات من الرئيسية على هذا الجهاز فقط. يبقى البحث والاشتراكات متاحين.</string>
+    <string name="hidden_channels_empty">لا توجد قنوات مخفية.</string>
+    <string name="hidden_channels_error">تعذر حفظ التغيير. حاول مرة أخرى.</string>
+</resources>
