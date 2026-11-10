@@ -106,8 +106,10 @@ internal class BroadcastCoordinator(private val context: Context, private val ac
         override fun onNewBitrate(bitrate: Long) = update { mutable.value = state.value.copy(bitrate = bitrate) }
     }
     fun attach(output: Surface, width: Int, height: Int) {
-        if ((surface !== output || surfaceWidth != width || surfaceHeight != height) && engine?.isOnPreview == true) runCatching { engine?.stopPreview() }
+        val replaced = surface !== output
+        if (replaced && engine?.isOnPreview == true) runCatching { engine?.stopPreview() }
         surface = output; surfaceWidth = width; surfaceHeight = height; attachAvailableSurface()
+        if (!replaced) engine?.getGlInterface()?.setPreviewResolution(width, height)
     }
     private fun attachAvailableSurface() {
         val output = surface?.takeIf { it.isValid } ?: return

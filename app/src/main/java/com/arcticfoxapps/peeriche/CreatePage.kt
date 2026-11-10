@@ -7,6 +7,12 @@ import android.os.SystemClock
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
@@ -101,7 +107,10 @@ internal fun creationModeIcon(mode: String) = when (mode) {
             }
         }
         if (stream.busy && mode != "live") TextButton(onClick = { onMode("live") }, modifier = Modifier.fillMaxWidth()) { Text(uiText(R.string.ui_return_to_broadcast_fef56e)) }
-        if (!wide) Surface(color = MaterialTheme.colorScheme.surface, tonalElevation = 8.dp) {
+        if (!wide) AnimatedVisibility(visible = !stream.busy || mode != "live",
+            enter = slideInVertically(tween(260)) { it } + fadeIn(tween(260)),
+            exit = slideOutVertically(tween(260)) { it } + fadeOut(tween(260))) {
+        Surface(color = MaterialTheme.colorScheme.surface, tonalElevation = 8.dp) {
             Row(Modifier.fillMaxWidth().height(72.dp)) {
                 creationModes.forEach { id ->
                     Column(Modifier.weight(1f).fillMaxHeight().clickable { onMode(id) }.padding(top = 4.dp), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -113,6 +122,7 @@ internal fun creationModeIcon(mode: String) = when (mode) {
                     }
                 }
             }
+        }
         }
     }
     BackHandler(stream.busy && mode != "live") { onMode("live") }
@@ -150,6 +160,7 @@ internal fun creationModeIcon(mode: String) = when (mode) {
 @Composable private fun PhoneBroadcastPage(owner: AccountSummary, capabilities: CreatorCapabilities?, repository: CreatorRepository, preferences: BroadcastPreferences,
     controller: BroadcastCoordinator, onClose: () -> Unit, fixedPhone: Boolean, onSettings: () -> Unit) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val lifecycle = LocalLifecycleOwner.current
     val stream by controller.state.collectAsState()
     val compact = !fixedPhone && LocalConfiguration.current.screenHeightDp < 500
@@ -281,7 +292,11 @@ internal fun creationModeIcon(mode: String) = when (mode) {
     }
     }
     if (confirmStop) BroadcastStopDialog(fixedPhone && !stream.options.portrait, onDismiss = { confirmStop = false }) {
-        controller.stop(); confirmStop = false; onClose()
+        controller.stop(); confirmStop = false; selectedUuid = null; refreshLives++
+        if (allowed) scope.launch {
+            delay(300)
+            if (controller.state.value.phase == "stopped") controller.preview(owner)
+        }
     }
     if (details && capabilities != null) BroadcastDetails(capabilities, lives, livesError, title, description, channelId, privacy, replay, selectedUuid,
         onRefresh = { refreshLives++ }, onSave = { name, desc, channel, access, saveReplay, uuid ->

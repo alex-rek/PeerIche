@@ -31,6 +31,8 @@ internal suspend fun broadcastPauseSmoke(context: Context) {
     var created = false
     var engine: RtmpStream? = null
     val file = File(context.cacheDir, "source-switch-smoke.mp4")
+    val preview = android.media.ImageReader.newInstance(320, 480, android.graphics.PixelFormat.RGBA_8888, 2)
+    preview.setOnImageAvailableListener({ reader -> runCatching { reader.acquireLatestImage()?.close() } }, android.os.Handler(android.os.Looper.getMainLooper()))
     try {
         withContext(Dispatchers.Main) {
             controller = BroadcastCoordinator(context, manager)
@@ -41,6 +43,12 @@ internal suspend fun broadcastPauseSmoke(context: Context) {
         withTimeout(15000) { controller.state.first { it.phase in listOf("preview", "error") } }
         check(controller.state.value.phase == "preview")
         engine = controller.javaClass.getDeclaredField("engine").apply { isAccessible = true }.get(controller) as RtmpStream
+        withContext(Dispatchers.Main) { controller.attach(preview.surface, 320, 480) }
+        withTimeout(10000) { while (!withContext(Dispatchers.Main) { engine!!.videoSource.isRunning() && engine!!.getGlInterface().getSurfaceTexture().timestamp > 0 }) delay(50) }
+        val input = withContext(Dispatchers.Main) { engine!!.getGlInterface().getSurfaceTexture() }
+        withContext(Dispatchers.Main) { controller.attach(preview.surface, 280, 480) }
+        delay(300)
+        withContext(Dispatchers.Main) { check(engine!!.getGlInterface().getSurfaceTexture() === input) { "Preview resize restarted camera rendering" } }
         val ready = CompletableDeferred<Unit>()
         withContext(Dispatchers.Main) {
             engine!!.startRecord(file.path) { if (it == com.pedro.library.base.recording.RecordController.Status.RECORDING) ready.complete(Unit) }
@@ -66,6 +74,7 @@ internal suspend fun broadcastPauseSmoke(context: Context) {
         withContext(Dispatchers.Main) { check(engine!!.videoSource is Camera2Source && engine!!.videoSource.isRunning()); engine!!.stopRecord() }
     } finally {
         withContext(NonCancellable + Dispatchers.Main) { if (created) controller.close() }
+        preview.setOnImageAvailableListener(null, null); preview.close()
         preferences.forget(session.id); file.delete()
     }
 }
