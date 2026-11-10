@@ -37,6 +37,7 @@ internal class BroadcastSilenceSource : AudioSource() {
  * Uses RootEncoder's documented VideoSource contract (Apache-2.0), with aspect-preserving drawing and reusable lifecycle. */
 internal class BroadcastSlateSource(private val bitmap: Bitmap) : VideoSource() {
     private var job: Job? = null
+    private var closing: Job? = null
     private var surface: Surface? = null
     override fun create(width: Int, height: Int, fps: Int, rotation: Int) = width > 0 && height > 0 && fps > 0
     override fun start(surfaceTexture: SurfaceTexture) {
@@ -67,7 +68,13 @@ internal class BroadcastSlateSource(private val bitmap: Bitmap) : VideoSource() 
             }
         }
     }
-    override fun stop() { job?.cancel(); job = null; surface?.release(); surface = null }
+    override fun stop() {
+        val previous = job ?: return
+        val output = surface; job = null; surface = null; closing = previous
+        previous.cancel()
+        previous.invokeOnCompletion { output?.release() }
+    }
+    suspend fun stopAndJoin() { stop(); closing?.join() }
     override fun isRunning() = job?.isActive == true
     override fun release() = stop()
 }

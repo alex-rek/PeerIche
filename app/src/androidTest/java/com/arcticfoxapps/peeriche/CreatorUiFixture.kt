@@ -9,6 +9,7 @@ import com.google.gson.Gson
 import com.google.gson.JsonObject
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import java.io.File
 
 /** Opt-in emulator-only UI fixture. Does not save credentials or perform external account writes. */
@@ -20,6 +21,7 @@ internal fun creatorUiFixture(instrumentation: Instrumentation) {
     var fixtureUploads: VideoUploadCoordinator? = null
     val context = instrumentation.targetContext
     val marker = File(context.cacheDir, "creator-ui-finish")
+    val liveMarker = File(context.cacheDir, "creator-ui-simulate-live")
     fun replace(target: Any, value: Any) {
         val field = target.javaClass.getDeclaredField("instance").apply { isAccessible = true }
         replacements += Triple(target, field, field.get(target)); field.set(target, value)
@@ -27,6 +29,7 @@ internal fun creatorUiFixture(instrumentation: Instrumentation) {
     try {
         check(Build.FINGERPRINT.contains("generic") || Build.MODEL.contains("Emulator") || Build.HARDWARE.contains("ranchu"))
         marker.delete()
+        liveMarker.delete()
         runBlocking {
             val gson = Gson()
             fun json(raw: String) = gson.fromJson(raw, JsonObject::class.java)
@@ -81,7 +84,19 @@ internal fun creatorUiFixture(instrumentation: Instrumentation) {
             fixtureUploads = VideoUploadCoordinator(context, manager, "creator-ui-fixture.json")
             fixtureUploads!!.initialize(); replace(VideoUploads, fixtureUploads!!)
             activity = instrumentation.startActivitySync(Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-            repeat(360) { if (marker.exists()) return@runBlocking; delay(1000) }
+            repeat(360) {
+                if (marker.exists()) return@runBlocking
+                if (liveMarker.exists()) {
+                    withContext(kotlinx.coroutines.Dispatchers.Main) {
+                        val controller = Broadcasts.get(context)
+                        @Suppress("UNCHECKED_CAST")
+                        val state = controller.javaClass.getDeclaredField("mutable").apply { isAccessible = true }.get(controller) as kotlinx.coroutines.flow.MutableStateFlow<BroadcastState>
+                        state.value = state.value.copy(phase = "live", title = "Тестовый эфир", startedAt = android.os.SystemClock.elapsedRealtime(), options = state.value.options.copy(muted = true))
+                    }
+                    liveMarker.delete()
+                }
+                delay(1000)
+            }
         }
         result.putString("stream", "Creator UI fixture finished (emulator, fake account, no external writes).\n")
     } catch (error: Throwable) {
@@ -96,6 +111,7 @@ internal fun creatorUiFixture(instrumentation: Instrumentation) {
             field.set(target, original)
         }
         marker.delete()
+        liveMarker.delete()
     }
     instrumentation.finish(code, result)
 }

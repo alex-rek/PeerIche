@@ -37,8 +37,8 @@ internal class BroadcastCoordinator(private val context: Context, private val ac
         val display = com.pedro.encoder.input.video.CameraHelper.getCameraOrientation(context)
         val transform = broadcastPreviewTransform(portrait, fixedPortraitPreview, display)
         stream.setOrientation(if (camera) transform.first else 0)
-        stream.getGlInterface().setPreviewRotation(if (camera) transform.second else 0)
-        stream.getGlInterface().setAspectRatioMode(if (fixedPortraitPreview && camera)
+        stream.getGlInterface().setPreviewRotation(if (fixedPortraitPreview || camera) transform.second else 0)
+        stream.getGlInterface().setAspectRatioMode(if (fixedPortraitPreview)
             com.pedro.encoder.utils.gl.AspectRatioMode.NONE else com.pedro.encoder.utils.gl.AspectRatioMode.Adjust)
     }
     private var generation = 0
@@ -46,6 +46,8 @@ internal class BroadcastCoordinator(private val context: Context, private val ac
     private var publication: Job? = null
     private var timeout: Job? = null
     private var logoUpdate: Job? = null
+    private var sourceChange: Job? = null
+    private var beforePause: BroadcastOptions? = null
     private var owner: AccountSummary? = null
     init { scope.launch { accounts.state.collect { current ->
         val activeOwner = mutable.value.accountId
@@ -123,6 +125,7 @@ internal class BroadcastCoordinator(private val context: Context, private val ac
         if (!state.value.busy) { preparation?.cancel(); generation++; releaseEngine(); mutable.value = state.value.copy(phase = "idle") }
     }
     fun camera() {
+        if (state.value.paused || state.value.switchingSource) return
         val stream = engine
         if (stream == null) {
             owner?.let { account -> val options = state.value.options.copy(front = !state.value.options.front); saveOptions(options); preview(account, options) }
@@ -136,6 +139,7 @@ internal class BroadcastCoordinator(private val context: Context, private val ac
         } catch (_: Exception) { mutable.value = state.value.copy(error = "broadcast_camera_switch") }
     }
     fun mute() {
+        if (state.value.paused || state.value.switchingSource) return
         val stream = engine ?: return
         try {
             val muted = !state.value.options.muted
@@ -146,18 +150,62 @@ internal class BroadcastCoordinator(private val context: Context, private val ac
         } catch (_: Exception) { stop("broadcast_microphone") }
     }
     fun hideCamera() {
+        if (state.value.paused) return
+        changeSource { switchVideo(!state.value.options.cameraOff, persist = true) }
+    }
+    private fun changeSource(block: suspend () -> Unit) {
+        if (engine == null || state.value.switchingSource) return
+        val token = generation
+        mutable.value = state.value.copy(switchingSource = true, error = null)
+        sourceChange = scope.launch {
+            try { block() }
+            catch (cancelled: CancellationException) { throw cancelled }
+            catch (_: Exception) { if (token == generation) mutable.value = state.value.copy(error = "broadcast_camera_switch") }
+            finally { if (token == generation) mutable.value = state.value.copy(switchingSource = false) }
+        }
+    }
+    private suspend fun switchVideo(hidden: Boolean, persist: Boolean) {
         val stream = engine ?: return
-        try {
-            val hidden = !state.value.options.cameraOff
-            stream.changeVideoSource(if (hidden) BroadcastSlateSource(slate ?: return) else Camera2Source(context).apply { if (state.value.options.front) switchCamera() })
-            if (hidden) stream.setOrientation(0)
-            // Camera2Source's default orientation follows the display, independently
-            // of the chosen encoded aspect ratio. changeVideoSource applies it.
-            val options = state.value.options.copy(cameraOff = hidden)
-            mutable.value = state.value.copy(options = options, torch = false); saveOptions(options); stream.requestKeyframe()
-            configurePreview()
-            owner?.let { refreshLogo(it) }
-        } catch (_: Exception) { stop("broadcast_camera") }
+        val wasActive = stream.isStreaming || stream.isOnPreview || stream.isRecording
+        // A Canvas producer must finish unlocking its last buffer before Camera2 reconnects.
+        (stream.videoSource as? BroadcastSlateSource)?.stopAndJoin()
+        val previousFrame = stream.getGlInterface().getSurfaceTexture().timestamp
+        val source = if (hidden) BroadcastSlateSource(slate ?: return) else Camera2Source(context).apply { if (state.value.options.front) switchCamera() }
+        stream.changeVideoSource(source)
+        configurePreview()
+        if (wasActive && !source.isRunning()) source.start(stream.getGlInterface().getSurfaceTexture())
+        if (!hidden && wasActive) try {
+            withTimeout(5000) { while (!source.isRunning() || stream.getGlInterface().getSurfaceTexture().timestamp == previousFrame) delay(50) }
+        } catch (failure: Exception) {
+            if (failure is CancellationException && failure !is TimeoutCancellationException) throw failure
+            val fallback = BroadcastSlateSource(slate ?: throw failure)
+            stream.changeVideoSource(fallback)
+            if (wasActive && !fallback.isRunning()) fallback.start(stream.getGlInterface().getSurfaceTexture())
+            mutable.value = state.value.copy(options = state.value.options.copy(cameraOff = true), torch = false)
+            configurePreview(); throw AuthFailure("broadcast_camera_switch")
+        }
+        val options = state.value.options.copy(cameraOff = hidden)
+        mutable.value = state.value.copy(options = options, torch = false)
+        if (persist) saveOptions(options)
+        configurePreview(); owner?.let { refreshLogo(it) }; stream.requestKeyframe()
+    }
+    fun pauseBroadcast() {
+        if (!state.value.busy) return
+        changeSource {
+            val stream = engine ?: return@changeSource
+            if (!state.value.paused) {
+                beforePause = state.value.options
+                stream.changeAudioSource(BroadcastSilenceSource())
+                mutable.value = state.value.copy(paused = true, options = state.value.options.copy(muted = true))
+                switchVideo(true, persist = false)
+            } else {
+                val previous = beforePause ?: return@changeSource
+                switchVideo(previous.cameraOff, persist = false)
+                stream.changeAudioSource(if (previous.muted) BroadcastSilenceSource() else MicrophoneSource())
+                mutable.value = state.value.copy(paused = false, options = state.value.options.copy(muted = previous.muted))
+                beforePause = null
+            }
+        }
     }
     fun orientation() {
         val account = owner ?: return
@@ -250,11 +298,13 @@ internal class BroadcastCoordinator(private val context: Context, private val ac
         }
     }
     fun stop(reason: String? = null) {
-        generation++; preparation?.cancel(); publication?.cancel(); timeout?.cancel(); pending = null
+        generation++; sourceChange?.cancel(); preparation?.cancel(); publication?.cancel(); timeout?.cancel(); pending = null
         releaseEngine()
-        mutable.value = state.value.copy(phase = if (reason == null) "stopped" else "error", error = reason, bitrate = 0, torch = false)
+        mutable.value = state.value.copy(phase = if (reason == null) "stopped" else "error", error = reason, bitrate = 0, torch = false,
+            paused = false, switchingSource = false, options = beforePause ?: state.value.options)
+        beforePause = null
     }
-    private fun releaseEngine() { logoUpdate?.cancel(); val previous = engine; engine = null; runCatching { previous?.release() }; slate = null }
+    private fun releaseEngine() { sourceChange?.cancel(); logoUpdate?.cancel(); val previous = engine; engine = null; runCatching { previous?.release() }; slate = null }
     internal fun close() { stop(); scope.cancel() }
 }
 internal object Broadcasts {

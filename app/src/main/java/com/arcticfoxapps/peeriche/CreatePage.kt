@@ -234,9 +234,9 @@ internal fun creationModeIcon(mode: String) = when (mode) {
         }
         }
         val controls: @Composable () -> Unit = {
-            BroadcastControl(Icons.Default.Cameraswitch, uiText(R.string.ui_switch_camera_515854), expanded, enabled = allowed && !stream.options.cameraOff) { controller.camera() }
-            BroadcastControl(if (stream.options.muted) Icons.Default.MicOff else Icons.Default.Mic, uiText(if (stream.options.muted) R.string.ui_enable_microphone_79e3a9 else R.string.ui_mute_microphone_877493), expanded, allowed) { controller.mute() }
-            BroadcastControl(if (stream.options.cameraOff) Icons.Default.VideocamOff else Icons.Default.Videocam, uiText(if (stream.options.cameraOff) R.string.ui_enable_camera_3b9a3f else R.string.ui_hide_camera_0122c1), expanded, allowed) { controller.hideCamera() }
+            BroadcastControl(Icons.Default.Cameraswitch, uiText(R.string.ui_switch_camera_515854), expanded, enabled = allowed && !stream.options.cameraOff && !stream.paused && !stream.switchingSource) { controller.camera() }
+            BroadcastControl(if (stream.options.muted) Icons.Default.MicOff else Icons.Default.Mic, uiText(if (stream.options.muted) R.string.ui_enable_microphone_79e3a9 else R.string.ui_mute_microphone_877493), expanded, allowed && !stream.paused && !stream.switchingSource) { controller.mute() }
+            BroadcastControl(if (stream.options.cameraOff) Icons.Default.VideocamOff else Icons.Default.Videocam, uiText(if (stream.options.cameraOff) R.string.ui_enable_camera_3b9a3f else R.string.ui_hide_camera_0122c1), expanded, allowed && !stream.paused && !stream.switchingSource) { controller.hideCamera() }
             BroadcastControl(Icons.Default.ScreenRotation, uiText(R.string.ui_orientation_ae6af6) + if (stream.options.portrait) uiText(R.string.ui_portrait_c5160e) else uiText(R.string.ui_landscape_69a703), expanded, allowed) { controller.orientation() }
             if (!stream.options.front && !stream.options.cameraOff) BroadcastControl(if (stream.torch) Icons.Default.FlashOn else Icons.Default.FlashOff, uiText(R.string.ui_light_ce5d5c), expanded, allowed) { controller.torch() }
             BroadcastControl(Icons.Default.Settings, uiText(R.string.ui_settings_23de1b), expanded) { onSettings() }
@@ -244,8 +244,8 @@ internal fun creationModeIcon(mode: String) = when (mode) {
         }
         if (compact) Row(Modifier.align(Alignment.TopCenter).padding(top = 10.dp, start = 64.dp, end = 64.dp).horizontalScroll(rememberScrollState()).background(Color.Black.copy(alpha = .55f), RoundedCornerShape(28.dp)), verticalAlignment = Alignment.CenterVertically) { controls() }
         else Column(Modifier.align(Alignment.CenterEnd).padding(10.dp).heightIn(max = 380.dp).background(Color.Black.copy(alpha = .55f), RoundedCornerShape(28.dp)).verticalScroll(rememberScrollState()).padding(4.dp), horizontalAlignment = Alignment.End) { controls() }
-        Column(Modifier.align(Alignment.BottomCenter).fillMaxWidth().padding(bottom = 72.dp)
-            .background(Color.Black.copy(alpha = .62f)).padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Box(Modifier.requiredSize(contentWidth, contentHeight).align(Alignment.Center).graphicsLayer { rotationZ = if (rotated) 90f else 0f }) {
+        Column(Modifier.align(Alignment.BottomCenter).fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
                     Text(if (stream.busy) stream.title else title, color = Color.White, fontWeight = FontWeight.SemiBold, maxLines = 2)
@@ -261,11 +261,13 @@ internal fun creationModeIcon(mode: String) = when (mode) {
             }
             if (capabilities?.live == false) Text(uiText(R.string.ui_this_server_disables_live_streaming_local_fcce38), color = Color.White, style = MaterialTheme.typography.bodySmall)
             stream.error?.let { Text(broadcastErrorText(it), color = Color(0xFFFFC0A8), style = MaterialTheme.typography.bodySmall, maxLines = 3) }
-        }
-        Box(Modifier.requiredSize(contentWidth, contentHeight).align(Alignment.Center).graphicsLayer { rotationZ = if (rotated) 90f else 0f }) {
-        Column(Modifier.align(if (rotated) Alignment.BottomStart else Alignment.BottomCenter)
-            .width(if (rotated) contentWidth * .65f else contentWidth).padding(14.dp)) {
-            if (stream.busy) Button(onClick = { confirmStop = true }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFB62B29)), modifier = Modifier.fillMaxWidth()) { Text(uiText(R.string.ui_end_broadcast_4e87f9)) }
+            if (stream.busy) Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Button(onClick = { confirmStop = true }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFB62B29)), modifier = Modifier.weight(1f)) { Text(uiText(R.string.ui_end_broadcast_4e87f9)) }
+                Button(enabled = !stream.switchingSource, onClick = controller::pauseBroadcast,
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF237A42), contentColor = Color.White), modifier = Modifier.weight(1f)) {
+                    Text(uiText(if (stream.paused) R.string.ui_resume_44eb04 else R.string.ui_pause_d19299))
+                }
+            }
             else {
                 Button(enabled = allowed && capabilities?.live == true && channelId > 0 && title.trim().length in 3..120, onClick = {
                     if (controller.state.value.phase != "preview") controller.preview(owner)
@@ -278,15 +280,36 @@ internal fun creationModeIcon(mode: String) = when (mode) {
         }
     }
     }
-    if (confirmStop) AlertDialog(onDismissRequest = { confirmStop = false }, title = { Text(uiText(R.string.ui_end_broadcast_6bfccc)) },
-        text = { Text(uiText(R.string.ui_camera_and_microphone_transmission_will_st_82b4a0)) },
-        confirmButton = { TextButton(onClick = { controller.stop(); confirmStop = false; onClose() }) { Text(uiText(R.string.ui_end_18118d)) } },
-        dismissButton = { TextButton(onClick = { confirmStop = false }) { Text(uiText(R.string.ui_keep_streaming_f81bca)) } })
+    if (confirmStop) BroadcastStopDialog(fixedPhone && !stream.options.portrait, onDismiss = { confirmStop = false }) {
+        controller.stop(); confirmStop = false; onClose()
+    }
     if (details && capabilities != null) BroadcastDetails(capabilities, lives, livesError, title, description, channelId, privacy, replay, selectedUuid,
         onRefresh = { refreshLives++ }, onSave = { name, desc, channel, access, saveReplay, uuid ->
             title = name; description = desc; channelId = channel; privacy = access; replay = saveReplay; selectedUuid = uuid
             preferences.save(owner.id, preferences.get(owner.id).copy(channelId = channel)); details = false
         }, onClose = { details = false })
+}
+
+@Composable private fun BroadcastStopDialog(horizontal: Boolean, onDismiss: () -> Unit, onConfirm: () -> Unit) {
+    androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss, properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)) {
+        BoxWithConstraints(Modifier.fillMaxSize()) {
+            val width = if (horizontal) maxHeight else maxWidth
+            val height = if (horizontal) maxWidth else maxHeight
+            Box(Modifier.requiredSize(width, height).align(Alignment.Center).graphicsLayer { rotationZ = if (horizontal) 90f else 0f }) {
+                Surface(Modifier.align(Alignment.Center).widthIn(max = 560.dp).fillMaxWidth(.9f), shape = MaterialTheme.shapes.extraLarge,
+                    tonalElevation = 6.dp) {
+                    Column(Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                        Text(uiText(R.string.ui_end_broadcast_6bfccc), style = MaterialTheme.typography.headlineSmall)
+                        Text(uiText(R.string.ui_camera_and_microphone_transmission_will_st_82b4a0))
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                            TextButton(onClick = onDismiss) { Text(uiText(R.string.ui_keep_streaming_f81bca)) }
+                            TextButton(onClick = onConfirm) { Text(uiText(R.string.ui_end_18118d)) }
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 @Composable private fun BroadcastOverlayButton(icon: ImageVector, label: String, enabled: Boolean = true, onClick: () -> Unit) {

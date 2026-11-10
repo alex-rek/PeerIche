@@ -64,5 +64,6 @@ internal suspend fun nativeCameraSmoke(test: Instrumentation) {
                 file.delete()
             }
         }
+        broadcastPauseSmoke(context)
     } finally { withContext(NonCancellable + Dispatchers.Main) { activity.finish() } }
 }

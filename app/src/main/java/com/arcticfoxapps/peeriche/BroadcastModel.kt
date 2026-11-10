@@ -15,7 +15,8 @@ internal data class BroadcastOptions(val channelId: Long = 0, val portrait: Bool
 }
 internal data class BroadcastState(val phase: String = "idle", val accountId: String? = null, val options: BroadcastOptions = BroadcastOptions(),
     val error: String? = null, val watchUrl: String? = null, val uuid: String? = null, val bitrate: Long = 0, val startedAt: Long = 0,
-    val title: String = "", val privacy: Int = 3, val actualWidth: Int = 0, val actualHeight: Int = 0, val torch: Boolean = false) {
+    val title: String = "", val privacy: Int = 3, val actualWidth: Int = 0, val actualHeight: Int = 0, val torch: Boolean = false,
+    val paused: Boolean = false, val switchingSource: Boolean = false) {
     val busy: Boolean get() = phase in listOf("creating", "connecting", "live")
 }
 internal class BroadcastTarget private constructor(val endpoint: String, val watchUrl: String) {
