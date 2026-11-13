@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="server_automatic">Automatique</string>
+    <string name="server_auto_checking">Vérification des serveurs…</string>
+    <string name="server_auto_failed">Aucun serveur ne renvoie de vidéos. Réessayez ou choisissez un serveur.</string>
+    <string name="server_catalog_refresh">Actualiser la liste des serveurs</string>
+    <string name="server_catalog_count">Serveurs dans le catalogue : %1$d</string>
+    <string name="server_catalog_failed">Échec de la mise à jour. La liste enregistrée reste disponible.</string>
+    <string name="server_catalog_partial">Liste actualisée depuis une source. Les adresses enregistrées sont conservées.</string>
+</resources>

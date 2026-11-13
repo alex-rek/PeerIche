@@ -18,6 +18,8 @@ import kotlinx.coroutines.flow.asStateFlow
 class PlaybackService : MediaSessionService() {
     companion object {
         private var playbackPlayer: ExoPlayer? = null
+        private var queueAdvance: Job? = null
+        fun cancelQueueAdvance() { queueAdvance?.cancel(); queueAdvance = null }
         private var pauseSpeech: (() -> Unit)? = null
         fun pausePlayback() { pauseSpeech?.invoke(); playbackPlayer?.pause() }
         private val ended = MutableStateFlow<String?>(null)
@@ -109,6 +111,43 @@ class PlaybackService : MediaSessionService() {
             Intent(this, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         session = MediaSession.Builder(this, controls).setSessionActivity(activity).build()
+        fun advanceQueue(finished: String?) {
+            if (PlaybackQueue.entries.value.isEmpty()) ended.value = finished
+            else {
+                cancelQueueAdvance()
+                queueAdvance = serviceScope.launch {
+                    var started = false
+                    while (isActive && player.currentMediaItem?.mediaId == finished) {
+                        val queued = PlaybackQueue.take() ?: break
+                        try {
+                            val origin = queued.sourceServer("")
+                            val video = withTimeoutOrNull(25_000) { downloadVideoDetails(this@PlaybackService, queued, origin) } ?: error("Video timed out")
+                            check(video.playableUrl() != null)
+                            val options = AppPreferences.get(this@PlaybackService).options.value
+                            val prepared = prepareQueuedPlayback(this@PlaybackService, video, origin, options)
+                            ensureActive()
+                            if (player.currentMediaItem?.mediaId != finished) break
+                            AccountVideoPlayback.grant = prepared.grant
+                            player.setPlaybackSpeed(options.playbackSpeed)
+                            player.trackSelectionParameters = player.trackSelectionParameters.buildUpon()
+                                .setMaxVideoSize(Int.MAX_VALUE, options.quality.takeIf { it > 0 } ?: Int.MAX_VALUE)
+                                .setPreferredTextLanguage(if (options.translateSubtitles) options.translateTo else options.subtitleLanguage)
+                                .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, !options.subtitlesEnabled && !options.speech.enabled).build()
+                            player.setMediaItem(prepared.item, 0L)
+                            player.prepare()
+                            player.play()
+                            PlaybackQueue.playing.value = video
+                            started = true
+                            break
+                        } catch (cancelled: CancellationException) { throw cancelled }
+                        catch (_: Exception) {
+                            android.widget.Toast.makeText(this@PlaybackService, R.string.playlist_video_unavailable, android.widget.Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                    if (!started && player.currentMediaItem?.mediaId == finished) ended.value = finished
+                }
+            }
+        }
         player.addListener(object : Player.Listener {
             override fun onIsPlayingChanged(isPlaying: Boolean) { sampleWatchTime(); savePosition(player) }
             override fun onPositionDiscontinuity(oldPosition: Player.PositionInfo, newPosition: Player.PositionInfo, reason: Int) {
@@ -120,7 +159,9 @@ class PlaybackService : MediaSessionService() {
             }
             override fun onPlaybackStateChanged(playbackState: Int) {
                 savePosition(player)
-                if (playbackState == Player.STATE_ENDED) ended.value = player.currentMediaItem?.mediaId
+                if (playbackState == Player.STATE_ENDED) {
+                    advanceQueue(player.currentMediaItem?.mediaId)
+                }
             }
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
                 ended.value = null
@@ -141,6 +182,8 @@ class PlaybackService : MediaSessionService() {
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? = session
 
     override fun onDestroy() {
+        cancelQueueAdvance()
+        PlaybackQueue.clear()
         session?.player?.let(::savePosition)
         AccountVideoPlayback.clear()
         subtitleSpeech?.close(resumeVideo = false); subtitleSpeech = null

@@ -9,6 +9,10 @@ import java.util.UUID
 
 /** Isolated device-side Keystore/AtomicFile integration test, without a real account or new dependencies. */
 class AuthSmokeInstrumentation : Instrumentation() {
+    private var videoLibrary = false
+    private var libraryUi = false
+    private var catalogUi = false
+    private var catalog = false
     private var hiddenUi = false
     private var hiddenChannels = false
     private var creatorUi = false
@@ -20,8 +24,17 @@ class AuthSmokeInstrumentation : Instrumentation() {
     private var playbackPosition = false
     private var broadcastLogo = false
     private var nativeCamera = false
-    override fun onCreate(arguments: Bundle?) { super.onCreate(arguments); hiddenUi = arguments?.getString("hidden-ui") == "true"; hiddenChannels = arguments?.getString("hidden-channels") == "true"; nativeCamera = arguments?.getString("native-camera") == "true"; broadcastLogo = arguments?.getString("broadcast-logo") == "true"; playbackPosition = arguments?.getString("playback-position") == "true"; startupUpdate = arguments?.getString("startup-update") == "true"; interfaceLocales = arguments?.getString("interface-locales") == "true"; interfaceTranslations = arguments?.getString("interface-translations") == "true"; creatorUi = arguments?.getString("creator-ui") == "true"; broadcastRtmp = arguments?.getString("broadcast-rtmp") == "true"; broadcastCamera = arguments?.getString("broadcast-camera") == "true"; start() }
+    override fun onCreate(arguments: Bundle?) { super.onCreate(arguments); videoLibrary = arguments?.getString("video-library") == "true"; libraryUi = arguments?.getString("library-ui") == "true"; catalogUi = arguments?.getString("server-catalog-ui") == "true"; catalog = arguments?.getString("server-catalog") == "true"; hiddenUi = arguments?.getString("hidden-ui") == "true"; hiddenChannels = arguments?.getString("hidden-channels") == "true"; nativeCamera = arguments?.getString("native-camera") == "true"; broadcastLogo = arguments?.getString("broadcast-logo") == "true"; playbackPosition = arguments?.getString("playback-position") == "true"; startupUpdate = arguments?.getString("startup-update") == "true"; interfaceLocales = arguments?.getString("interface-locales") == "true"; interfaceTranslations = arguments?.getString("interface-translations") == "true"; creatorUi = arguments?.getString("creator-ui") == "true"; broadcastRtmp = arguments?.getString("broadcast-rtmp") == "true"; broadcastCamera = arguments?.getString("broadcast-camera") == "true"; start() }
     override fun onStart() {
+        if (videoLibrary) { videoLibrarySmoke(this); return }
+        if (libraryUi) { videoLibraryUiFixture(this); return }
+        if (catalogUi) { serverCatalogUiFixture(this); return }
+        if (catalog) {
+            val result = Bundle(); var code = Activity.RESULT_OK
+            try { result.putString("stream", runBlocking { serverCatalogSmoke(targetContext) } + "\n") }
+            catch (failure: Throwable) { code = Activity.RESULT_CANCELED; result.putString("stream", "FAIL catalog: ${failure.message}\n") }
+            finish(code, result); return
+        }
         if (hiddenUi) { hiddenChannelsUiFixture(this); return }
         if (hiddenChannels) {
             val result = Bundle(); var code = Activity.RESULT_OK

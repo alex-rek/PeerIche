@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="server_automatic">Otomatik</string>
+    <string name="server_auto_checking">Sunucular kontrol ediliyor…</string>
+    <string name="server_auto_failed">Hiçbir sunucu video döndürmedi. Tekrar deneyin veya sunucu seçin.</string>
+    <string name="server_catalog_refresh">Sunucu listesini güncelle</string>
+    <string name="server_catalog_count">Katalogdaki sunucular: %1$d</string>
+    <string name="server_catalog_failed">Liste güncellenemedi. Kayıtlı liste kullanılabilir.</string>
+    <string name="server_catalog_partial">Liste tek kaynaktan güncellendi. Kayıtlı adresler korundu.</string>
+</resources>

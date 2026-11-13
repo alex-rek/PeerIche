@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="server_automatic">自动选择</string>
+    <string name="server_auto_checking">正在检查服务器…</string>
+    <string name="server_auto_failed">没有服务器返回视频。请重试或选择服务器。</string>
+    <string name="server_catalog_refresh">更新服务器列表</string>
+    <string name="server_catalog_count">目录中的服务器：%1$d</string>
+    <string name="server_catalog_failed">无法更新列表。仍可使用已保存的列表。</string>
+    <string name="server_catalog_partial">列表已通过一个来源更新，并保留之前保存的地址。</string>
+</resources>

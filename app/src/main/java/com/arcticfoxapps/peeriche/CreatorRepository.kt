@@ -75,7 +75,7 @@ internal class CreatorRepository(private val accounts: AccountSessionManager) {
         if (video.apiId() != uuid) throw AuthFailure("invalid_response")
         val restricted = raw.objectAt("privacy")?.longAt("id", 3) !in listOf(1L, 2L)
         return video.copy(host = java.net.URI(account.server).authority,
-            url = "${account.server}/videos/watch/$uuid", playbackAccountId = id.takeIf { restricted })
+            url = "${account.server}/videos/watch/$uuid", playbackAccountId = id.takeIf { restricted }).resolvedMediaUrls(account.server)
     }
     suspend fun createLive(id: String, metadata: CreatorMetadata, replay: Boolean, permanent: Boolean, startAt: Long? = null): String {
         val capabilities = capabilities(id)

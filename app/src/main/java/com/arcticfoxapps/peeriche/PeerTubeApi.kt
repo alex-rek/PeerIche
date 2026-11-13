@@ -57,7 +57,7 @@ data class Video(
     val channel: Channel? = null, val account: Account? = null, val nsfw: Boolean = false,
     val isLive: Boolean = false, val state: VideoState? = null, val commentsEnabled: Boolean = true,
     val comments: Int? = null, val likes: Long = 0, val dislikes: Long = 0,
-    val playbackAccountId: String? = null
+    val playbackAccountId: String? = null, val downloadEnabled: Boolean = true
 ) {
     fun sourceServer(fallback: String): String {
         val urlHost = runCatching { java.net.URI(url).takeIf { it.scheme == "https" || it.scheme == "http" }?.host }.getOrNull()
@@ -70,7 +70,7 @@ data class Video(
 
     fun playableUrl(maxHeight: Int = 0): String? {
         fun secure(value: String?): String? {
-            val raw = value?.trim()?.takeIf(String::isNotBlank) ?: return null
+            val raw = value?.trim()?.takeIf(String::isNotBlank)?.let { if (it.startsWith("//")) "https:$it" else it } ?: return null
             val uri = runCatching { java.net.URI(raw) }.getOrNull() ?: return null
             if (uri.userInfo != null || uri.host.isNullOrBlank() || uri.scheme !in setOf("https", "http")) return null
             return if (uri.scheme == "https") raw else raw.replaceFirst("http://", "https://")
@@ -95,7 +95,20 @@ data class Video(
         }.distinct()
     }
 }
-data class VideoFile(val fileUrl: String? = null, val resolution: Resolution? = null)
+/** PeerTube and reverse proxies may return scheme-relative or origin-relative media URLs. */
+internal fun Video.resolvedMediaUrls(server: String): Video {
+    fun resolve(value: String?): String? = value?.let { raw -> runCatching {
+        val url = java.net.URI(server.trimEnd('/') + "/").resolve(raw.trim())
+        require(url.userInfo == null && !url.host.isNullOrBlank() && url.scheme in listOf("http", "https"))
+        url.toString().replaceFirst(Regex("^http:"), "https:")
+    }.getOrNull() }
+    fun VideoFile.resolved() = copy(fileUrl = resolve(fileUrl), fileDownloadUrl = resolve(fileDownloadUrl))
+    return copy(files = files?.map { it.resolved() },
+        streamingPlaylists = streamingPlaylists?.map { it.copy(playlistUrl = resolve(it.playlistUrl), files = it.files?.map { file -> file.resolved() }) },
+        directStreamUrl = resolve(directStreamUrl))
+}
+
+data class VideoFile(val fileUrl: String? = null, val resolution: Resolution? = null, val fileDownloadUrl: String? = null, val size: Long = 0, val hasVideo: Boolean? = null)
 data class VideoState(val id: Int = 0)
 data class Resolution(val id: Int = 0, val label: String? = null)
 data class StreamingPlaylist(val playlistUrl: String? = null, val files: List<VideoFile>? = null)
@@ -108,7 +121,7 @@ interface PeerTubeApi {
         @Query("count") count: Int = 30, @Query("start") start: Int = 0,
         @Query("isLocal") isLocal: Boolean? = null, @Query("nsfw") nsfw: String = "false",
         @Query("isLive") isLive: Boolean? = null, @Query("includeScheduledLive") includeScheduledLive: Boolean? = null,
-        @Query("sort") sort: String = "-publishedAt"
+        @Query("sort") sort: String = "-publishedAt", @Query("categoryOneOf") categories: List<Int>? = null
     ): okhttp3.ResponseBody
     @GET("api/v1/videos") suspend fun videos(
         @Query("sort") sort: String = "-publishedAt", @Query("count") count: Int = 30,
@@ -145,6 +158,8 @@ interface PeerSeekApi {
     @GET("v1/search") suspend fun search(@Query("q") query: String, @Query("sort") sort: String = "relevance", @Query("page") page: Int = 1, @Query("size") size: Int = 30): PeerSeekPage
 }
 interface InstanceDirectoryApi {
+    @GET("api/v1/instances/hosts") suspend fun hosts(@Query("start") start: Int, @Query("count") count: Int = 100,
+        @Query("sort") sort: String = "host"): InstancePage
     @GET("api/v1/instances") suspend fun instances(@Query("start") start: Int = 0, @Query("count") count: Int = 50, @Query("search") search: String? = null): InstancePage
 }
 
@@ -199,8 +214,22 @@ object PeerTubeClients {
         if (allVideos.isEmpty() && successful.isEmpty()) throw results.firstOrNull()?.exceptionOrNull() ?: IllegalStateException("No search sources available")
         return SearchPage(deduplicateVideos(allVideos, servers.firstOrNull().orEmpty()), successful.any { it.second })
     }
+    internal suspend fun discoverAllHosts(): List<String> {
+        val first = directory.hosts(0)
+        require(first.total in 1..25_000 && first.data.isNotEmpty())
+        val hosts = first.data.map { it.host }.toMutableList()
+        while (hosts.size < first.total) {
+            val page = directory.hosts(hosts.size)
+            require(page.total == first.total && page.data.isNotEmpty())
+            hosts.addAll(page.data.map { it.host })
+        }
+        require(hosts.size == first.total && hosts.distinct().size == hosts.size)
+        return hosts
+    }
     suspend fun discoverInstances() = directory.instances().data.filter { it.host.isNotBlank() }
     suspend fun discoverInstancePage(start: Int, search: String = "") = directory.instances(start = start, count = 100, search = search.trim().takeIf(String::isNotBlank))
+    internal suspend fun interestVideos(server: String, categories: List<Int>, sensitive: Boolean): List<Video> =
+        server(server).videoListing(categories = categories, nsfw = sensitive.toString()).use { parsePeerTubeVideoPage(it.string()).data }
     suspend fun home(server: String) = server(server).videos(sort = "-publishedAt", count = 30).data
     suspend fun popular(server: String) = server(server).videos(sort = "-views", count = 30).data
     suspend fun serverPage(host: String, page: Int, sensitive: Boolean): SearchPage {
@@ -236,7 +265,7 @@ object PeerTubeClients {
         }
         return indexed ?: throw java.io.IOException("Live sources unavailable")
     }
-    suspend fun video(server: String, id: String): Video = server(server).video(id)
+    suspend fun video(server: String, id: String): Video = server(server).video(id).resolvedMediaUrls(server)
     suspend fun allChannels(server: String): List<PeerTubeChannel> {
         val api = server(server)
         val channels = mutableListOf<PeerTubeChannel>()

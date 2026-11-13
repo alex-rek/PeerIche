@@ -5,6 +5,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -19,12 +20,17 @@ import kotlinx.coroutines.sync.withPermit
 
 private data class ServerProbe(val online: Boolean, val videos: Int)
 
-@Composable internal fun ServerSettingsPage(options: AppOptions) {
+@Composable internal fun ServerSettingsPage(options: AppOptions, onBrowseServer: (String) -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val preferences by remember(context) { context.peerIcheDataStore.data.catch { emit(emptyPreferences()) } }.collectAsState(emptyPreferences())
-    val configured = preferences[stringPreferencesKey("servers")]?.lines()?.filter(String::isNotBlank).orEmpty().ifEmpty { listOf("https://peertube.tv") }
-    val active = preferences[stringPreferencesKey("activeServer")]?.takeIf { it in configured } ?: configured.first()
+    val configured = preferences[stringPreferencesKey("servers")]?.lines()?.mapNotNull { runCatching { normalizeServer(it) }.getOrNull() }.orEmpty().distinct()
+    val active = preferences[stringPreferencesKey("activeServer")]?.takeIf { it in configured }.orEmpty()
+    val bundled = bundledCatalog(context)
+    val catalog = preferences[catalogKey]
+    val hosts = remember(catalog, bundled) { catalog?.let { catalogHosts(it.lineSequence()) }?.takeIf { it.isNotEmpty() } ?: bundled }
+    var catalogPartial by remember { mutableStateOf(false) }
+    var catalogError by remember { mutableStateOf(false) }
     val cache = remember { context.getSharedPreferences("server_directory", 0) }
     var directory by remember { mutableStateOf(runCatching {
         Gson().fromJson<List<PeerTubeInstance>>(cache.getString("instances", "[]"), object : TypeToken<List<PeerTubeInstance>>() {}.type) ?: emptyList()
@@ -32,17 +38,17 @@ private data class ServerProbe(val online: Boolean, val videos: Int)
     var probes by remember { mutableStateOf(runCatching {
         Gson().fromJson<Map<String, ServerProbe>>(cache.getString("probes", "{}"), object : TypeToken<Map<String, ServerProbe>>() {}.type) ?: emptyMap()
     }.getOrDefault(emptyMap())) }
-    var address by remember { mutableStateOf("") }
+    var address by rememberSaveable { mutableStateOf("") }
     var loadedQuery by remember { mutableStateOf(cache.getString("query", "").orEmpty()) }
-    var query by remember { mutableStateOf(loadedQuery) }
-    var sort by remember { mutableStateOf("connected") }
+    var query by rememberSaveable { mutableStateOf(loadedQuery) }
+    var sort by rememberSaveable { mutableStateOf("connected") }
     var busy by remember { mutableStateOf<String?>(null) }
     var failure by remember { mutableStateOf(false) }
     var incompatible by remember { mutableStateOf(false) }
     var checked by remember { mutableIntStateOf(0) }
     var nextPage by remember { mutableIntStateOf(directory.size) }
     var hasMore by remember { mutableStateOf(true) }
-    val all = (configured.map { PeerTubeInstance(host = java.net.URI(it).authority.orEmpty()) } + directory)
+    val all = (hosts.map { PeerTubeInstance(host = it) } + configured.map { PeerTubeInstance(host = java.net.URI(it).authority.orEmpty()) } + directory)
         .groupBy { it.host }.map { (_, values) -> values.last() }
         .filter { row -> row.host.contains(query, true) || row.name.orEmpty().contains(query, true) }
     val sorted = when (sort) {
@@ -53,6 +59,7 @@ private data class ServerProbe(val online: Boolean, val videos: Int)
             .thenByDescending { "https://${it.host}" in configured }
             .thenByDescending { options.country.isNotBlank() && it.country.equals(options.country, true) }.thenBy { it.host })
     }
+    val checkable = sorted.take(50)
     fun connect(raw: String) {
         scope.launch {
             busy = raw; failure = false; incompatible = false
@@ -79,6 +86,21 @@ private data class ServerProbe(val online: Boolean, val videos: Int)
             if (failure) Text(if (incompatible) uiText(R.string.ui_this_website_does_not_support_the_peertube_3f0625) else uiText(R.string.ui_connection_failed_check_the_https_address_f92ec9), color = MaterialTheme.colorScheme.error)
             OutlinedTextField(query, { query = it }, modifier = Modifier.fillMaxWidth().padding(top = 16.dp), singleLine = true,
                 label = { Text(uiText(R.string.ui_find_by_name_or_address_b99f1e)) })
+            TextButton(enabled = busy == null, onClick = {
+                scope.launch {
+                    busy = "catalog"; catalogError = false; catalogPartial = false
+                    try { catalogPartial = refreshServerCatalog(context, hosts).partial }
+                    catch (_: TimeoutCancellationException) { catalogError = true }
+                    catch (cancelled: CancellationException) { throw cancelled }
+                    catch (_: Exception) { catalogError = true }
+                    finally { busy = null }
+                }
+            }) { Text(uiText(R.string.server_catalog_refresh)) }
+            Text(uiText(R.string.server_catalog_count, hosts.size))
+            val uriHandler = androidx.compose.ui.platform.LocalUriHandler.current
+            TextButton(onClick = { uriHandler.openUri("https://fedidb.com/datasets") }) { Text("PeerTube + FediDB · CC BY 4.0") }
+            if (catalogPartial) Text(uiText(R.string.server_catalog_partial))
+            if (catalogError) Text(uiText(R.string.server_catalog_failed), color = MaterialTheme.colorScheme.error)
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 TextButton(enabled = busy == null, onClick = {
                     scope.launch {
@@ -96,12 +118,12 @@ private data class ServerProbe(val online: Boolean, val videos: Int)
                         finally { busy = null }
                     }
                 }) { Text(uiText(R.string.ui_discover_servers_f44c73)) }
-                TextButton(enabled = busy == null && all.isNotEmpty(), onClick = {
+                TextButton(enabled = busy == null && checkable.isNotEmpty(), onClick = {
                     scope.launch {
                         busy = "check"; checked = 0
                         try {
                             val semaphore = Semaphore(5)
-                            all.map { row -> async { semaphore.withPermit {
+                            checkable.map { row -> async { semaphore.withPermit {
                                 val probe = try {
                                     val page = withTimeout(8_000) { PeerTubeClients.checkServer("https://${row.host}") }
                                     ServerProbe(true, page.total)
@@ -114,11 +136,11 @@ private data class ServerProbe(val online: Boolean, val videos: Int)
                             cache.edit().putString("probes", Gson().toJson(probes)).apply()
                         } finally { busy = null }
                     }
-                }) { Text(uiText(R.string.ui_check_availability_db0909)) }
+                }) { Text(uiText(R.string.ui_check_availability_db0909) + " (${checkable.size})") }
             }
             if (busy != null) {
                 LinearProgressIndicator(Modifier.fillMaxWidth())
-                if (busy == "check") Text("$checked / ${all.size}")
+                if (busy == "check") Text("$checked / ${checkable.size}")
             }
         } }
         item { SettingsChoice(uiText(R.string.ui_sort_servers_f2aae1), sort,
@@ -132,13 +154,13 @@ private data class ServerProbe(val online: Boolean, val videos: Int)
                     true -> uiText(R.string.ui_online_5fb239)
                     false -> uiText(R.string.ui_unavailable_abcd43)
                     null -> uiText(R.string.ui_not_checked_30ef8c)
-                } + (count?.let { " · $it ${uiText(R.string.ui_videos_89ea5c)}" } ?: "")) {
+                } + (count?.let { " · $it ${uiText(R.string.ui_videos_89ea5c)}" } ?: ""), onClick = { onBrowseServer(url) }) {
                 Column {
                     TextButton(enabled = busy == null, onClick = { connect(url) }) { Text(if (url == active) uiText(R.string.ui_selected_af7b83) else uiText(R.string.ui_connect_53bb39)) }
-                    if (url in configured && configured.size > 1) TextButton(enabled = busy == null, onClick = {
+                    if (url in configured) TextButton(enabled = busy == null, onClick = {
                         scope.launch {
                             val remaining = configured - url
-                            saveServerList(context, remaining.joinToString("\n"), if (active == url) remaining.first() else active)
+                            saveServerList(context, remaining.joinToString("\n"), if (active == url) "" else active)
                         }
                     }) { Text(uiText(R.string.ui_remove_32d0b3)) }
                 }

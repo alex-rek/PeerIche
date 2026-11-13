@@ -1,0 +1,9 @@
+PeerIche bundled server list
+
+Official PeerTube directory: https://instances.joinpeertube.org/api/v1/instances/hosts
+FediDB server-domain dataset: https://fedidb.com/datasets
+FediDB snapshot: 2026-11-08
+Data from FediDB (https://fedidb.com/datasets), CC BY 4.0
+https://creativecommons.org/licenses/by/4.0/
+
+PeerIche combined the sources, normalized domain names, and removed duplicates.

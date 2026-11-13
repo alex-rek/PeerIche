@@ -49,7 +49,6 @@ import java.util.Locale
     val categories = listOf(
         Triple("general", uiText(R.string.ui_general_4d7c8e), Icons.Default.Settings),
         Triple("search", uiText(R.string.ui_search_c2faca), Icons.Default.Search),
-        Triple("servers", uiText(R.string.ui_servers_d9002c), Icons.Default.Dns),
         Triple("translations", uiText(R.string.ui_language_and_translations_29d99b), Icons.Default.Translate),
         Triple("player", uiText(R.string.ui_player_cd0260), Icons.Default.PlayCircle),
         Triple("hidden_channels", uiText(R.string.hidden_channels), Icons.Default.VisibilityOff),
@@ -75,7 +74,6 @@ import java.util.Locale
                     "hidden_channels" -> HiddenChannelsSettings()
                     "general" -> GeneralSettings(options, preferences)
                     "search" -> SearchSettingsPage(options, preferences)
-                    "servers" -> ServerSettingsPage(options)
                     "translations" -> TranslationSettingsPage(options, preferences) { speechParent = "translations"; section = "speech" }
                     "player" -> PlayerSettingsPage(options, preferences) { speechParent = "player"; section = "speech" }
                     "speech" -> SubtitleSpeechSettingsPage(options, preferences)
@@ -147,6 +145,7 @@ import java.util.Locale
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val theme by remember(context) { context.peerIcheDataStore.data.catch { emit(emptyPreferences()) }.map { it[themeModeKey] ?: "system" } }.collectAsState("system")
+    var homeContentDialog by remember { mutableStateOf(false) }
     val locale = ConfigurationCompat.getLocales(LocalConfiguration.current)[0] ?: Locale.ENGLISH
     LazyColumn(Modifier.fillMaxSize()) {
         item { SettingsChoice(uiText(R.string.ui_app_theme_610976), theme, listOf("system" to uiText(R.string.ui_follow_android_9652ce),
@@ -164,9 +163,11 @@ import java.util.Locale
             listOf("" to uiText(R.string.ui_all_countries_719a89)) + Locale.getISOCountries().map { it to Locale("", it).getDisplayCountry(locale) }.sortedBy { it.second }) {
             preferences.update { current -> current.copy(country = it) }
         } }
+        item { SettingsRow(uiText(R.string.home_content), uiText(homeContentLabel(options.homeContent)), onClick = { homeContentDialog = true }) }
         item { Text(uiText(R.string.ui_the_directory_prefers_servers_from_this_co_c7856f),
             Modifier.padding(24.dp), color = MaterialTheme.colorScheme.onSurfaceVariant) }
     }
+    if (homeContentDialog) HomeContentDialog(options, preferences) { homeContentDialog = false }
 }
 
 @Composable internal fun PlayerSettingsPage(options: AppOptions, preferences: AppPreferences, onSpeech: () -> Unit) {

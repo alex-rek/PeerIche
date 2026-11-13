@@ -112,13 +112,14 @@ data class VideoCaption(val language: CaptionLanguage? = null, val captionPath: 
         if (video.playableUrl() == null) return@LaunchedEffect
         val identity = video.sourceServer(server) + "|" + video.apiId()
         val desiredTranslation = if (options.translateSubtitles) options.translateTo else ""
-        if (player.currentMediaItem?.mediaId == identity && captionRetry == 0 &&
+        if (!PlaybackQueue.starts(identity) && player.currentMediaItem?.mediaId == identity && captionRetry == 0 &&
             player.currentMediaItem?.mediaMetadata?.extras?.getString("playback_account") == video.playbackAccountId &&
             player.currentMediaItem?.mediaMetadata?.extras?.getInt("quality", -1) == options.quality &&
             player.currentMediaItem?.mediaMetadata?.extras?.getString("translation", "") == desiredTranslation) return@LaunchedEffect
-        val previousPosition = if (player.currentMediaItem?.mediaId == identity) player.currentPosition
+        val playlistStart = PlaybackQueue.consumeStart(identity)
+        val previousPosition = if (playlistStart) 0L else if (player.currentMediaItem?.mediaId == identity) player.currentPosition
             else PlaybackPositions(context).read(identity, video.isLive)
-        val wasPlaying = if (player.currentMediaItem?.mediaId == identity) player.playWhenReady else options.autoplay
+        val wasPlaying = if (playlistStart) true else if (player.currentMediaItem?.mediaId == identity) player.playWhenReady else options.autoplay
         val accounts = PeerTubeAccounts.get(context)
         val playbackAccount = video.playbackAccountId
         if (playbackAccount != null) try { accounts.initialize() }
@@ -142,17 +143,7 @@ data class VideoCaption(val language: CaptionLanguage? = null, val captionPath: 
                 .setLanguage(caption.language?.id).setLabel(caption.language?.label)
                 .setSelectionFlags(if (index == 0) C.SELECTION_FLAG_DEFAULT else 0).build()
         } }
-        val item = MediaItem.Builder().setMediaId(identity).setUri(video.playableUrl(options.quality))
-            .setMediaMetadata(MediaMetadata.Builder().setTitle(video.name)
-                .setArtist(video.channel?.displayName ?: video.account?.displayName)
-                .setExtras(android.os.Bundle().apply {
-                    putInt("quality", options.quality)
-                    putString("translation", if (nativeTranslation) options.translateTo else "")
-                    putString("history", com.google.gson.Gson().toJson(video.toSavedVideo(server, "history")))
-                    putString("playback_account", playbackAccount)
-                    putBoolean("is_live", video.isLive)
-                }).build())
-            .setSubtitleConfigurations(tracks).build()
+        val item = playbackMediaItem(video, server, options, tracks, if (nativeTranslation) options.translateTo else "")
         if (playbackAccount != null && accounts.state.value.active?.let { it.id == playbackAccount && !it.needsLogin } != true) return@LaunchedEffect
         AccountVideoPlayback.grant = playbackAccount?.let { AccountVideoGrant(it, video, accounts) }
         player.setMediaItem(item, previousPosition)

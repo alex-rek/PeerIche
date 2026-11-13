@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="server_automatic">אוטומטי</string>
+    <string name="server_auto_checking">בודק שרתים…</string>
+    <string name="server_auto_failed">אף שרת לא החזיר סרטונים. נסו שוב או בחרו שרת.</string>
+    <string name="server_catalog_refresh">עדכון רשימת השרתים</string>
+    <string name="server_catalog_count">שרתים בקטלוג: %1$d</string>
+    <string name="server_catalog_failed">עדכון הרשימה נכשל. הרשימה השמורה עדיין זמינה.</string>
+    <string name="server_catalog_partial">הרשימה עודכנה ממקור אחד. הכתובות השמורות נשמרו.</string>
+</resources>

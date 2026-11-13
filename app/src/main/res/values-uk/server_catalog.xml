@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="server_automatic">Автовибір</string>
+    <string name="server_auto_checking">Перевіряємо сервери…</string>
+    <string name="server_auto_failed">Сервери не повернули відео. Спробуйте ще раз або виберіть сервер.</string>
+    <string name="server_catalog_refresh">Оновити список серверів</string>
+    <string name="server_catalog_count">Серверів у каталозі: %1$d</string>
+    <string name="server_catalog_failed">Не вдалося оновити список. Збережений список доступний.</string>
+    <string name="server_catalog_partial">Список оновлено з одного джерела. Раніше збережені адреси збережено.</string>
+</resources>

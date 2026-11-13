@@ -27,17 +27,20 @@ data class SavedVideo(
     val thumbnailUrl: String?,
     val channelName: String?,
     val views: Long,
-    val updatedAt: Long
+    val updatedAt: Long,
+    @androidx.room.ColumnInfo(defaultValue = "NULL") val metadata: String? = null
 )
 
 @Dao interface LibraryDao {
     @Query("SELECT * FROM saved_videos WHERE kind = :kind ORDER BY updatedAt DESC") fun observe(kind: String): Flow<List<SavedVideo>>
     @Query("SELECT * FROM saved_videos WHERE kind = :kind ORDER BY updatedAt DESC") suspend fun getAll(kind: String): List<SavedVideo>
+    @Query("SELECT * FROM saved_videos WHERE identity = :identity AND kind LIKE 'playlist:%'") fun playlistMemberships(identity: String): Flow<List<SavedVideo>>
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun put(video: SavedVideo)
     @Query("DELETE FROM saved_videos WHERE identity = :identity AND kind = :kind") suspend fun delete(identity: String, kind: String)
+    @Query("DELETE FROM saved_videos WHERE kind = :kind") suspend fun deleteKind(kind: String)
 }
 
-@Database(entities = [SavedVideo::class], version = 2, exportSchema = false)
+@Database(entities = [SavedVideo::class], version = 3, exportSchema = false)
 abstract class PeerIcheDatabase : RoomDatabase() {
     abstract fun library(): LibraryDao
     companion object {
@@ -50,8 +53,13 @@ abstract class PeerIcheDatabase : RoomDatabase() {
                 db.execSQL("ALTER TABLE saved_videos_new RENAME TO saved_videos")
             }
         }
+        internal val migration2To3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE saved_videos ADD COLUMN metadata TEXT DEFAULT NULL")
+            }
+        }
         fun get(context: Context): PeerIcheDatabase = instance ?: synchronized(this) {
-            instance ?: Room.databaseBuilder(context.applicationContext, PeerIcheDatabase::class.java, "peeriche.db").addMigrations(migration1To2).build().also { instance = it }
+            instance ?: Room.databaseBuilder(context.applicationContext, PeerIcheDatabase::class.java, "peeriche.db").addMigrations(migration1To2, migration2To3).build().also { instance = it }
         }
     }
 }
@@ -81,8 +89,10 @@ suspend fun saveDarkTheme(context: Context, enabled: Boolean) {
     context.peerIcheDataStore.edit { it[darkThemeKey] = enabled }
 }
 
-fun SavedVideo.toVideo(): Video = Video(
-    uuid = identity, name = title, directStreamUrl = videoUrl?.takeIf(::looksLikeMediaStream), thumbnailUrl = thumbnailUrl,
+fun SavedVideo.toVideo(): Video = metadata?.let { raw ->
+    runCatching { com.google.gson.Gson().fromJson(raw, Video::class.java) }.getOrNull()
+} ?: Video(
+    uuid = identity.substringAfter('|'), name = title, directStreamUrl = videoUrl?.takeIf(::looksLikeMediaStream), thumbnailUrl = thumbnailUrl,
     views = views, channel = Channel(displayName = channelName), host = runCatching { java.net.URI(server).host }.getOrNull()
 )
 

@@ -28,6 +28,7 @@ import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Home
@@ -187,8 +188,13 @@ class MainActivity : ComponentActivity() {
     var accountFeedMore by remember(selectedAccount?.id) { mutableStateOf(false) }
     var accountFeedJob by remember { mutableStateOf<kotlinx.coroutines.Job?>(null) }
     var accountFeedGeneration by remember { mutableIntStateOf(0) }
-    val serverList by remember(context) { context.peerIcheDataStore.data.catch { emit(emptyPreferences()) }.map { it[stringPreferencesKey("servers")] ?: "https://peertube.tv" } }.collectAsState(initial = "https://peertube.tv")
-    val activeServerSetting by remember(context) { context.peerIcheDataStore.data.catch { emit(emptyPreferences()) }.map { it[stringPreferencesKey("activeServer")].orEmpty() } }.collectAsState(initial = "")
+    val connectionSettings by remember(context) { context.peerIcheDataStore.data.catch { emit(emptyPreferences()) } }.collectAsState(initial = null)
+    val serverList = connectionSettings?.get(stringPreferencesKey("servers")).orEmpty()
+    val activeServerSetting = connectionSettings?.get(stringPreferencesKey("activeServer")).orEmpty()
+    val bundled = bundledCatalog(context)
+    val cachedCatalog = connectionSettings?.get(catalogKey)
+    val catalog = remember(cachedCatalog, bundled) { cachedCatalog?.let { catalogHosts(it.lineSequence()) }?.takeIf { it.isNotEmpty() } ?: bundled }
+
     val themeMode by remember(context) { context.peerIcheDataStore.data.catch { emit(emptyPreferences()) }.map { it[themeModeKey] ?: "system" } }.collectAsState(initial = "system")
     val darkTheme = themeMode != "light" && (themeMode != "system" || isSystemInDarkTheme())
     val homeGridState = rememberLazyGridState()
@@ -205,7 +211,17 @@ class MainActivity : ComponentActivity() {
     var creationLiveUuid by remember { mutableStateOf<String?>(null) }
     var creationMode by rememberSaveable { mutableStateOf("live") }
     val availableServers = remember(serverList) { serverList.lines().mapNotNull { runCatching { normalizeServer(it) }.getOrNull() }.distinct() }
-    val server = remember(serverList, activeServerSetting) { activeServerSetting.takeIf { it in availableServers } ?: availableServers.firstOrNull() ?: "https://peertube.tv" }
+    val fixedServer = preferredBrowsingServer(availableServers, activeServerSetting, selectedAccount)
+    var automaticServer by remember { mutableStateOf<String?>(null) }
+    var automaticFailed by remember { mutableStateOf(false) }
+    var automaticRetry by remember { mutableIntStateOf(0) }
+    LaunchedEffect(connectionSettings != null, accountState.ready, fixedServer, catalog, automaticRetry) {
+        if (fixedServer != null || connectionSettings == null || !accountState.ready || catalog.isEmpty()) return@LaunchedEffect
+        automaticFailed = false
+        automaticServer = chooseCatalogServer(catalog)
+        automaticFailed = automaticServer == null
+    }
+    val server = fixedServer ?: automaticServer.orEmpty()
     var videos by remember { mutableStateOf(emptyList<Video>()) }
     var homeVideos by remember { mutableStateOf(emptyList<Video>()) }
     var serverVideos by remember { mutableStateOf(emptyList<Video>()) }
@@ -260,11 +276,18 @@ class MainActivity : ComponentActivity() {
     var settingsOpen by rememberSaveable { mutableStateOf(false) }
     var settingsSection by rememberSaveable { mutableStateOf<String?>(null) }
     var chooseServerOpen by remember { mutableStateOf(false) }
+    val serverCatalogPageState = androidx.compose.runtime.saveable.rememberSaveableStateHolder()
+    var serverDirectoryFromCatalog by rememberSaveable { mutableStateOf(false) }
     var youSection by rememberSaveable { mutableStateOf(YouSection.Menu) }
+    var playlistSelection by rememberSaveable { mutableStateOf<String?>(null) }
     var channelVideosMode by remember { mutableStateOf(false) }
     var channelDirectoryServer by remember { mutableStateOf<String?>(null) }
     var channelVideosParentServer by remember { mutableStateOf<String?>(null) }
     var serverChannelList by remember { mutableStateOf(emptyList<PeerTubeChannel>()) }
+    val blockedRows by database.library().observe(BLOCKED_CHANNEL).collectAsState(initial = emptyList())
+    val blockedChannels = remember(blockedRows) { blockedRows.map { it.identity }.toSet() }
+    val hiddenVideoRows by database.library().observe("hidden_video").collectAsState(initial = emptyList())
+    val hiddenVideos = remember(hiddenVideoRows) { hiddenVideoRows.map { it.identity }.toSet() }
     val hiddenRows by database.library().observe(HIDDEN_CHANNEL).collectAsState(initial = emptyList())
     val hiddenChannels = remember(hiddenRows) { hiddenRows.map { it.identity }.toSet() }
     val favoriteRows by database.library().observe("favorite").collectAsState(initial = emptyList())
@@ -288,11 +311,18 @@ class MainActivity : ComponentActivity() {
     }
 
     fun loadHome() {
-        if (homeRefreshing) return
+        if (homeRefreshing || server.isBlank()) return
         homeRefreshing = true
         busy = true; error = null
         homeJob = scope.launch {
             try {
+                if (options.homeContent != "recommended") {
+                    recommendedVideos = emptyList()
+                    subscriptionFeed = emptyList()
+                    homeVideos = emptyList()
+                    homeVideos = loadConfiguredHome(options, server)
+                    return@launch
+                }
                 val history = database.library().getAll("history")
                 val savedSubscriptions = database.library().getAll("subscription")
                 val searchServers = availableServers.ifEmpty { listOf(server) }
@@ -336,7 +366,7 @@ class MainActivity : ComponentActivity() {
     }
     fun loadBrowse(pageToLoad: Int = 0) {
         val destination = page
-        if (destination !in listOf("Server", "Live")) return
+        if (server.isBlank() || destination !in listOf("Server", "Live")) return
         val generation = ++browseGeneration
         browseJob?.cancel()
         browseBusy = true
@@ -366,6 +396,7 @@ class MainActivity : ComponentActivity() {
         }
     }
     fun searchNow(pageToLoad: Int = 0) {
+        if (server.isBlank()) return
         val generation = ++searchGeneration
         searchJob?.cancel()
         val searchTerm = query.trim()
@@ -432,7 +463,9 @@ class MainActivity : ComponentActivity() {
             finally { if (generation == collectionGeneration) busy = false }
         }
     }
-    fun openServerChannels(host: String) {
+    fun openServerChannels(host: String, fromCatalog: Boolean = false) {
+        serverDirectoryFromCatalog = fromCatalog
+        youSection = YouSection.Channels; page = "You"
         cancelCollection()
         val generation = collectionGeneration
         channelDirectoryServer = host; channelVideosMode = false; busy = true; error = null; serverChannelList = emptyList()
@@ -457,15 +490,21 @@ class MainActivity : ComponentActivity() {
     fun openYouSection(section: YouSection) {
         cancelCollection()
         youSection = section
+        playlistSelection = null
         channelVideosMode = false; channelDirectoryServer = null; channelVideosParentServer = null; error = null
     }
     fun backFromYou() {
         cancelCollection()
         when {
-            channelDirectoryServer != null -> { channelDirectoryServer = null; serverChannelList = emptyList() }
+            youSection == YouSection.Playlists && playlistSelection != null -> playlistSelection = null
+            channelDirectoryServer != null -> {
+                channelDirectoryServer = null; serverChannelList = emptyList()
+                if (serverDirectoryFromCatalog) youSection = YouSection.Servers
+                serverDirectoryFromCatalog = false
+            }
             channelVideosMode -> {
                 channelVideosMode = false
-                channelVideosParentServer?.let { openServerChannels(it) }
+                channelVideosParentServer?.let { openServerChannels(it, serverDirectoryFromCatalog) }
                 channelVideosParentServer = null
             }
             else -> youSection = YouSection.Menu
@@ -484,6 +523,8 @@ class MainActivity : ComponentActivity() {
         floatingPlayer = false; tabletBrowsing = false; inlineLandscape = false
     }
     fun closePlayer() {
+        PlaybackQueue.clear()
+        PlaybackService.cancelQueueAdvance()
         floatingPlayer = false
         context.playerActivity()?.pipSupport?.disable()
         (context as? ComponentActivity)?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
@@ -504,6 +545,7 @@ class MainActivity : ComponentActivity() {
         }
     }
     fun openVideo(video: Video) {
+        PlaybackService.cancelQueueAdvance()
         floatingPlayer = false
         phoneFullscreen = false
         inlineLandscape = false
@@ -574,12 +616,26 @@ class MainActivity : ComponentActivity() {
             else database.library().put(video.toSavedVideo(server, "favorite"))
         }
     }
+    val queuedVideo by PlaybackQueue.playing.collectAsState()
+    LaunchedEffect(queuedVideo) {
+        queuedVideo?.let { next ->
+            if (selectedVideo != null) {
+                videoLoadGeneration++
+                selectedVideo = next
+                loadingVideo = false
+                playerError = null
+            }
+        }
+    }
     val endedVideo by PlaybackService.endedVideo.collectAsState()
     LaunchedEffect(endedVideo, selectedVideo?.apiId()) {
         val current = selectedVideo
         if (current != null && endedVideo == current.sourceServer(server) + "|" + current.apiId()) closePlayer()
     }
-    LaunchedEffect(server) { homeJob?.cancel(); homeJob?.join(); if (page == "Home") loadHome() else if (page == "Search") searchNow()  }
+    LaunchedEffect(server, options.homeContent, options.homeInterests, options.homeServer, options.homeChannel) {
+        homeJob?.cancel(); homeJob?.join()
+        if (page == "Home") loadHome() else if (page == "Search") searchNow()
+    }
     LaunchedEffect(page, serverSubscriptions, selectedAccount?.id, selectedAccount?.needsLogin, accountRevision, options.includeSensitive, server) {
         if (serverSubscriptions && page in listOf("Home", "Subscriptions")) loadAccountFeed()
         else {
@@ -670,7 +726,13 @@ class MainActivity : ComponentActivity() {
         }
         AppUpdateFeature(updateRequest)
         val colors = MaterialTheme.colorScheme
-        CompositionLocalProvider(LocalMetadataTranslationPaused provides settingsOpen, LocalServerSubscriptions provides serverSubscriptions) {
+        CompositionLocalProvider(LocalMetadataTranslationPaused provides settingsOpen, LocalServerSubscriptions provides serverSubscriptions,
+            LocalVideoChannelNavigation provides { video ->
+                runCatching { video.accountChannelHandle(server) }.getOrNull()?.let { handle ->
+                    openChannelVideos(PeerTubeChannel(video.channel?.displayName.orEmpty(), handle.substringBeforeLast('@'), handle.substringAfterLast('@')))
+                    closePlayer()
+                }
+            }) {
         Box(Modifier.fillMaxSize()) {
         Scaffold(containerColor = colors.background, bottomBar = {
             if (wideLayout && !showVideo && !floatingPlayer && selectedVideo != null && !loadingVideo) BackgroundVideoPlayer(selectedVideo!!, server, Modifier.fillMaxWidth(), compact = true,
@@ -707,14 +769,19 @@ class MainActivity : ComponentActivity() {
                         Text(stringResource(R.string.app_name), fontWeight = FontWeight.ExtraBold, fontSize = 20.sp, letterSpacing = (-0.6).sp, color = colors.onBackground, modifier = Modifier.weight(1f).padding(start = 8.dp))
                         Box {
                             Surface(onClick = { chooseServerOpen = true }, shape = RoundedCornerShape(18.dp), color = colors.surface) {
-                                Text(server.removePrefix("https://"), Modifier.widthIn(max = 160.dp).padding(horizontal = 12.dp, vertical = 9.dp), color = colors.onSurface, maxLines = 1, style = MaterialTheme.typography.labelMedium)
+                                Text(server.removePrefix("https://").ifBlank { uiText(R.string.server_automatic) }, Modifier.widthIn(max = 160.dp).padding(horizontal = 12.dp, vertical = 9.dp), color = colors.onSurface, maxLines = 1, style = MaterialTheme.typography.labelMedium)
                             }
                             DropdownMenu(expanded = chooseServerOpen, onDismissRequest = { chooseServerOpen = false }) {
+                                if (selectedAccount == null || selectedAccount.needsLogin) DropdownMenuItem(text = { Text(uiText(R.string.server_automatic)) }, onClick = {
+                                    scope.launch { saveServerList(context, serverList, "") }
+                                    automaticRetry++
+                                    chooseServerOpen = false
+                                })
                                 availableServers.forEach { host -> DropdownMenuItem(text = { Text(host.removePrefix("https://")) }, onClick = {
                                     scope.launch { saveServerList(context, serverList, host) }
                                     chooseServerOpen = false
                                 }) }
-                                DropdownMenuItem(text = { Text(stringResource(R.string.choose_peer_server)) }, onClick = { chooseServerOpen = false; settingsSection = "servers"; settingsOpen = true })
+                                DropdownMenuItem(text = { Text(stringResource(R.string.choose_peer_server)) }, onClick = { chooseServerOpen = false; navigateTo("You"); openYouSection(YouSection.Servers) })
                             }
                         }
                     }
@@ -747,6 +814,10 @@ class MainActivity : ComponentActivity() {
                             if (serverSubscriptions) { loadAccountFeed(); selectedAccount?.let { scope.launch { accountLibrary.refresh(it.id) } } }
                             else loadSubscriptions()
                         })
+                    if (server.isBlank() && page in listOf("Home", "Server", "Live", "Search")) {
+                        Text(uiText(if (automaticFailed) R.string.server_auto_failed else R.string.server_auto_checking), Modifier.padding(16.dp))
+                        if (automaticFailed) TextButton(onClick = { automaticRetry++ }) { Text(stringResource(R.string.retry)) }
+                    }
                     if (page == "Home") {
                         var sortMenuOpen by remember { mutableStateOf(false) }
                         val sorts = listOf("newest" to R.string.home_sort_newest, "oldest" to R.string.home_sort_oldest,
@@ -770,6 +841,8 @@ class MainActivity : ComponentActivity() {
                         title = when {
                             channelVideosMode -> stringResource(R.string.channel_videos)
                             channelDirectoryServer != null -> stringResource(R.string.channels_on_server)
+                            youSection == YouSection.Servers -> uiText(R.string.ui_servers_d9002c)
+                            youSection == YouSection.Playlists -> uiText(R.string.library_playlists)
                             youSection == YouSection.Channels -> stringResource(R.string.channels)
                             youSection == YouSection.Favorites -> stringResource(R.string.favorites)
                             youSection == YouSection.Videos -> uiText(R.string.ui_your_videos_90d416)
@@ -777,10 +850,10 @@ class MainActivity : ComponentActivity() {
                         }, onBack = ::backFromYou)
                     } }
                     val browsingFeed = page == "Server" || page == "Live"
-                    val watchedIds = remember(historyRows) { historyRows.map { it.identity.substringBefore('|') }.toSet() }
-                    val homeFollowing = (if (serverSubscriptions) accountFeed else subscriptionFeed).filterNot { it.apiId() in watchedIds }.withoutHiddenChannels(hiddenChannels, server)
-                    val homeRecommended = recommendedVideos.filterNot { it.apiId() in watchedIds }.withoutHiddenChannels(hiddenChannels, server)
-                    val homeRecent = homeVideos.filterNot { it.apiId() in watchedIds }.withoutHiddenChannels(hiddenChannels, server)
+                    val watchedIds = remember(historyRows, options.homeContent) { if (options.homeContent == "recommended") historyRows.map { it.identity.substringBefore('|') }.toSet() else emptySet() }
+                    val homeFollowing = (if (options.homeContent != "recommended") emptyList() else if (serverSubscriptions) accountFeed else subscriptionFeed).filterNot { it.apiId() in watchedIds }.withoutHiddenChannels(hiddenChannels + blockedChannels, server).filterNot { it.sourceServer(server) + "|" + it.apiId() in hiddenVideos }
+                    val homeRecommended = recommendedVideos.filterNot { it.apiId() in watchedIds }.withoutHiddenChannels(hiddenChannels + blockedChannels, server).filterNot { it.sourceServer(server) + "|" + it.apiId() in hiddenVideos }
+                    val homeRecent = homeVideos.filterNot { it.apiId() in watchedIds }.withoutHiddenChannels(hiddenChannels + blockedChannels, server).filterNot { it.sourceServer(server) + "|" + it.apiId() in hiddenVideos }
                     val visibleVideos = when (page) {
                         "Server" -> serverVideos
                         "Live" -> liveVideos
@@ -790,10 +863,10 @@ class MainActivity : ComponentActivity() {
                             YouSection.History -> historyRows.map(SavedVideo::toVideo)
                             YouSection.Channels -> if (channelVideosMode) videos else emptyList()
                             YouSection.Menu -> emptyList()
-                            YouSection.Videos -> emptyList()
+                            YouSection.Videos, YouSection.Servers, YouSection.Playlists -> emptyList()
                         }
                         else -> videos
-                    }
+                    }.withoutHiddenChannels(blockedChannels, server)
                     val showFeedStatus = page !in listOf("You", "Create") || (youSection == YouSection.Channels && (channelVideosMode || channelDirectoryServer != null))
                     val serverSubscriptionFeed = page == "Subscriptions" && serverSubscriptions
                     if (showFeedStatus && (if (serverSubscriptionFeed) accountFeedBusy else if (browsingFeed) browseBusy else busy)) LinearProgressIndicator(Modifier.fillMaxWidth().padding(horizontal = 16.dp), color = colors.primary, trackColor = colors.surface)
@@ -807,19 +880,31 @@ class MainActivity : ComponentActivity() {
                         if (!browseUnsupported) TextButton(onClick = { loadBrowse(if (browseHasMore) browsePage + 1 else 0) }) {
                             Text(stringResource(if (page == "Live" && browseHasMore) R.string.find_more_live else R.string.retry))
                         }
-                        if (page == "Server") TextButton(onClick = { settingsSection = "servers"; settingsOpen = true }) { Text(stringResource(R.string.choose_peer_server)) }
+                        if (page == "Server") TextButton(onClick = { navigateTo("You"); openYouSection(YouSection.Servers) }) { Text(stringResource(R.string.choose_peer_server)) }
                     }
                     if (page == "Create") {
                         CreatePage(initialLiveUuid = creationLiveUuid, onLiveConsumed = { creationLiveUuid = null }, mode = creationMode, onMode = { creationMode = it }, wide = wideLayout,
                             onClose = { navigateTo("Home") }, onVideos = { navigateTo("You"); openYouSection(YouSection.Videos) })
                     } else if (page == "You" && youSection == YouSection.Menu) {
                         YouPage(server, onOpenSection = ::openYouSection, onSettings = { settingsSection = null; settingsOpen = true },
-                            onAccountServer = { host -> scope.launch { useAccountServer(context, host) } })
+                            onAccountServer = { host -> scope.launch { useAccountServer(context, host) } },
+                            onPinnedChannel = { row -> openChannelVideos(PeerTubeChannel(row.title, row.channelName.orEmpty().substringBeforeLast('@'), java.net.URI(row.server).authority)) })
+                    } else if (page == "You" && youSection == YouSection.Servers) {
+                        serverCatalogPageState.SaveableStateProvider("server-catalog") {
+                            ServerSettingsPage(options) { host -> openServerChannels(host, true) }
+                        }
+                    } else if (page == "You" && youSection == YouSection.Playlists) {
+                        PlaylistsPage(playlistSelection, { playlistSelection = it }, onPlay = { playlist ->
+                            if (playlist.isNotEmpty()) {
+                                PlaybackQueue.start(playlist)
+                                openVideo(playlist.first())
+                            }
+                        })
                     } else if (page == "You" && youSection == YouSection.Videos) {
                         CreatorPage(onOpenVideo = ::openVideo, onStartLive = { uuid -> creationLiveUuid = uuid; creationMode = "live"; navigateTo("Create") })
                     } else if (page == "You" && youSection == YouSection.Channels && !channelVideosMode) {
                         if (channelDirectoryServer == null) AccountChannelsPage(selectedAccount, accountSnapshot, subscriptionRows, server,
-                            onOpen = ::openChannelVideos, onBrowse = ::openServerChannels,
+                            onOpen = ::openChannelVideos, onBrowse = { openServerChannels(it) },
                             onRefresh = { selectedAccount?.let { scope.launch { accountLibrary.refresh(it.id) } } }, onUnsubscribe = ::unsubscribeAccountChannel)
                         else Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp)) {
                             serverChannelList.forEach { channel ->
@@ -875,7 +960,7 @@ class MainActivity : ComponentActivity() {
                     }
                 } else if (wideLayout) {
                     val current = selectedVideo!!
-                    val next = deduplicateVideos(recommendedVideos + homeVideos + serverVideos + liveVideos + videos + subscriptionFeed, server)
+                    val next = deduplicateVideos(recommendedVideos + homeVideos + serverVideos + liveVideos + videos + subscriptionFeed, server).withoutHiddenChannels(blockedChannels, server)
                         .filterNot { it.apiId() == current.apiId() && it.sourceServer(server) == current.sourceServer(server) }.take(20)
                     TabletVideoScreen(current, server, loadingVideo, playerError, next, tabletFullscreen,
                         current.apiId() in favorites, effectiveSubscriptions.any { it.identity == current.subscriptionIdentity(server) },
@@ -905,7 +990,7 @@ class MainActivity : ComponentActivity() {
                         WatchDetails(video, server, video.apiId() in favorites, effectiveSubscriptions.any { it.identity == video.subscriptionIdentity(server) },
                             onFavorite = { toggleCurrentVideoFavorite(video) }, onSubscribe = { toggleCurrentVideoSubscription(video) },
                             onChannel = { video.channel?.name?.let { handle -> openChannelVideos(PeerTubeChannel(video.channel.displayName ?: handle, handle, video.sourceServer(server).removePrefix("https://"))); closePlayer() } })
-                        val next = deduplicateVideos(recommendedVideos + homeVideos + serverVideos + liveVideos + videos + subscriptionFeed, server)
+                        val next = deduplicateVideos(recommendedVideos + homeVideos + serverVideos + liveVideos + videos + subscriptionFeed, server).withoutHiddenChannels(blockedChannels, server)
                             .filterNot { it.apiId() == video.apiId() && it.sourceServer(server) == video.sourceServer(server) }.take(20)
                         if (next.isNotEmpty()) Text(uiText(R.string.ui_up_next_b0dfbd), Modifier.padding(16.dp), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                         next.forEach { item -> NextVideoRow(item, server) { openVideo(item) } }
@@ -976,15 +1061,24 @@ private fun LazyGridScope.videoSection(
             if (video.nsfw && cardOptions.sensitiveDisplay != "show") Box(Modifier.matchParentSize().background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = if (cardOptions.sensitiveDisplay == "warning" || android.os.Build.VERSION.SDK_INT < 31) 1f else .55f)), contentAlignment = Alignment.Center) { Text(uiText(R.string.ui_sensitive_content_576e42), Modifier.padding(16.dp)) }
             if (video.isLive || video.duration > 0) Text(if (video.isLive) stringResource(R.string.live_now) else formatDuration(video.duration), Modifier.align(Alignment.BottomEnd).padding(9.dp).clip(RoundedCornerShape(7.dp)).background(if (video.isLive) Color(0xFFC83232) else Color.Black.copy(alpha = 0.78f)).padding(horizontal = 7.dp, vertical = 4.dp), color = Color.White, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold)
         }
-        Row(Modifier.fillMaxWidth().padding(start = 14.dp, top = 11.dp, end = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text(translatedMetadata(video.name), Modifier.weight(1f), color = MaterialTheme.colorScheme.onSurface, maxLines = 2, fontWeight = FontWeight.SemiBold, lineHeight = 20.sp)
-            if (video.channel?.name != null) IconButton(onClick = onSubscribe) { Icon(Icons.Default.Notifications, if (subscribed) stringResource(R.string.unsubscribe_channel) else stringResource(R.string.subscribe_channel), tint = if (subscribed) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurfaceVariant) }
-            IconButton(onClick = onFavorite) { Icon(Icons.Default.Favorite, stringResource(R.string.favorites), tint = if (favorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant) }
+        var menu by remember(video.sourceServer(fallbackServer), video.apiId()) { mutableStateOf(false) }
+        Row(Modifier.fillMaxWidth().padding(start = 12.dp, top = 8.dp, bottom = 10.dp, end = 4.dp), verticalAlignment = Alignment.Top) {
+            val avatar = video.channel?.avatars?.firstOrNull() ?: video.account?.avatars?.firstOrNull()
+            val image = avatar?.fileUrl ?: avatar?.path?.let { video.sourceServer(fallbackServer).trimEnd('/') + it }
+            Box(Modifier.padding(top = 4.dp).size(36.dp).clip(androidx.compose.foundation.shape.CircleShape).background(MaterialTheme.colorScheme.surfaceVariant), contentAlignment = Alignment.Center) {
+                Text((video.channel?.displayName ?: video.account?.displayName).orEmpty().take(1).uppercase())
+                if (image != null) coil.compose.AsyncImage(image, null, Modifier.fillMaxSize())
+            }
+            Column(Modifier.weight(1f).padding(start = 10.dp, top = 2.dp)) {
+                Text(translatedMetadata(video.name), color = MaterialTheme.colorScheme.onSurface, maxLines = 2, fontWeight = FontWeight.SemiBold, lineHeight = 20.sp)
+                Text(listOfNotNull(video.channel?.displayName ?: video.account?.displayName,
+                    java.text.NumberFormat.getIntegerInstance().format(video.views) + " " + uiText(R.string.ui_views_bfcec5),
+                    video.publishedAt?.let(::formatPublishedDate)).joinToString(" · "),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall, maxLines = 1)
+            }
+            IconButton(onClick = { menu = true }) { Icon(Icons.Default.MoreVert, uiText(R.string.video_menu)) }
         }
-        Row(Modifier.fillMaxWidth().padding(start = 14.dp, end = 14.dp, top = 2.dp, bottom = 13.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text(video.channel?.displayName ?: video.account?.displayName.orEmpty(), Modifier.weight(1f), color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall, maxLines = 1)
-            if (video.publishedAt != null) Text(formatPublishedDate(video.publishedAt), color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall)
-        }
+        if (menu) VideoContextMenu(video, fallbackServer, favorite, subscribed, onFavorite, onSubscribe) { menu = false }
     }
 }
 

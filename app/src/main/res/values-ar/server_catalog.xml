@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="server_automatic">تلقائي</string>
+    <string name="server_auto_checking">جارٍ فحص الخوادم…</string>
+    <string name="server_auto_failed">لم يعرض أي خادم فيديوهات. أعد المحاولة أو اختر خادمًا.</string>
+    <string name="server_catalog_refresh">تحديث قائمة الخوادم</string>
+    <string name="server_catalog_count">الخوادم في الدليل: %1$d</string>
+    <string name="server_catalog_failed">تعذر تحديث القائمة. القائمة المحفوظة متاحة.</string>
+    <string name="server_catalog_partial">تم تحديث القائمة من مصدر واحد مع الاحتفاظ بالعناوين المحفوظة.</string>
+</resources>

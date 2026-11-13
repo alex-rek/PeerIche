@@ -59,22 +59,24 @@ internal fun List<Video>.withoutHiddenChannels(hidden: Set<String>, server: Stri
     val context = LocalContext.current
     val library = remember(context) { PeerIcheDatabase.get(context).library() }
     val rows by remember(library) { library.observe(HIDDEN_CHANNEL) }.collectAsState(initial = emptyList())
+    val blocked by remember(library) { library.observe(BLOCKED_CHANNEL) }.collectAsState(initial = emptyList())
     val scope = rememberCoroutineScope()
     var error by remember { mutableStateOf(false) }
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(vertical = 8.dp)) {
         item { Text(uiText(R.string.hidden_channels_hint), Modifier.padding(horizontal = 24.dp, vertical = 8.dp), style = MaterialTheme.typography.bodyMedium) }
-        if (rows.isEmpty()) item { Text(uiText(R.string.hidden_channels_empty), Modifier.padding(24.dp)) }
+        item { Text(uiText(R.string.channel_block_local_hint), Modifier.padding(horizontal = 24.dp, vertical = 8.dp), style = MaterialTheme.typography.bodyMedium) }
+        if (rows.isEmpty() && blocked.isEmpty()) item { Text(uiText(R.string.hidden_channels_empty), Modifier.padding(24.dp)) }
         if (error) item { Text(uiText(R.string.hidden_channels_error), Modifier.padding(horizontal = 24.dp), color = MaterialTheme.colorScheme.error) }
-        items(rows, key = { it.identity }) { channel ->
+        items(rows + blocked, key = { it.kind + "|" + it.identity }) { channel ->
             SettingsRow(channel.title, "${channel.channelName}@${channel.server.removePrefix("https://")}") {
                 TextButton(onClick = {
                     scope.launch {
                         error = false
-                        try { library.delete(channel.identity, HIDDEN_CHANNEL) }
+                        try { library.delete(channel.identity, channel.kind) }
                         catch (cancelled: CancellationException) { throw cancelled }
                         catch (_: Exception) { error = true }
                     }
-                }) { Text(uiText(R.string.channel_show)) }
+                }) { Text(uiText(if (channel.kind == BLOCKED_CHANNEL) R.string.menu_unblock_channel else R.string.channel_show)) }
             }
         }
     }

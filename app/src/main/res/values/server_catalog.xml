@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="server_automatic">Automatic</string>
+    <string name="server_auto_checking">Checking servers…</string>
+    <string name="server_auto_failed">No server returned videos. Try again or select a server.</string>
+    <string name="server_catalog_refresh">Update server list</string>
+    <string name="server_catalog_count">Servers in catalog: %1$d</string>
+    <string name="server_catalog_failed">Could not update the list. The saved list is still available.</string>
+    <string name="server_catalog_partial">The list was updated from one source. Previously saved addresses were retained.</string>
+</resources>

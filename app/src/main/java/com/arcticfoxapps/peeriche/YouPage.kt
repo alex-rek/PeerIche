@@ -22,7 +22,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
-internal enum class YouSection { Menu, Channels, Favorites, History, Videos }
+internal enum class YouSection { Menu, Channels, Favorites, History, Videos, Servers, Playlists }
 
 @Composable internal fun YouSectionHeader(title: String, onBack: () -> Unit) {
     Row(Modifier.fillMaxWidth().heightIn(min = 56.dp).padding(horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -32,7 +32,7 @@ internal enum class YouSection { Menu, Channels, Favorites, History, Videos }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Composable internal fun YouPage(server: String, onOpenSection: (YouSection) -> Unit, onSettings: () -> Unit, onAccountServer: (String) -> Unit) {
+@Composable internal fun YouPage(server: String, onOpenSection: (YouSection) -> Unit, onSettings: () -> Unit, onAccountServer: (String) -> Unit, onPinnedChannel: (SavedVideo) -> Unit) {
     var accountInfo by rememberSaveable { mutableStateOf(false) }
     val context = LocalContext.current
     val manager = remember(context) { PeerTubeAccounts.get(context) }
@@ -45,6 +45,7 @@ internal enum class YouSection { Menu, Channels, Favorites, History, Videos }
         } catch (cancelled: CancellationException) { throw cancelled }
         catch (_: Exception) { /* Account screen provides retry and session details. */ }
     }
+    val pinned by remember(context) { PeerIcheDatabase.get(context).library().observe("pinned_channel") }.collectAsState(emptyList())
     val colors = MaterialTheme.colorScheme
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
         Column(Modifier.widthIn(max = 720.dp).fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 12.dp)) {
@@ -62,9 +63,15 @@ internal enum class YouSection { Menu, Channels, Favorites, History, Videos }
                 else Icon(interfaceForwardChevron(), null)
             }
             HorizontalDivider(Modifier.padding(vertical = 12.dp), color = colors.outlineVariant)
+            YouMenuRow(Icons.Default.Dns, uiText(R.string.ui_servers_d9002c)) { onOpenSection(YouSection.Servers) }
+            YouMenuRow(Icons.Default.PlaylistPlay, uiText(R.string.library_playlists)) { onOpenSection(YouSection.Playlists) }
             YouMenuRow(Icons.Default.AccountBox, uiText(R.string.ui_channels_a38998)) { onOpenSection(YouSection.Channels) }
             if (active != null && !active.needsLogin) YouMenuRow(Icons.Default.VideoLibrary, uiText(R.string.ui_your_videos_90d416)) { onOpenSection(YouSection.Videos) }
             YouMenuRow(Icons.Default.FavoriteBorder, uiText(R.string.ui_favorites_d4c059)) { onOpenSection(YouSection.Favorites) }
+            if (pinned.isNotEmpty()) {
+                Text(uiText(R.string.channels_pinned), Modifier.padding(vertical = 12.dp), fontWeight = FontWeight.SemiBold)
+                pinned.forEach { row -> YouMenuRow(Icons.Default.PushPin, row.title) { onPinnedChannel(row) } }
+            }
             YouMenuRow(Icons.Default.History, uiText(R.string.ui_history_4d3d0c)) { onOpenSection(YouSection.History) }
             HorizontalDivider(Modifier.padding(vertical = 12.dp), color = colors.outlineVariant)
             YouMenuRow(Icons.Default.Settings, uiText(R.string.ui_settings_2bca56), onSettings)
@@ -78,6 +85,6 @@ internal enum class YouSection { Menu, Channels, Favorites, History, Videos }
     Row(Modifier.fillMaxWidth().clickable(onClick = onClick).heightIn(min = 56.dp).padding(horizontal = 4.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(24.dp)) {
         Icon(icon, null, Modifier.size(24.dp))
-        Text(title, Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge)
+        Text(title, Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
     }
 }

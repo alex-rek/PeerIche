@@ -89,6 +89,7 @@ internal fun Video.shareText(server: String): String = name + "\n" + publicWatch
             }, label = { Text(shareLabel) }, leadingIcon = { Icon(Icons.Default.Share, null, Modifier.size(20.dp)) })
             AssistChip(onClick = { speechSettings = true }, label = { Text(uiText(R.string.ui_speech_b0f924)) }, leadingIcon = { Icon(Icons.Default.RecordVoiceOver, null, Modifier.size(20.dp)) })
             AssistChip(onClick = onChannel, enabled = video.channel?.name != null, label = { Text(uiText(R.string.ui_channel_videos_db019b)) })
+            VideoDownloadButton(video, server)
             HideChannelButton(video, server, video.channel?.displayName ?: video.channel?.name.orEmpty())
         }
         Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp), verticalAlignment = Alignment.CenterVertically,
