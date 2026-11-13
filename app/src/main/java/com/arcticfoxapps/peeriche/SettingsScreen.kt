@@ -6,6 +6,8 @@ import android.os.LocaleList
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -21,11 +23,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.window.DialogWindowProvider
 import androidx.core.os.ConfigurationCompat
 import androidx.datastore.preferences.core.emptyPreferences
 import kotlinx.coroutines.flow.catch
@@ -40,6 +44,7 @@ import java.util.Locale
 @Composable internal fun interfaceForwardChevron() =
     if (androidx.compose.ui.platform.LocalLayoutDirection.current == androidx.compose.ui.unit.LayoutDirection.Rtl) Icons.Default.ChevronLeft else Icons.Default.ChevronRight
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable internal fun SettingsScreen(onClose: () -> Unit, onCheckUpdates: () -> Unit, initialSection: String? = null) {
     val context = LocalContext.current
     val preferences = remember { AppPreferences.get(context) }
@@ -54,10 +59,20 @@ import java.util.Locale
         Triple("hidden_channels", uiText(R.string.hidden_channels), Icons.Default.VisibilityOff),
         Triple("about", uiText(R.string.ui_about_9a8919), Icons.Default.Info)
     )
-    Dialog(onDismissRequest = onClose, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+    // Read the Activity's insets before entering the Dialog: on edge-to-edge Android,
+    // the dialog window can report zero navigation-bar insets despite overlapping it.
+    val safePadding = WindowInsets.safeDrawing.union(WindowInsets.systemBarsIgnoringVisibility).asPaddingValues()
+    Dialog(onDismissRequest = onClose, properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
+        val window = (LocalView.current.parent as? DialogWindowProvider)?.window
+        SideEffect {
+            if (Build.VERSION.SDK_INT >= 30 && window != null) {
+                // Match the actual window frame to Compose's full-screen constraints.
+                window.attributes = window.attributes.apply { setFitInsetsTypes(0) }
+            }
+        }
         BackHandler { if (section == "speech") section = speechParent else if (section != null) section = null else onClose() }
         Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-            Column(Modifier.fillMaxSize()) {
+            Column(Modifier.fillMaxSize().padding(safePadding)) {
                 Row(Modifier.fillMaxWidth().heightIn(min = 64.dp).padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                     IconButton(onClick = { if (section == "speech") section = speechParent else if (section != null) section = null else onClose() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, uiText(R.string.ui_back_02b74f))
@@ -77,7 +92,7 @@ import java.util.Locale
                     "translations" -> TranslationSettingsPage(options, preferences) { speechParent = "translations"; section = "speech" }
                     "player" -> PlayerSettingsPage(options, preferences) { speechParent = "player"; section = "speech" }
                     "speech" -> SubtitleSpeechSettingsPage(options, preferences)
-                    "about" -> Column(Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
+                    "about" -> Column(Modifier.verticalScroll(rememberScrollState()).padding(24.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
                         Text("PeerIche", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
                         Text(uiText(R.string.ui_version_994a31) + " " + BuildConfig.VERSION_NAME + " · " + BuildConfig.BUILD_DATE)
                         Text(uiText(R.string.ui_developer_arctic_fox_apps_fa73f2))

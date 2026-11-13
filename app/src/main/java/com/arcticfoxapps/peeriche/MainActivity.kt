@@ -1071,10 +1071,18 @@ private fun LazyGridScope.videoSection(
             }
             Column(Modifier.weight(1f).padding(start = 10.dp, top = 2.dp)) {
                 Text(translatedMetadata(video.name), color = MaterialTheme.colorScheme.onSurface, maxLines = 2, fontWeight = FontWeight.SemiBold, lineHeight = 20.sp)
-                Text(listOfNotNull(video.channel?.displayName ?: video.account?.displayName,
-                    java.text.NumberFormat.getIntegerInstance().format(video.views) + " " + uiText(R.string.ui_views_bfcec5),
-                    video.publishedAt?.let(::formatPublishedDate)).joinToString(" · "),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall, maxLines = 1)
+                Text((video.channel?.displayName ?: video.account?.displayName).orEmpty(),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall,
+                    maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(java.text.NumberFormat.getIntegerInstance().format(video.views) + " " + uiText(R.string.ui_views_bfcec5),
+                        Modifier.weight(1f, fill = false), color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                    video.publishedAt?.let { date ->
+                        Text("· " + formatPublishedDate(date), color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            style = MaterialTheme.typography.bodySmall, maxLines = 1)
+                    }
+                }
             }
             IconButton(onClick = { menu = true }) { Icon(Icons.Default.MoreVert, uiText(R.string.video_menu)) }
         }
