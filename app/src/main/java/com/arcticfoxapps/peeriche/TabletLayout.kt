@@ -24,7 +24,7 @@ import coil.compose.AsyncImage
 internal fun tabletColumns(widthDp: Int): Int = if (widthDp >= 1100) 3 else 2
 
 @Composable internal fun TabletNavigation(page: String, collapsed: Boolean, authorized: Boolean = false,
-    creationMode: String = "live", onCreationMode: (String) -> Unit = {}, onNavigate: (String) -> Unit) {
+    creationMode: String = "live", onCreationMode: (String) -> Unit = {}, avatar: String? = null, onNavigate: (String) -> Unit) {
     Surface(color = MaterialTheme.colorScheme.surface) {
         Column(Modifier.width(if (collapsed) 76.dp else 184.dp).fillMaxHeight().verticalScroll(rememberScrollState()).padding(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             listOf("Home" to R.string.home, "Search" to R.string.search, broadcastMenuDestination(authorized) to if (authorized) R.string.create else R.string.subscriptions, "You" to R.string.you).forEach { (destination, label) ->
@@ -39,7 +39,8 @@ internal fun tabletColumns(widthDp: Int): Int = if (widthDp >= 1100) 3 else 2
                     color = if (page == destination || (destination == "Home" && page in listOf("Server", "Live"))) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface,
                     contentColor = if (page == destination || (destination == "Home" && page in listOf("Server", "Live"))) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface) {
                     Row(Modifier.fillMaxWidth().heightIn(min = 52.dp).padding(12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Icon(painterResource(icon), stringResource(label), Modifier.size(24.dp))
+                        if (destination == "You") AccountNavigationIcon(avatar)
+                        else Icon(painterResource(icon), stringResource(label), Modifier.size(24.dp))
                         if (!collapsed) Text(stringResource(label), maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.labelLarge)
                     }
                 }

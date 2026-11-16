@@ -20,6 +20,8 @@ internal fun creatorUiFixture(instrumentation: Instrumentation) {
     var activity: Activity? = null
     var fixtureUploads: VideoUploadCoordinator? = null
     val context = instrumentation.targetContext
+    val avatarFile = File(context.cacheDir, "creator-ui-avatar.png")
+    val fixturePlaylists = mutableListOf<String>()
     val marker = File(context.cacheDir, "creator-ui-finish")
     val liveMarker = File(context.cacheDir, "creator-ui-simulate-live")
     fun replace(target: Any, value: Any) {
@@ -31,9 +33,17 @@ internal fun creatorUiFixture(instrumentation: Instrumentation) {
         marker.delete()
         liveMarker.delete()
         runBlocking {
+            val bitmap = android.graphics.Bitmap.createBitmap(64, 64, android.graphics.Bitmap.Config.ARGB_8888)
+            val canvas = android.graphics.Canvas(bitmap)
+            canvas.drawColor(android.graphics.Color.rgb(25, 110, 230))
+            canvas.drawCircle(32f, 32f, 20f, android.graphics.Paint().apply { color = android.graphics.Color.YELLOW; isAntiAlias = true })
+            avatarFile.outputStream().use { bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it) }
+            bitmap.recycle()
+            fixturePlaylists += VideoPlaylists(context).create("QA Music")
+            fixturePlaylists += VideoPlaylists(context).create("QA Videos for continuous watching")
             val gson = Gson()
             fun json(raw: String) = gson.fromJson(raw, JsonObject::class.java)
-            val session = AuthSession("https://fixture.invalid", AuthClient("fixture", "secret"), "fixture-access", "fixture-refresh", Long.MAX_VALUE / 2, AuthProfile(1, "creator", "Тестовый автор"))
+            val session = AuthSession("https://fixture.invalid", AuthClient("fixture", "secret"), "fixture-access", "fixture-refresh", Long.MAX_VALUE / 2, AuthProfile(1, "creator", "Тестовый автор", android.net.Uri.fromFile(avatarFile).toString()))
             val store = object : AccountSessionStore {
                 var value = StoredAccounts(listOf(session), session.id)
                 override suspend fun load() = value
@@ -113,6 +123,8 @@ internal fun creatorUiFixture(instrumentation: Instrumentation) {
             if (target === Broadcasts) instrumentation.runOnMainSync { (field.get(target) as? BroadcastCoordinator)?.close() }
             field.set(target, original)
         }
+        runBlocking { fixturePlaylists.forEach { VideoPlaylists(context).delete(it) } }
+        avatarFile.delete()
         marker.delete()
         liveMarker.delete()
     }

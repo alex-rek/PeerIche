@@ -27,12 +27,12 @@ android {
         }
     }
     defaultConfig {
-        buildConfigField("String", "BUILD_DATE", "\"2026-11-13\"")
+        buildConfigField("String", "BUILD_DATE", "\"2026-11-16\"")
         applicationId = "com.arcticfoxapps.peeriche"
         minSdk = 23
         targetSdk = 35
-        versionCode = 40
-        versionName = "0.9.17"
+        versionCode = 41
+        versionName = "0.9.18"
         testInstrumentationRunner = "com.arcticfoxapps.peeriche.AuthSmokeInstrumentation"
     }
     compileOptions {

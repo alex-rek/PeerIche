@@ -170,6 +170,7 @@ class MainActivity : ComponentActivity() {
     val accountManager = remember(context) { PeerTubeAccounts.get(context) }
     val accountState by accountManager.state.collectAsState()
     val selectedAccount = accountState.active
+    val navigationAvatar = selectedAccount?.takeUnless { it.needsLogin }?.avatar
     val accountLibrary = remember(context) { AccountLibraries.get(context) }
     val accountSnapshots by accountLibrary.snapshots.collectAsState()
     val accountRevision by accountLibrary.revision.collectAsState()
@@ -294,6 +295,11 @@ class MainActivity : ComponentActivity() {
     val historyRows by database.library().observe("history").collectAsState(initial = emptyList())
     val subscriptionRows by database.library().observe("subscription").collectAsState(initial = emptyList())
     val effectiveSubscriptions = if (serverSubscriptions) accountSnapshot?.subscriptions.orEmpty().map { it.subscriptionRow(selectedAccount!!.server) } else subscriptionRows
+    val playlistDefinitions by remember(database) { database.library().observe("playlist") }.collectAsState(initial = null)
+    LaunchedEffect(playlistDefinitions, playlistSelection) {
+        if (playlistDefinitions != null && playlistSelection != null && playlistSelection != WATCH_LATER &&
+            playlistDefinitions.orEmpty().none { it.identity == playlistSelection }) playlistSelection = null
+    }
     val favorites = remember(favoriteRows) { favoriteRows.map { it.identity }.toSet() }
 
     DisposableEffect(showVideo, phonePlayerFullscreen, tabletFullscreen, floatingPlayer) {
@@ -749,14 +755,14 @@ class MainActivity : ComponentActivity() {
                     NavigationBarItem(selected = page == destination || (destination == "Home" && page in listOf("Server", "Live")), onClick = {
                         if (destination == "Create") closePlayer()
                         navigateTo(destination)
-                    }, icon = { Icon(painterResource(iconId), stringResource(labelId)) }, label = { Text(stringResource(labelId), fontWeight = if (page == destination) FontWeight.SemiBold else FontWeight.Normal) })
+                    }, icon = { if (destination == "You") AccountNavigationIcon(navigationAvatar) else Icon(painterResource(iconId), stringResource(labelId)) }, label = { Text(stringResource(labelId), fontWeight = if (page == destination) FontWeight.SemiBold else FontWeight.Normal) })
                 }
             }
             }
         }) { insets ->
             Row(Modifier.fillMaxSize().padding(insets)) {
                 if (wideLayout && !tabletFullscreen) TabletNavigation(page, collapsed = showVideo || LocalConfiguration.current.screenWidthDp < 840, authorized = selectedAccount != null && !selectedAccount.needsLogin,
-                    creationMode = creationMode, onCreationMode = { creationMode = it }) { destination ->
+                    creationMode = creationMode, onCreationMode = { creationMode = it }, avatar = navigationAvatar) { destination ->
                     if (destination == "Create") closePlayer()
                     tabletBrowsing = selectedVideo != null
                     navigateTo(destination)
@@ -789,13 +795,21 @@ class MainActivity : ComponentActivity() {
                 }
                 if (!showVideo) {
                     FeedPanel(wideLayout || feedPanelsVisible, top = true) { Column {
-                    if (page in listOf("Home", "Server", "Live", "Subscriptions")) {
+                    if (page in listOf("Home", "Server", "Live", "Subscriptions") || (page == "You" && youSection == YouSection.Playlists)) {
                         Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 12.dp),
                             horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                             listOf("Home" to R.string.home, "Server" to R.string.on_server, "Live" to R.string.live_now, "Subscriptions" to R.string.subscriptions).forEach { (destination, label) ->
                                 FilterChip(selected = page == destination, onClick = {
                                     navigateTo(destination)
                                 }, label = { Text(stringResource(label), maxLines = 1) })
+                            }
+                            (listOf(WATCH_LATER to uiText(R.string.watch_later)) + playlistDefinitions.orEmpty().map { it.identity to it.title }).forEach { (id, title) ->
+                                FilterChip(selected = page == "You" && youSection == YouSection.Playlists && playlistSelection == id,
+                                    onClick = {
+                                        navigateTo("You")
+                                        openYouSection(YouSection.Playlists)
+                                        playlistSelection = id
+                                    }, label = { Text(title, Modifier.widthIn(max = 220.dp), maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) })
                             }
                         }
                     }
