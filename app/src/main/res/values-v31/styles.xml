@@ -6,7 +6,7 @@
         <item name="android:navigationBarColor">#101820</item>
         <item name="android:windowLightNavigationBar">false</item>
         <item name="android:colorAccent">#FF744D</item>
-        <item name="android:windowSplashScreenBackground">#0C1116</item>
+        <item name="android:windowSplashScreenBackground">@color/peeriche_launcher_background</item>
         <item name="android:windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
     </style>
 </resources>

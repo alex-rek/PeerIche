@@ -63,7 +63,11 @@ internal class BroadcastPreferences(private val context: Context) {
             canvas.drawText(owner.displayName.take(1).ifBlank { "P" }.uppercase(), 360f, 355f, paint)
             paint.textSize = 34f; paint.color = Color.WHITE
             canvas.drawText(owner.displayName.take(28), 360f, 550f, paint)
-            paint.textSize = 28f; paint.color = Color.LTGRAY; canvas.drawText("PeerIche", 360f, 615f, paint)
+            BitmapFactory.decodeResource(context.resources, R.drawable.peeriche_logo_dark)?.let { logo ->
+                val width = 32f * logo.width / logo.height
+                canvas.drawBitmap(logo, null, RectF(360f - width / 2, 587f, 360f + width / 2, 619f), Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG))
+                logo.recycle()
+            }
         }
     }
 }

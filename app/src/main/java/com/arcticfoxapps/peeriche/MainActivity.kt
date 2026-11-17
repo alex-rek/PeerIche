@@ -771,8 +771,7 @@ class MainActivity : ComponentActivity() {
                 FeedPanel(wideLayout || feedPanelsVisible, top = true) {
                 if ((!showVideo || wideLayout) && !tabletFullscreen && page != "Create") {
                     Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Image(painterResource(R.drawable.ic_peeriche_mark), contentDescription = null, modifier = Modifier.size(28.dp))
-                        Text(stringResource(R.string.app_name), fontWeight = FontWeight.ExtraBold, fontSize = 20.sp, letterSpacing = (-0.6).sp, color = colors.onBackground, modifier = Modifier.weight(1f).padding(start = 8.dp))
+                        BrandLogo(Modifier.weight(1f).padding(end = 8.dp).height(28.dp))
                         Box {
                             Surface(onClick = { chooseServerOpen = true }, shape = RoundedCornerShape(18.dp), color = colors.surface) {
                                 Text(server.removePrefix("https://").ifBlank { uiText(R.string.server_automatic) }, Modifier.widthIn(max = 160.dp).padding(horizontal = 12.dp, vertical = 9.dp), color = colors.onSurface, maxLines = 1, style = MaterialTheme.typography.labelMedium)

@@ -229,7 +229,7 @@ object PeerTubeClients {
     suspend fun discoverInstances() = directory.instances().data.filter { it.host.isNotBlank() }
     suspend fun discoverInstancePage(start: Int, search: String = "") = directory.instances(start = start, count = 100, search = search.trim().takeIf(String::isNotBlank))
     internal suspend fun interestVideos(server: String, categories: List<Int>, sensitive: Boolean): List<Video> =
-        server(server).videoListing(categories = categories, nsfw = sensitive.toString()).use { parsePeerTubeVideoPage(it.string()).data }
+        server(server).videoListing(categories = categories, nsfw = sensitiveContentFilter(sensitive)).use { parsePeerTubeVideoPage(it.string()).data }
     suspend fun home(server: String) = server(server).videos(sort = "-publishedAt", count = 30).data
     suspend fun popular(server: String) = server(server).videos(sort = "-views", count = 30).data
     suspend fun serverPage(host: String, page: Int, sensitive: Boolean): SearchPage {
@@ -240,13 +240,13 @@ object PeerTubeClients {
     suspend fun checkServer(host: String): VideoPage = checkedVideoListing(host, count = 1)
     private suspend fun checkedVideoListing(host: String, start: Int = 0, count: Int = 30, local: Boolean? = null,
         sensitive: Boolean = false, live: Boolean? = null): VideoPage {
-        val body = try { server(host).videoListing(count, start, local, sensitive.toString(), live, if (live == true) false else null) }
+        val body = try { server(host).videoListing(count, start, local, sensitiveContentFilter(sensitive), live, if (live == true) false else null) }
         catch (error: retrofit2.HttpException) { if (error.code() == 404) throw NotPeerTubeServerException() else throw error }
         return body.use { parsePeerTubeVideoPage(it.string()) }
     }
     suspend fun livePage(host: String, page: Int, sensitive: Boolean): SearchPage {
         val indexed = try { scanLivePages(page, host, sensitive,
-            fetch = { index -> kotlinx.coroutines.withTimeout(15_000) { sepia.live(start = index * 30, nsfw = sensitive.toString()) } },
+            fetch = { index -> kotlinx.coroutines.withTimeout(15_000) { sepia.live(start = index * 30, nsfw = sensitiveContentFilter(sensitive)) } },
             resolve = { candidate -> server(candidate.sourceServer(host)).video(candidate.apiId()) }) }
         catch (timeout: kotlinx.coroutines.TimeoutCancellationException) {
             null

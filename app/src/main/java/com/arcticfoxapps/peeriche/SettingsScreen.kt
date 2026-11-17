@@ -93,7 +93,7 @@ import java.util.Locale
                     "player" -> PlayerSettingsPage(options, preferences) { speechParent = "player"; section = "speech" }
                     "speech" -> SubtitleSpeechSettingsPage(options, preferences)
                     "about" -> Column(Modifier.verticalScroll(rememberScrollState()).padding(24.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
-                        Text("PeerIche", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+                        BrandLogo(Modifier.width(200.dp).height(42.dp))
                         Text(uiText(R.string.ui_version_994a31) + " " + BuildConfig.VERSION_NAME + " · " + BuildConfig.BUILD_DATE)
                         Text(uiText(R.string.ui_developer_arctic_fox_apps_fa73f2))
                         Text(uiText(R.string.ui_independent_peertube_client_not_affiliated_8ece4c))

@@ -14,7 +14,7 @@ internal class AccountOperation private constructor(val method: String, val segm
         }
         fun subscriptions(start: Int) = AccountOperation("GET", path("users", "me", "subscriptions"), mapOf("start" to start.coerceAtLeast(0).toString(), "count" to "100"))
         fun feed(start: Int, sensitive: Boolean) = AccountOperation("GET", path("users", "me", "subscriptions", "videos"),
-            mapOf("start" to start.coerceAtLeast(0).toString(), "count" to "30", "sort" to "-publishedAt", "nsfw" to sensitive.toString()))
+            mapOf("start" to start.coerceAtLeast(0).toString(), "count" to "30", "sort" to "-publishedAt", "nsfw" to sensitiveContentFilter(sensitive)))
         fun ownChannels() = AccountOperation("GET", path("users", "me"))
         fun creatorConfig() = AccountOperation("GET", path("config"))
         fun quotaUsed() = AccountOperation("GET", path("users", "me", "video-quota-used"))

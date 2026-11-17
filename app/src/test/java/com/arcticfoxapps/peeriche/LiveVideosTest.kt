@@ -63,6 +63,12 @@ class LiveVideosTest {
             resolve = { error("Sensitive stream must not be resolved") })
         assertFalse(result.hasMore); assertTrue(result.videos.isEmpty())
     }
+    @Test fun includingSensitiveStreamsRetainsOrdinaryStreamsToo() = runBlocking {
+        val result = scanLivePages(0, "https://video.example", true,
+            fetch = { VideoPage(listOf(candidate("ordinary"), candidate("sensitive").copy(nsfw = true)), total = 2) },
+            resolve = { it.copy(state = VideoState(1), directStreamUrl = "https://video.example/${it.uuid}.m3u8") })
+        assertEquals(listOf("ordinary", "sensitive"), result.videos.map { it.uuid })
+    }
     @Test fun unreachableOriginDoesNotCauseOneTimeoutForEveryVideoOnTheSameHost() = runBlocking {
         var requests = 0
         val result = resolveLiveVideos((1..30).map { candidate("$it") }, "https://video.example") {

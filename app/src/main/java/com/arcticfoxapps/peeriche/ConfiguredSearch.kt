@@ -28,7 +28,7 @@ object ConfiguredSearch {
     suspend fun search(context: Context, query: String, servers: List<String>, active: String, page: Int, options: AppOptions): SearchPage {
         val start = page.coerceAtLeast(0) * 30
         val sensitive = options.includeSensitive && options.sensitiveDisplay != "hide"
-        val nsfw = if (sensitive) "both" else "false"
+        val nsfw = sensitiveContentFilter(sensitive)
         val cache = context.getSharedPreferences("search_cache", 0)
         val sources = linkedMapOf<String, suspend () -> SearchPage>()
         sources["sepia"] = { index("https://sepiasearch.org").search(query, start = start, sort = options.searchSort, nsfw = nsfw).let { SearchPage(it.data, start + it.data.size < it.total) } }
