@@ -163,6 +163,7 @@ class MainActivity : ComponentActivity() {
     val context = LocalContext.current
     val inPip = context.playerActivity()?.pipSupport?.active == true
     val options by AppPreferences.get(context).options.collectAsState()
+    val proxyRevision by ProxyNetwork.revision.collectAsState()
     val wideLayout = LocalConfiguration.current.smallestScreenWidthDp >= 600 && LocalConfiguration.current.screenWidthDp >= 600
     val landscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
     val database = remember { PeerIcheDatabase.get(context) }
@@ -638,18 +639,18 @@ class MainActivity : ComponentActivity() {
         val current = selectedVideo
         if (current != null && endedVideo == current.sourceServer(server) + "|" + current.apiId()) closePlayer()
     }
-    LaunchedEffect(server, options.homeContent, options.homeInterests, options.homeServer, options.homeChannel) {
+    LaunchedEffect(server, options.homeContent, options.homeInterests, options.homeServer, options.homeChannel, proxyRevision) {
         homeJob?.cancel(); homeJob?.join()
         if (page == "Home") loadHome() else if (page == "Search") searchNow()
     }
-    LaunchedEffect(page, serverSubscriptions, selectedAccount?.id, selectedAccount?.needsLogin, accountRevision, options.includeSensitive, server) {
+    LaunchedEffect(page, serverSubscriptions, selectedAccount?.id, selectedAccount?.needsLogin, accountRevision, options.includeSensitive, server, proxyRevision) {
         if (serverSubscriptions && page in listOf("Home", "Subscriptions")) loadAccountFeed()
         else {
             accountFeedGeneration++; accountFeedJob?.cancel(); accountFeedBusy = false
             if (page == "Subscriptions") loadSubscriptions()
         }
     }
-    LaunchedEffect(page, server, options.includeSensitive) {
+    LaunchedEffect(page, server, options.includeSensitive, proxyRevision) {
         browseGeneration++
         browseJob?.cancel()
         browseBusy = false
@@ -660,7 +661,7 @@ class MainActivity : ComponentActivity() {
         }
     }
     LaunchedEffect(query, serverList, options.searchSort) { searchGridState.scrollToItem(0) }
-    val searchSettingsKey = listOf(options.searchSources, options.searchOrder, options.searchMode, options.searchEnough, options.searchParallel, options.searchTimeout, options.customIndexes, options.availability, options.includeSensitive, options.sensitiveDisplay, options.searchSort).hashCode()
+    val searchSettingsKey = listOf(options.searchSources, options.searchOrder, options.searchMode, options.searchEnough, options.searchParallel, options.searchTimeout, options.customIndexes, options.availability, options.includeSensitive, options.sensitiveDisplay, options.searchSort, proxyRevision).hashCode()
     LaunchedEffect(page, query, serverList, searchSettingsKey) {
         if (page == "Search") {
             searchGeneration++; searchJob?.cancel(); hasMoreResults = false

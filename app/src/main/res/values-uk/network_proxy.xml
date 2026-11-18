@@ -1,0 +1,27 @@
+<resources>
+    <string name="network_settings">Мережа</string>
+    <string name="proxy_scope_note">Для каталогу, пошуку, зображень, програвача, передавання відео й оновлень. Не застосовується до RTMP-ефірів із телефона та завантаження мовних моделей.</string>
+    <string name="proxy_type">Підключення</string>
+    <string name="proxy_off">Без проксі</string>
+    <string name="proxy_host">Адреса проксі</string>
+    <string name="proxy_port">Порт</string>
+    <string name="proxy_username">Логін (необов’язково)</string>
+    <string name="proxy_password">Пароль (необов’язково)</string>
+    <string name="proxy_show_password">Показати пароль</string>
+    <string name="proxy_hide_password">Приховати пароль</string>
+    <string name="proxy_save">Зберегти</string>
+    <string name="proxy_save_check">Зберегти й перевірити з’єднання</string>
+    <string name="proxy_checking">Перевіряємо з’єднання…</string>
+    <string name="proxy_saved">Налаштування мережі збережено</string>
+    <string name="proxy_ok">З’єднання працює</string>
+    <string name="proxy_bad_config">Перевірте адресу проксі, порт (1–65535) і дані входу.</string>
+    <string name="proxy_save_failed">Не вдалося зберегти налаштування проксі.</string>
+    <string name="proxy_check_failed">Не вдалося підключитися. Перевірте проксі й мережу.</string>
+    <string name="proxy_auth_required">Проксі потребує правильні дані входу.</string>
+    <string name="proxy_http_status">З’єднання повернуло HTTP %1$d</string>
+    <string name="proxy_storage_error">Не вдалося прочитати збережені налаштування. Введіть їх знову або скиньте проксі. Мережеві запити призупинено.</string>
+    <string name="proxy_reset">Скинути проксі</string>
+    <string name="proxy_reset_question">Скинути налаштування проксі?</string>
+    <string name="proxy_reopen_video">Після зміни проксі відкрийте відео знову.</string>
+    <string name="proxy_check_target">Перевіряється HTTPS-доступ до example.com.</string>
+</resources>

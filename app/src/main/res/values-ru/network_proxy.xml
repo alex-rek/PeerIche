@@ -1,0 +1,27 @@
+<resources>
+    <string name="network_settings">Сеть</string>
+    <string name="proxy_scope_note">Для каталога, поиска, изображений, плеера, передачи видео и обновлений. Не применяется к RTMP-эфирам с телефона и загрузке языковых моделей.</string>
+    <string name="proxy_type">Подключение</string>
+    <string name="proxy_off">Без прокси</string>
+    <string name="proxy_host">Адрес прокси</string>
+    <string name="proxy_port">Порт</string>
+    <string name="proxy_username">Логин (необязательно)</string>
+    <string name="proxy_password">Пароль (необязательно)</string>
+    <string name="proxy_show_password">Показать пароль</string>
+    <string name="proxy_hide_password">Скрыть пароль</string>
+    <string name="proxy_save">Сохранить</string>
+    <string name="proxy_save_check">Сохранить и проверить соединение</string>
+    <string name="proxy_checking">Проверяем соединение…</string>
+    <string name="proxy_saved">Настройки сети сохранены</string>
+    <string name="proxy_ok">Соединение работает</string>
+    <string name="proxy_bad_config">Проверьте адрес прокси, порт (1–65535) и данные входа.</string>
+    <string name="proxy_save_failed">Не удалось сохранить настройки прокси.</string>
+    <string name="proxy_check_failed">Соединение не удалось. Проверьте настройки прокси и сеть.</string>
+    <string name="proxy_auth_required">Прокси требует правильные логин и пароль.</string>
+    <string name="proxy_http_status">Соединение вернуло HTTP %1$d</string>
+    <string name="proxy_storage_error">Не удалось прочитать настройки прокси. Введите их заново или сбросьте прокси. Сетевые запросы приостановлены.</string>
+    <string name="proxy_reset">Сбросить прокси</string>
+    <string name="proxy_reset_question">Сбросить настройки прокси?</string>
+    <string name="proxy_reopen_video">После изменения прокси откройте воспроизводимое видео заново.</string>
+    <string name="proxy_check_target">Проверяется доступ по HTTPS к example.com.</string>
+</resources>

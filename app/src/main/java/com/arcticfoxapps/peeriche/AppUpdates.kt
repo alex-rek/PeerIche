@@ -40,7 +40,7 @@ private object GitHubUpdates {
         .readTimeout(60, TimeUnit.SECONDS).callTimeout(5, TimeUnit.MINUTES).build()
     private fun request(url: String) = Request.Builder().url(url)
         .header("User-Agent", "PeerIche-Android").build()
-    private fun getText(url: String): String = client.newCall(request(url)).execute().use {
+    private fun getText(url: String): String = ProxyNetwork.newCall(client, request(url)).execute().use {
         check(it.isSuccessful) { "HTTP ${it.code}" }
         requireNotNull(it.body).string()
     }
@@ -75,7 +75,7 @@ private object GitHubUpdates {
         val partial = File(directory, "update.part")
         try {
             val digest = MessageDigest.getInstance("SHA-256")
-            client.newCall(request(release.url)).execute().use { response ->
+            ProxyNetwork.newCall(client, request(release.url)).execute().use { response ->
                 check(response.isSuccessful)
                 val body = requireNotNull(response.body)
                 require(body.contentLength() <= 200L * 1024 * 1024)

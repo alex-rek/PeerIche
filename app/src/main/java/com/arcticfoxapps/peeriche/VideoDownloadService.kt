@@ -60,7 +60,7 @@ class VideoDownloadService : Service() {
                 val url = grant?.resolve(option.url) ?: option.url
                 withContext(Dispatchers.IO) {
                     val client = OkHttpClient.Builder().connectTimeout(20, TimeUnit.SECONDS).readTimeout(30, TimeUnit.SECONDS).build()
-                    val call = client.newCall(Request.Builder().url(url).build())
+                    val call = ProxyNetwork.newCall(client, Request.Builder().url(url).build())
                     activeCall = call
                     try {
                         call.execute().use { response ->

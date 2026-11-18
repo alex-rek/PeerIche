@@ -1,0 +1,27 @@
+<resources>
+    <string name="network_settings">Ağ</string>
+    <string name="proxy_scope_note">Kataloglar, arama, görseller, oynatma, video aktarımları ve güncellemeler için. Telefondan RTMP yayınları ve çeviri modeli indirmeleri için geçerli değildir.</string>
+    <string name="proxy_type">Bağlantı</string>
+    <string name="proxy_off">Proxy yok</string>
+    <string name="proxy_host">Proxy adresi</string>
+    <string name="proxy_port">Bağlantı noktası</string>
+    <string name="proxy_username">Kullanıcı adı (isteğe bağlı)</string>
+    <string name="proxy_password">Parola (isteğe bağlı)</string>
+    <string name="proxy_show_password">Parolayı göster</string>
+    <string name="proxy_hide_password">Parolayı gizle</string>
+    <string name="proxy_save">Kaydet</string>
+    <string name="proxy_save_check">Kaydet ve bağlantıyı denetle</string>
+    <string name="proxy_checking">Bağlantı denetleniyor…</string>
+    <string name="proxy_saved">Ağ ayarları kaydedildi</string>
+    <string name="proxy_ok">Bağlantı çalışıyor</string>
+    <string name="proxy_bad_config">Proxy adresini, bağlantı noktasını (1–65535) ve giriş bilgilerini denetleyin.</string>
+    <string name="proxy_save_failed">Proxy ayarları kaydedilemedi.</string>
+    <string name="proxy_check_failed">Bağlantı başarısız. Proxy ve ağı denetleyin.</string>
+    <string name="proxy_auth_required">Proxy geçerli giriş bilgileri gerektiriyor.</string>
+    <string name="proxy_http_status">Bağlantı HTTP %1$d döndürdü</string>
+    <string name="proxy_storage_error">Kayıtlı proxy ayarları okunamadı. Yeniden girin veya proxy ayarlarını sıfırlayın. Ağ istekleri duraklatıldı.</string>
+    <string name="proxy_reset">Proxy ayarlarını sıfırla</string>
+    <string name="proxy_reset_question">Proxy ayarları sıfırlansın mı?</string>
+    <string name="proxy_reopen_video">Proxy değiştirildikten sonra oynatılan videoyu yeniden açın.</string>
+    <string name="proxy_check_target">example.com adresine HTTPS erişimini denetler.</string>
+</resources>

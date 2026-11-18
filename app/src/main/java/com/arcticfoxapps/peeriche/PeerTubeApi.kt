@@ -165,13 +165,13 @@ interface InstanceDirectoryApi {
 
 object PeerTubeClients {
     private val retrofitCache = linkedMapOf<String, PeerTubeApi>()
-    private val sepia by lazy { Retrofit.Builder().baseUrl("https://sepiasearch.org/").addConverterFactory(GsonConverterFactory.create()).build().create(SepiaApi::class.java) }
-    private val peerSeek by lazy { Retrofit.Builder().baseUrl("https://peerseek.video/").addConverterFactory(GsonConverterFactory.create()).build().create(PeerSeekApi::class.java) }
-    private val directory by lazy { Retrofit.Builder().baseUrl("https://instances.joinpeertube.org/").addConverterFactory(GsonConverterFactory.create()).build().create(InstanceDirectoryApi::class.java) }
+    private val sepia by lazy { Retrofit.Builder().callFactory(ProxyNetwork.calls()).baseUrl("https://sepiasearch.org/").addConverterFactory(GsonConverterFactory.create()).build().create(SepiaApi::class.java) }
+    private val peerSeek by lazy { Retrofit.Builder().callFactory(ProxyNetwork.calls()).baseUrl("https://peerseek.video/").addConverterFactory(GsonConverterFactory.create()).build().create(PeerSeekApi::class.java) }
+    private val directory by lazy { Retrofit.Builder().callFactory(ProxyNetwork.calls()).baseUrl("https://instances.joinpeertube.org/").addConverterFactory(GsonConverterFactory.create()).build().create(InstanceDirectoryApi::class.java) }
     @Synchronized fun server(value: String): PeerTubeApi {
         val host = normalizeServer(value)
         return retrofitCache.getOrPut(host) {
-            Retrofit.Builder().baseUrl("$host/").addConverterFactory(GsonConverterFactory.create()).build().create(PeerTubeApi::class.java)
+            Retrofit.Builder().callFactory(ProxyNetwork.calls()).baseUrl("$host/").addConverterFactory(GsonConverterFactory.create()).build().create(PeerTubeApi::class.java)
         }
     }
     suspend fun search(query: String, servers: List<String>): List<Video> {

@@ -27,12 +27,12 @@ android {
         }
     }
     defaultConfig {
-        buildConfigField("String", "BUILD_DATE", "\"2026-11-17\"")
+        buildConfigField("String", "BUILD_DATE", "\"2026-11-18\"")
         applicationId = "com.arcticfoxapps.peeriche"
         minSdk = 23
         targetSdk = 35
-        versionCode = 42
-        versionName = "0.9.19"
+        versionCode = 43
+        versionName = "0.9.20"
         testInstrumentationRunner = "com.arcticfoxapps.peeriche.AuthSmokeInstrumentation"
     }
     compileOptions {
@@ -56,6 +56,7 @@ dependencies {
     implementation("androidx.navigation:navigation-compose:2.8.5")
     implementation("androidx.media3:media3-exoplayer:1.5.1")
     implementation("androidx.media3:media3-exoplayer-hls:1.5.1")
+    implementation("androidx.media3:media3-datasource-okhttp:1.5.1")
     implementation("androidx.media3:media3-ui:1.5.1")
     implementation("androidx.media3:media3-session:1.5.1")
     implementation("com.squareup.retrofit2:retrofit:2.11.0")

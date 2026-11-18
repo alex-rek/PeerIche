@@ -1,0 +1,27 @@
+<resources>
+    <string name="network_settings">网络</string>
+    <string name="proxy_scope_note">用于目录、搜索、图片、播放、视频传输和更新。不适用于手机 RTMP 直播或翻译模型下载。</string>
+    <string name="proxy_type">连接</string>
+    <string name="proxy_off">不使用代理</string>
+    <string name="proxy_host">代理地址</string>
+    <string name="proxy_port">端口</string>
+    <string name="proxy_username">用户名（可选）</string>
+    <string name="proxy_password">密码（可选）</string>
+    <string name="proxy_show_password">显示密码</string>
+    <string name="proxy_hide_password">隐藏密码</string>
+    <string name="proxy_save">保存</string>
+    <string name="proxy_save_check">保存并检查连接</string>
+    <string name="proxy_checking">正在检查连接…</string>
+    <string name="proxy_saved">网络设置已保存</string>
+    <string name="proxy_ok">连接正常</string>
+    <string name="proxy_bad_config">请检查代理地址、端口（1–65535）和登录信息。</string>
+    <string name="proxy_save_failed">无法保存代理设置。</string>
+    <string name="proxy_check_failed">连接失败，请检查代理设置和网络。</string>
+    <string name="proxy_auth_required">代理需要有效的登录信息。</string>
+    <string name="proxy_http_status">连接返回 HTTP %1$d</string>
+    <string name="proxy_storage_error">无法读取已保存的代理设置。请重新输入或重置代理。网络请求已暂停。</string>
+    <string name="proxy_reset">重置代理</string>
+    <string name="proxy_reset_question">重置代理设置？</string>
+    <string name="proxy_reopen_video">更改代理后，请重新打开正在播放的视频。</string>
+    <string name="proxy_check_target">检查对 example.com 的 HTTPS 访问。</string>
+</resources>

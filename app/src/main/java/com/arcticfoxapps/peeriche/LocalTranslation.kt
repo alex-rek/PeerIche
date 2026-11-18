@@ -99,7 +99,7 @@ object LocalTranslation {
             .joinToString("") { "%02x".format(it.toInt() and 255) }
         val target = File(context.cacheDir, "translated-subtitles/$hash.vtt")
         if (target.isFile) return@withContext target
-        val raw = http.newCall(Request.Builder().url(url).build()).execute().use { response ->
+        val raw = ProxyNetwork.newCall(http, Request.Builder().url(url).build()).execute().use { response ->
             check(response.isSuccessful)
             val body = requireNotNull(response.body)
             require(body.contentLength() <= 5_000_000)

@@ -1,0 +1,27 @@
+<resources>
+    <string name="network_settings">Rede</string>
+    <string name="proxy_scope_note">Para catálogos, buscas, imagens, reprodução, transferências de vídeo e atualizações. Não se aplica a transmissões RTMP do celular nem a downloads de modelos de tradução.</string>
+    <string name="proxy_type">Conexão</string>
+    <string name="proxy_off">Sem proxy</string>
+    <string name="proxy_host">Endereço do proxy</string>
+    <string name="proxy_port">Porta</string>
+    <string name="proxy_username">Usuário (opcional)</string>
+    <string name="proxy_password">Senha (opcional)</string>
+    <string name="proxy_show_password">Mostrar senha</string>
+    <string name="proxy_hide_password">Ocultar senha</string>
+    <string name="proxy_save">Salvar</string>
+    <string name="proxy_save_check">Salvar e verificar conexão</string>
+    <string name="proxy_checking">Verificando conexão…</string>
+    <string name="proxy_saved">Configurações de rede salvas</string>
+    <string name="proxy_ok">A conexão funciona</string>
+    <string name="proxy_bad_config">Verifique o endereço, a porta (1–65535) e as credenciais.</string>
+    <string name="proxy_save_failed">Não foi possível salvar as configurações do proxy.</string>
+    <string name="proxy_check_failed">Falha na conexão. Verifique o proxy e a rede.</string>
+    <string name="proxy_auth_required">O proxy exige credenciais válidas.</string>
+    <string name="proxy_http_status">A conexão retornou HTTP %1$d</string>
+    <string name="proxy_storage_error">Não foi possível ler as configurações salvas. Digite novamente ou redefina o proxy. As solicitações de rede estão pausadas.</string>
+    <string name="proxy_reset">Redefinir proxy</string>
+    <string name="proxy_reset_question">Redefinir configurações do proxy?</string>
+    <string name="proxy_reopen_video">Reabra o vídeo em reprodução após alterar o proxy.</string>
+    <string name="proxy_check_target">Verifica o acesso HTTPS a example.com.</string>
+</resources>

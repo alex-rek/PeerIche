@@ -93,7 +93,7 @@ internal suspend fun executeUpload(http: OkHttpClient, server: String, token: St
     }
     val request = builder.build()
     val response = suspendCancellableCoroutine<Response> { continuation ->
-        val call = http.newBuilder().followRedirects(false).followSslRedirects(false).retryOnConnectionFailure(false).build().newCall(request)
+        val call = ProxyNetwork.newCall(http.newBuilder().followRedirects(false).followSslRedirects(false).retryOnConnectionFailure(false).build(), request)
         continuation.invokeOnCancellation { call.cancel() }
         call.enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) { if (continuation.isActive) continuation.resumeWithException(e) }

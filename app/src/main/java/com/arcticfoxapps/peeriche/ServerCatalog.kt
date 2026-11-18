@@ -97,7 +97,7 @@ private val fedidbHttp by lazy {
         .addInterceptor { chain ->
             chain.proceed(chain.request().newBuilder().header("User-Agent", "PeerIche/Android").build())
         }.build()
-    Retrofit.Builder().baseUrl("https://api.fedidb.org/").client(client).build().create(CatalogHttp::class.java)
+    Retrofit.Builder().baseUrl("https://api.fedidb.org/").callFactory(ProxyNetwork.calls(client)).build().create(CatalogHttp::class.java)
 }
 
 private val catalogHttp by lazy {
@@ -112,7 +112,7 @@ private val catalogHttp by lazy {
         }).addInterceptor { chain ->
             chain.proceed(chain.request().newBuilder().header("User-Agent", "PeerIche/Android").build())
         }.build()
-    Retrofit.Builder().baseUrl("https://api.fedidb.org/").client(client).build().create(CatalogHttp::class.java)
+    Retrofit.Builder().baseUrl("https://api.fedidb.org/").callFactory(ProxyNetwork.calls(client)).build().create(CatalogHttp::class.java)
 }
 
 internal suspend fun fastestCatalogHost(hosts: List<String>, probe: suspend (String) -> Long?): String? = coroutineScope {

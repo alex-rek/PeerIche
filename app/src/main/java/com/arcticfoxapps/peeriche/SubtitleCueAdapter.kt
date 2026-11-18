@@ -19,7 +19,7 @@ internal object SubtitleCueAdapter {
         val text = if (uri.scheme == "file") File(uri).inputStream().use { readBounded(it) }
         else {
             require(uri.scheme == "https" && uri.host != null)
-            http.newCall(Request.Builder().url(url).build()).execute().use { response ->
+            ProxyNetwork.newCall(http, Request.Builder().url(url).build()).execute().use { response ->
                 check(response.isSuccessful) { "Caption download failed" }
                 requireNotNull(response.body).byteStream().use { readBounded(it) }
             }

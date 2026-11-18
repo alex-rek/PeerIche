@@ -1,0 +1,27 @@
+<resources>
+    <string name="network_settings">Netzwerk</string>
+    <string name="proxy_scope_note">Für Kataloge, Suche, Bilder, Wiedergabe, Videoübertragung und Updates. Gilt nicht für RTMP-Sendungen vom Telefon oder Downloads von Übersetzungsmodellen.</string>
+    <string name="proxy_type">Verbindung</string>
+    <string name="proxy_off">Kein Proxy</string>
+    <string name="proxy_host">Proxy-Adresse</string>
+    <string name="proxy_port">Port</string>
+    <string name="proxy_username">Benutzername (optional)</string>
+    <string name="proxy_password">Passwort (optional)</string>
+    <string name="proxy_show_password">Passwort anzeigen</string>
+    <string name="proxy_hide_password">Passwort ausblenden</string>
+    <string name="proxy_save">Speichern</string>
+    <string name="proxy_save_check">Speichern und Verbindung prüfen</string>
+    <string name="proxy_checking">Verbindung wird geprüft…</string>
+    <string name="proxy_saved">Netzwerkeinstellungen gespeichert</string>
+    <string name="proxy_ok">Verbindung funktioniert</string>
+    <string name="proxy_bad_config">Proxy-Adresse, Port (1–65535) und Zugangsdaten prüfen.</string>
+    <string name="proxy_save_failed">Proxy-Einstellungen konnten nicht gespeichert werden.</string>
+    <string name="proxy_check_failed">Verbindung fehlgeschlagen. Proxy und Netzwerk prüfen.</string>
+    <string name="proxy_auth_required">Der Proxy benötigt gültige Zugangsdaten.</string>
+    <string name="proxy_http_status">Verbindung meldet HTTP %1$d</string>
+    <string name="proxy_storage_error">Gespeicherte Proxy-Einstellungen konnten nicht gelesen werden. Neu eingeben oder zurücksetzen. Netzwerkanfragen sind angehalten.</string>
+    <string name="proxy_reset">Proxy zurücksetzen</string>
+    <string name="proxy_reset_question">Proxy-Einstellungen zurücksetzen?</string>
+    <string name="proxy_reopen_video">Ein laufendes Video nach der Proxy-Änderung erneut öffnen.</string>
+    <string name="proxy_check_target">Prüft den HTTPS-Zugriff auf example.com.</string>
+</resources>

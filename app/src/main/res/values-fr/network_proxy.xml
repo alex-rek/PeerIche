@@ -1,0 +1,27 @@
+<resources>
+    <string name="network_settings">Réseau</string>
+    <string name="proxy_scope_note">Pour les catalogues, recherches, images, lectures, transferts vidéo et mises à jour. Ne concerne pas les diffusions RTMP du téléphone ni le téléchargement des modèles de traduction.</string>
+    <string name="proxy_type">Connexion</string>
+    <string name="proxy_off">Sans proxy</string>
+    <string name="proxy_host">Adresse du proxy</string>
+    <string name="proxy_port">Port</string>
+    <string name="proxy_username">Identifiant (facultatif)</string>
+    <string name="proxy_password">Mot de passe (facultatif)</string>
+    <string name="proxy_show_password">Afficher le mot de passe</string>
+    <string name="proxy_hide_password">Masquer le mot de passe</string>
+    <string name="proxy_save">Enregistrer</string>
+    <string name="proxy_save_check">Enregistrer et tester la connexion</string>
+    <string name="proxy_checking">Vérification de la connexion…</string>
+    <string name="proxy_saved">Paramètres réseau enregistrés</string>
+    <string name="proxy_ok">La connexion fonctionne</string>
+    <string name="proxy_bad_config">Vérifiez l’adresse, le port (1–65535) et les identifiants.</string>
+    <string name="proxy_save_failed">Impossible d’enregistrer les paramètres du proxy.</string>
+    <string name="proxy_check_failed">Échec de connexion. Vérifiez le proxy et le réseau.</string>
+    <string name="proxy_auth_required">Le proxy nécessite des identifiants valides.</string>
+    <string name="proxy_http_status">La connexion a renvoyé HTTP %1$d</string>
+    <string name="proxy_storage_error">Impossible de lire les paramètres enregistrés. Saisissez-les à nouveau ou réinitialisez le proxy. Les requêtes réseau sont suspendues.</string>
+    <string name="proxy_reset">Réinitialiser le proxy</string>
+    <string name="proxy_reset_question">Réinitialiser les paramètres du proxy ?</string>
+    <string name="proxy_reopen_video">Rouvrez la vidéo en cours après avoir modifié le proxy.</string>
+    <string name="proxy_check_target">Teste l’accès HTTPS à example.com.</string>
+</resources>

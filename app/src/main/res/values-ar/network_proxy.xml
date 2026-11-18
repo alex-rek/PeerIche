@@ -1,0 +1,27 @@
+<resources>
+    <string name="network_settings">الشبكة</string>
+    <string name="proxy_scope_note">للكتالوجات والبحث والصور والتشغيل ونقل الفيديو والتحديثات. لا ينطبق على بث RTMP من الهاتف أو تنزيل نماذج الترجمة.</string>
+    <string name="proxy_type">الاتصال</string>
+    <string name="proxy_off">بدون وكيل</string>
+    <string name="proxy_host">عنوان الوكيل</string>
+    <string name="proxy_port">المنفذ</string>
+    <string name="proxy_username">اسم المستخدم (اختياري)</string>
+    <string name="proxy_password">كلمة المرور (اختيارية)</string>
+    <string name="proxy_show_password">إظهار كلمة المرور</string>
+    <string name="proxy_hide_password">إخفاء كلمة المرور</string>
+    <string name="proxy_save">حفظ</string>
+    <string name="proxy_save_check">حفظ وفحص الاتصال</string>
+    <string name="proxy_checking">جارٍ فحص الاتصال…</string>
+    <string name="proxy_saved">تم حفظ إعدادات الشبكة</string>
+    <string name="proxy_ok">الاتصال يعمل</string>
+    <string name="proxy_bad_config">تحقق من العنوان والمنفذ (1–65535) وبيانات الدخول.</string>
+    <string name="proxy_save_failed">تعذر حفظ إعدادات الوكيل.</string>
+    <string name="proxy_check_failed">فشل الاتصال. تحقق من الوكيل والشبكة.</string>
+    <string name="proxy_auth_required">يتطلب الوكيل بيانات دخول صحيحة.</string>
+    <string name="proxy_http_status">أعاد الاتصال HTTP %1$d</string>
+    <string name="proxy_storage_error">تعذر قراءة الإعدادات المحفوظة. أدخلها مجددًا أو أعد ضبط الوكيل. تم إيقاف طلبات الشبكة مؤقتًا.</string>
+    <string name="proxy_reset">إعادة ضبط الوكيل</string>
+    <string name="proxy_reset_question">إعادة ضبط إعدادات الوكيل؟</string>
+    <string name="proxy_reopen_video">أعد فتح الفيديو الجاري بعد تغيير الوكيل.</string>
+    <string name="proxy_check_target">يفحص وصول HTTPS إلى example.com.</string>
+</resources>

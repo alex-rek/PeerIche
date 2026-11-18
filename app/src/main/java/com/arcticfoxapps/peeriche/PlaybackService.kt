@@ -47,7 +47,8 @@ class PlaybackService : MediaSessionService() {
         super.onCreate()
         val settings = AppPreferences.get(this).options.value
         val dataSource = androidx.media3.datasource.ResolvingDataSource.Factory(
-            androidx.media3.datasource.DefaultDataSource.Factory(this),
+            androidx.media3.datasource.DefaultDataSource.Factory(this,
+                androidx.media3.datasource.okhttp.OkHttpDataSource.Factory(ProxyNetwork.calls()).setUserAgent("PeerIche/Android")),
             androidx.media3.datasource.ResolvingDataSource.Resolver { spec ->
                 val grant = AccountVideoPlayback.grant
                 if (grant == null || !grant.accepts(spec.uri.toString())) spec

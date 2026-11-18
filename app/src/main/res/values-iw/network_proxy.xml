@@ -1,0 +1,27 @@
+<resources>
+    <string name="network_settings">רשת</string>
+    <string name="proxy_scope_note">לקטלוגים, חיפוש, תמונות, ניגון, העברת וידאו ועדכונים. לא חל על שידורי RTMP מהטלפון או על הורדת מודלי תרגום.</string>
+    <string name="proxy_type">חיבור</string>
+    <string name="proxy_off">ללא שרת מתווך</string>
+    <string name="proxy_host">כתובת שרת מתווך</string>
+    <string name="proxy_port">יציאה</string>
+    <string name="proxy_username">שם משתמש (רשות)</string>
+    <string name="proxy_password">סיסמה (רשות)</string>
+    <string name="proxy_show_password">הצגת סיסמה</string>
+    <string name="proxy_hide_password">הסתרת סיסמה</string>
+    <string name="proxy_save">שמירה</string>
+    <string name="proxy_save_check">שמירה ובדיקת חיבור</string>
+    <string name="proxy_checking">בודקים את החיבור…</string>
+    <string name="proxy_saved">הגדרות הרשת נשמרו</string>
+    <string name="proxy_ok">החיבור פועל</string>
+    <string name="proxy_bad_config">יש לבדוק את הכתובת, היציאה (1–65535) ופרטי הכניסה.</string>
+    <string name="proxy_save_failed">לא ניתן לשמור את הגדרות השרת המתווך.</string>
+    <string name="proxy_check_failed">החיבור נכשל. יש לבדוק את השרת המתווך והרשת.</string>
+    <string name="proxy_auth_required">השרת המתווך דורש פרטי כניסה תקינים.</string>
+    <string name="proxy_http_status">החיבור החזיר HTTP %1$d</string>
+    <string name="proxy_storage_error">לא ניתן לקרוא את ההגדרות השמורות. יש להזין מחדש או לאפס את השרת המתווך. בקשות הרשת מושהות.</string>
+    <string name="proxy_reset">איפוס שרת מתווך</string>
+    <string name="proxy_reset_question">לאפס את הגדרות השרת המתווך?</string>
+    <string name="proxy_reopen_video">לאחר שינוי השרת המתווך יש לפתוח מחדש סרטון שמתנגן.</string>
+    <string name="proxy_check_target">בודק גישת HTTPS אל example.com.</string>
+</resources>

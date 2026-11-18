@@ -1,0 +1,27 @@
+<resources>
+    <string name="network_settings">Red</string>
+    <string name="proxy_scope_note">Para catálogos, búsquedas, imágenes, reproducción, transferencias de vídeo y actualizaciones. No se aplica a emisiones RTMP desde el teléfono ni a descargas de modelos de traducción.</string>
+    <string name="proxy_type">Conexión</string>
+    <string name="proxy_off">Sin proxy</string>
+    <string name="proxy_host">Dirección del proxy</string>
+    <string name="proxy_port">Puerto</string>
+    <string name="proxy_username">Usuario (opcional)</string>
+    <string name="proxy_password">Contraseña (opcional)</string>
+    <string name="proxy_show_password">Mostrar contraseña</string>
+    <string name="proxy_hide_password">Ocultar contraseña</string>
+    <string name="proxy_save">Guardar</string>
+    <string name="proxy_save_check">Guardar y comprobar conexión</string>
+    <string name="proxy_checking">Comprobando conexión…</string>
+    <string name="proxy_saved">Ajustes de red guardados</string>
+    <string name="proxy_ok">La conexión funciona</string>
+    <string name="proxy_bad_config">Comprueba la dirección, el puerto (1–65535) y las credenciales.</string>
+    <string name="proxy_save_failed">No se pudieron guardar los ajustes del proxy.</string>
+    <string name="proxy_check_failed">Falló la conexión. Comprueba el proxy y la red.</string>
+    <string name="proxy_auth_required">El proxy requiere credenciales válidas.</string>
+    <string name="proxy_http_status">La conexión devolvió HTTP %1$d</string>
+    <string name="proxy_storage_error">No se pudieron leer los ajustes guardados. Vuelve a introducirlos o restablece el proxy. Las solicitudes de red están pausadas.</string>
+    <string name="proxy_reset">Restablecer proxy</string>
+    <string name="proxy_reset_question">¿Restablecer los ajustes del proxy?</string>
+    <string name="proxy_reopen_video">Vuelve a abrir el vídeo en reproducción tras cambiar el proxy.</string>
+    <string name="proxy_check_target">Comprueba el acceso HTTPS a example.com.</string>
+</resources>

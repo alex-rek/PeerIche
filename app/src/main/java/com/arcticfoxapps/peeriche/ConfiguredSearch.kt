@@ -13,11 +13,11 @@ import java.util.concurrent.ConcurrentHashMap
 
 object ConfiguredSearch {
     private val indexes = ConcurrentHashMap<String, SepiaApi>()
-    private val peerSeek = Retrofit.Builder().baseUrl("https://peerseek.video/")
+    private val peerSeek = Retrofit.Builder().callFactory(ProxyNetwork.calls()).baseUrl("https://peerseek.video/")
         .addConverterFactory(GsonConverterFactory.create()).build().create(PeerSeekApi::class.java)
     private val availability = ConcurrentHashMap<String, Pair<Boolean, Long>>()
     private fun index(url: String): SepiaApi = indexes.getOrPut(url) {
-        Retrofit.Builder().baseUrl(normalizeServer(url) + "/").addConverterFactory(GsonConverterFactory.create()).build().create(SepiaApi::class.java)
+        Retrofit.Builder().callFactory(ProxyNetwork.calls()).baseUrl(normalizeServer(url) + "/").addConverterFactory(GsonConverterFactory.create()).build().create(SepiaApi::class.java)
     }
     fun record(video: Video, server: String, available: Boolean) {
         availability[video.sourceServer(server) + "|" + video.apiId()] = available to System.currentTimeMillis()

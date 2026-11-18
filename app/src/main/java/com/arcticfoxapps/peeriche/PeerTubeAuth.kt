@@ -95,7 +95,7 @@ internal class PeerTubeAuthTransport(client: OkHttpClient = OkHttpClient()) : Au
     @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
     private suspend fun execute(request: Request, empty: Boolean = false, client: OkHttpClient = http): JsonObject = withContext(Dispatchers.IO) {
         val response = suspendCancellableCoroutine<Response> { continuation ->
-            val call = client.newCall(request)
+            val call = ProxyNetwork.newCall(client, request)
             continuation.invokeOnCancellation { call.cancel() }
             call.enqueue(object : Callback {
                 override fun onFailure(call: Call, error: IOException) { if (continuation.isActive) continuation.resumeWithException(error) }

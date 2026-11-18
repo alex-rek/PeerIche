@@ -54,6 +54,7 @@ import java.util.Locale
     val categories = listOf(
         Triple("general", uiText(R.string.ui_general_4d7c8e), Icons.Default.Settings),
         Triple("search", uiText(R.string.ui_search_c2faca), Icons.Default.Search),
+        Triple("network", uiText(R.string.network_settings), Icons.Default.Wifi),
         Triple("translations", uiText(R.string.ui_language_and_translations_29d99b), Icons.Default.Translate),
         Triple("player", uiText(R.string.ui_player_cd0260), Icons.Default.PlayCircle),
         Triple("hidden_channels", uiText(R.string.hidden_channels), Icons.Default.VisibilityOff),
@@ -89,6 +90,7 @@ import java.util.Locale
                     "hidden_channels" -> HiddenChannelsSettings()
                     "general" -> GeneralSettings(options, preferences)
                     "search" -> SearchSettingsPage(options, preferences)
+                    "network" -> NetworkSettingsPage()
                     "translations" -> TranslationSettingsPage(options, preferences) { speechParent = "translations"; section = "speech" }
                     "player" -> PlayerSettingsPage(options, preferences) { speechParent = "player"; section = "speech" }
                     "speech" -> SubtitleSpeechSettingsPage(options, preferences)
