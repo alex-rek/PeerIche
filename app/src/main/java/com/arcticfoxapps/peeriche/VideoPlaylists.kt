@@ -156,6 +156,7 @@ internal object PlaybackQueue {
         if (failed) item { Text(uiText(R.string.library_action_failed), Modifier.padding(16.dp), color = MaterialTheme.colorScheme.error) }
     } else {
         val rows by remember(id) { library.observe(playlistKind(id)) }.collectAsState(emptyList())
+        LaunchedEffect(id) { if (id == WATCH_LATER) WatchLaterSync.get(context).requestSync() }
         val ordered = rows.sortedBy { it.updatedAt }
         Column {
             Text(if (id == WATCH_LATER) uiText(R.string.watch_later) else definitions.firstOrNull { it.identity == id }?.title.orEmpty(), Modifier.padding(horizontal = 16.dp), style = MaterialTheme.typography.titleMedium)
@@ -168,7 +169,10 @@ internal object PlaybackQueue {
                     SettingsRow(row.title, row.channelName, onClick = { onPlay(ordered.dropWhile { it.identity != row.identity }.map(SavedVideo::toVideo)) }) {
                         IconButton(onClick = {
                             scope.launch {
-                                try { library.delete(row.identity, row.kind) }
+                                try {
+                                    if (row.kind == WATCH_LATER) WatchLaterSync.get(context).remove(row.identity)
+                                    else library.delete(row.identity, row.kind)
+                                }
                                 catch (cancelled: CancellationException) { throw cancelled }
                                 catch (_: Exception) { failed = true }
                             }

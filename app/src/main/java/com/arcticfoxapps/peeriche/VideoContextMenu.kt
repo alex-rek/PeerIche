@@ -60,7 +60,14 @@ internal val LocalVideoChannelNavigation = staticCompositionLocalOf<(Video) -> U
     ModalBottomSheet(onDismissRequest = onClose, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
         Column(Modifier.fillMaxWidth().heightIn(max = 650.dp).verticalScroll(rememberScrollState()).padding(bottom = 16.dp)) {
             Text(translatedMetadata(video.name), Modifier.padding(horizontal = 24.dp, vertical = 8.dp), maxLines = 2, fontWeight = FontWeight.SemiBold)
-            VideoMenuRow(uiText(if (later.any { it.identity == videoIdentity }) R.string.watch_later_remove else R.string.watch_later_add), onClick = { toggle(WATCH_LATER, later, false) })
+            val inWatchLater = later.any { watchLaterKey(it.identity) == watchLaterKey(videoIdentity) }
+            VideoMenuRow(uiText(if (inWatchLater) R.string.watch_later_remove else R.string.watch_later_add), onClick = {
+                scope.launch {
+                    try { WatchLaterSync.get(context).setSaved(selected, server, !inWatchLater); onClose() }
+                    catch (cancelled: CancellationException) { throw cancelled }
+                    catch (_: Exception) { failed = true }
+                }
+            })
             VideoMenuRow(uiText(R.string.playlist_add_remove), onClick = { picker = false })
             VideoMenuRow(uiText(R.string.playlist_new), onClick = { picker = true })
             VideoMenuRow(uiText(if (favorite) R.string.favorite_remove else R.string.add_favorite), onClick = { onFavorite(); onClose() })

@@ -115,6 +115,7 @@ class MainActivity : ComponentActivity() {
         // system bars without changing Compose's fullscreen state.
         if (hasFocus) applyPlayerSystemBars()
     }
+    override fun onStart() { super.onStart(); WatchLaterSync.get(this).requestSync() }
     override fun onResume() { super.onResume(); pipSupport.onResume(); applyPlayerSystemBars() }
     override fun onUserLeaveHint() { super.onUserLeaveHint(); pipSupport.onUserLeaveHint() }
     @androidx.annotation.RequiresApi(26)

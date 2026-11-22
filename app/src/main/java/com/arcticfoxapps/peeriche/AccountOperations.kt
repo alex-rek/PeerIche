@@ -49,6 +49,20 @@ internal class AccountOperation private constructor(val method: String, val segm
             require(rating in setOf("like", "dislike", "none"))
             return AccountOperation("PUT", path("videos", id(uuid), "rate"), body = JsonObject().apply { addProperty("rating", rating) }, empty = true)
         }
+        fun watchLaterPlaylists(username: String) = AccountOperation("GET", path("accounts", localChannelName(username), "video-playlists"),
+            mapOf("playlistType" to "2", "start" to "0", "count" to "5"))
+        fun playlistElements(playlist: Long, start: Int): AccountOperation {
+            require(playlist > 0)
+            return AccountOperation("GET", path("video-playlists", playlist.toString(), "videos"), mapOf("start" to start.coerceAtLeast(0).toString(), "count" to "50"))
+        }
+        fun addPlaylistVideo(playlist: Long, uuid: String): AccountOperation {
+            require(playlist > 0)
+            return AccountOperation("POST", path("video-playlists", playlist.toString(), "videos"), body = JsonObject().apply { addProperty("videoId", id(uuid)) })
+        }
+        fun removePlaylistElement(playlist: Long, element: Long): AccountOperation {
+            require(playlist > 0 && element > 0)
+            return AccountOperation("DELETE", path("video-playlists", playlist.toString(), "videos", element.toString()), empty = true)
+        }
         fun comments(uuid: String, start: Int) = AccountOperation("GET", path("videos", id(uuid), "comment-threads"), mapOf("start" to start.coerceAtLeast(0).toString(), "count" to "20", "sort" to "-createdAt"))
         fun thread(uuid: String, thread: Int): AccountOperation {
             require(thread > 0)
