@@ -98,7 +98,10 @@ object LocalTranslation {
         val hash = MessageDigest.getInstance("SHA-256").digest((url + targetLanguage).toByteArray())
             .joinToString("") { "%02x".format(it.toInt() and 255) }
         val target = File(context.cacheDir, "translated-subtitles/$hash.vtt")
-        if (target.isFile) return@withContext target
+        if (target.isFile) {
+            target.setLastModified(System.currentTimeMillis())
+            return@withContext target
+        }
         val raw = ProxyNetwork.newCall(http, Request.Builder().url(url).build()).execute().use { response ->
             check(response.isSuccessful)
             val body = requireNotNull(response.body)
@@ -132,6 +135,7 @@ object LocalTranslation {
             partial.writeText(translated)
             check(partial.renameTo(target) || target.isFile) { "Cannot save translated subtitles" }
         } finally { partial.delete() }
+        runCatching { trimTranslatedSubtitles(context, keep = target) }
         target
     } }
 }

@@ -181,6 +181,9 @@ import java.util.Locale
             preferences.update { current -> current.copy(country = it) }
         } }
         item { SettingsRow(uiText(R.string.home_content), uiText(homeContentLabel(options.homeContent)), onClick = { homeContentDialog = true }) }
+        item { SettingsToggle(uiText(R.string.history_recommendations), options.historyRecommendations, uiText(R.string.history_recommendations_summary)) { value ->
+            preferences.update { it.copy(historyRecommendations = value) }
+        } }
         item { Text(uiText(R.string.ui_the_directory_prefers_servers_from_this_co_c7856f),
             Modifier.padding(24.dp), color = MaterialTheme.colorScheme.onSurfaceVariant) }
     }

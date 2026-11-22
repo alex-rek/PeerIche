@@ -42,7 +42,7 @@ internal fun videoLibrarySmoke(test: Instrumentation) {
                 db.execSQL("INSERT INTO saved_videos VALUES ('legacy','history','Preserved',NULL,'https://example.org',NULL,NULL,1,1)")
                 db.version = 2
             }
-            val migrated = Room.databaseBuilder(context, PeerIcheDatabase::class.java, dbName).addMigrations(PeerIcheDatabase.migration2To3).build()
+            val migrated = Room.databaseBuilder(context, PeerIcheDatabase::class.java, dbName).addMigrations(PeerIcheDatabase.migration2To3, PeerIcheDatabase.migration3To4).build()
             try {
                 val db = migrated
                 val row = db.library().getAll("history").single()

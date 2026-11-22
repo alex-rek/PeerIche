@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="history_recommendations" formatted="false">"Geçmişe göre öneriler"</string>
+    <string name="history_recommendations_summary" formatted="false">"Benzer videoları bulmak için yakın zamanda izlenen videoların başlıklarını Sepia Search ve PeerSeek gibi arama hizmetlerine gönderir."</string>
+</resources>

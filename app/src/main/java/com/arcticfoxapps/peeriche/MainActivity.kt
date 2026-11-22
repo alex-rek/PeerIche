@@ -336,7 +336,8 @@ class MainActivity : ComponentActivity() {
                 val latestRequest = async { runCatching { PeerTubeClients.home(server) } }
                 val popularRequest = async { runCatching { PeerTubeClients.popular(server) } }
                 val subscriptionRequest = async { fetchSubscribedVideos(savedSubscriptions) }
-                val terms = history.take(3).map { it.title.trim() }.filter(String::isNotBlank).distinct()
+                val terms = if (!options.historyRecommendations) emptyList()
+                    else history.take(3).map { it.title.trim() }.filter(String::isNotBlank).distinct()
                 val recommendationRequest = async {
                     coroutineScope {
                         terms.map { term -> async {
@@ -639,7 +640,7 @@ class MainActivity : ComponentActivity() {
         val current = selectedVideo
         if (current != null && endedVideo == current.sourceServer(server) + "|" + current.apiId()) closePlayer()
     }
-    LaunchedEffect(server, options.homeContent, options.homeInterests, options.homeServer, options.homeChannel, proxyRevision) {
+    LaunchedEffect(server, options.homeContent, options.homeInterests, options.homeServer, options.homeChannel, options.historyRecommendations, proxyRevision) {
         homeJob?.cancel(); homeJob?.join()
         if (page == "Home") loadHome() else if (page == "Search") searchNow()
     }

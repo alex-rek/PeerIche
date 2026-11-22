@@ -84,7 +84,9 @@ class PlaybackService : MediaSessionService() {
             if (watchTime.sample(item?.mediaId, android.os.SystemClock.elapsedRealtime(), player.isPlaying)) {
                 val row = item?.privatePlaybackData?.history?.takeIf { it.kind == "history" }
                 if (row != null) serviceScope.launch {
-                    PeerIcheDatabase.get(this@PlaybackService).library().put(row.copy(updatedAt = System.currentTimeMillis()))
+                    val library = PeerIcheDatabase.get(this@PlaybackService).library()
+                    library.put(row.copy(updatedAt = System.currentTimeMillis()))
+                    library.trimKind("history", MAX_HISTORY_ROWS)
                 }
             }
         }

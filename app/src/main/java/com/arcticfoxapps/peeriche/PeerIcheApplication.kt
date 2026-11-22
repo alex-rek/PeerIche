@@ -9,5 +9,9 @@ class PeerIcheApplication : Application() {
         super.onCreate()
         ProxyNetwork.initialize(this)
         Coil.setImageLoader { ImageLoader.Builder(this).callFactory { ProxyNetwork.calls() }.build() }
+        Thread({ runStorageMaintenance(this) }, "PeerIche storage maintenance").apply {
+            isDaemon = true
+            priority = Thread.MIN_PRIORITY
+        }.start()
     }
 }

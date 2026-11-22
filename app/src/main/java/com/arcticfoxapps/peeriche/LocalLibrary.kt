@@ -17,7 +17,8 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 
-@Entity(tableName = "saved_videos", primaryKeys = ["kind", "identity"])
+@Entity(tableName = "saved_videos", primaryKeys = ["kind", "identity"],
+    indices = [androidx.room.Index(value = ["kind", "updatedAt"]), androidx.room.Index(value = ["identity", "kind"])])
 data class SavedVideo(
     val identity: String,
     val kind: String,
@@ -38,9 +39,11 @@ data class SavedVideo(
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun put(video: SavedVideo)
     @Query("DELETE FROM saved_videos WHERE identity = :identity AND kind = :kind") suspend fun delete(identity: String, kind: String)
     @Query("DELETE FROM saved_videos WHERE kind = :kind") suspend fun deleteKind(kind: String)
+    @Query("DELETE FROM saved_videos WHERE kind = :kind AND identity NOT IN (SELECT identity FROM saved_videos WHERE kind = :kind ORDER BY updatedAt DESC LIMIT :keep)")
+    suspend fun trimKind(kind: String, keep: Int)
 }
 
-@Database(entities = [SavedVideo::class], version = 3, exportSchema = false)
+@Database(entities = [SavedVideo::class], version = 4, exportSchema = false)
 abstract class PeerIcheDatabase : RoomDatabase() {
     abstract fun library(): LibraryDao
     companion object {
@@ -58,8 +61,14 @@ abstract class PeerIcheDatabase : RoomDatabase() {
                 db.execSQL("ALTER TABLE saved_videos ADD COLUMN metadata TEXT DEFAULT NULL")
             }
         }
+        internal val migration3To4 = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_saved_videos_kind_updatedAt` ON `saved_videos` (`kind`, `updatedAt`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_saved_videos_identity_kind` ON `saved_videos` (`identity`, `kind`)")
+            }
+        }
         fun get(context: Context): PeerIcheDatabase = instance ?: synchronized(this) {
-            instance ?: Room.databaseBuilder(context.applicationContext, PeerIcheDatabase::class.java, "peeriche.db").addMigrations(migration1To2, migration2To3).build().also { instance = it }
+            instance ?: Room.databaseBuilder(context.applicationContext, PeerIcheDatabase::class.java, "peeriche.db").addMigrations(migration1To2, migration2To3, migration3To4).build().also { instance = it }
         }
     }
 }

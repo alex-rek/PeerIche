@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="history_recommendations" formatted="false">"根据观看记录推荐"</string>
+    <string name="history_recommendations_summary" formatted="false">"将最近观看视频的标题发送给 Sepia Search 和 PeerSeek 等搜索服务，以查找相似视频。"</string>
+</resources>

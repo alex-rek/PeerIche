@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="history_recommendations" formatted="false">"توصيات حسب السجل"</string>
+    <string name="history_recommendations_summary" formatted="false">"يرسل عناوين مقاطع الفيديو التي شوهدت مؤخرًا إلى خدمات البحث مثل Sepia Search وPeerSeek للعثور على مقاطع مشابهة."</string>
+</resources>

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="history_recommendations" formatted="false">"Recommendations from history"</string>
+    <string name="history_recommendations_summary" formatted="false">"Sends the titles of recently watched videos to search services, including Sepia Search and PeerSeek, to find similar videos."</string>
+</resources>
