@@ -17,6 +17,18 @@ class HomeFeedTest {
         assertEquals(listOf("new", "old", "missing", "invalid"), sortHomeVideos(videos, "newest", server).map { it.uuid })
         assertEquals(listOf("old", "new", "missing", "invalid"), sortHomeVideos(videos, "oldest", server).map { it.uuid })
     }
+    @Test fun parsesPeerTubeDatesWithoutApi24Patterns() {
+        val utc = 1_793_786_400_000L // 2026-11-04T10:00:00Z
+        assertEquals(utc, parsePeerTubeDate("2026-11-04T10:00:00Z"))
+        assertEquals(utc + 123, parsePeerTubeDate("2026-11-04T10:00:00.123Z"))
+        assertEquals(utc, parsePeerTubeDate("2026-11-04T12:00:00+02:00"))
+        assertEquals(utc, parsePeerTubeDate("2026-11-04T06:30:00-03:30"))
+        assertEquals(utc - 10 * 3_600_000L, parsePeerTubeDate("2026-11-04"))
+    }
+    @Test fun rejectsImpossibleDates() {
+        listOf("bad", "2026-13-01", "2026-02-30", "2026-11-04T25:00:00Z", "2026-11-04T10:00:00", "2026-11-04T10:00:00+24:00")
+            .forEach { assertNull(it, parsePeerTubeDate(it)) }
+    }
     @Test fun sortsByViewsAndOlderPreferencesDefaultToNewest() {
         val videos = listOf(Video(uuid = "a", views = 1), Video(uuid = "b", views = 20))
         assertEquals(listOf("b", "a"), sortHomeVideos(videos, "views", server).map { it.uuid })

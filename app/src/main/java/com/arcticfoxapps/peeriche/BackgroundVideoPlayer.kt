@@ -113,7 +113,7 @@ data class VideoCaption(val language: CaptionLanguage? = null, val captionPath: 
         val identity = video.sourceServer(server) + "|" + video.apiId()
         val desiredTranslation = if (options.translateSubtitles) options.translateTo else ""
         if (!PlaybackQueue.starts(identity) && player.currentMediaItem?.mediaId == identity && captionRetry == 0 &&
-            player.currentMediaItem?.mediaMetadata?.extras?.getString("playback_account") == video.playbackAccountId &&
+            player.currentMediaItem?.privatePlaybackData?.let { it.accountId == video.playbackAccountId } == true &&
             player.currentMediaItem?.mediaMetadata?.extras?.getInt("quality", -1) == options.quality &&
             player.currentMediaItem?.mediaMetadata?.extras?.getString("translation", "") == desiredTranslation) return@LaunchedEffect
         val playlistStart = PlaybackQueue.consumeStart(identity)

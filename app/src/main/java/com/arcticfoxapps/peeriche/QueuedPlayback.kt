@@ -19,8 +19,8 @@ internal fun playbackMediaItem(video: Video, server: String, options: AppOptions
             .setExtras(android.os.Bundle().apply {
                 putInt("quality", options.quality)
                 putString("translation", translation)
-                putString("history", Gson().toJson(video.toSavedVideo(server, "history")))
-                putString("playback_account", video.playbackAccountId)
+                putString(PlaybackPrivateData.EXTRA_REFERENCE, PlaybackPrivateData.put(
+                    PlaybackPrivateEntry(video.toSavedVideo(server, "history"), video.playbackAccountId)))
                 putBoolean("is_live", video.isLive)
             }).build()).setSubtitleConfigurations(tracks).build()
 

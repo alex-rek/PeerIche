@@ -82,16 +82,24 @@ class PlaybackService : MediaSessionService() {
         fun sampleWatchTime() {
             val item = player.currentMediaItem
             if (watchTime.sample(item?.mediaId, android.os.SystemClock.elapsedRealtime(), player.isPlaying)) {
-                val row = runCatching {
-                    com.google.gson.Gson().fromJson(item?.mediaMetadata?.extras?.getString("history"), SavedVideo::class.java)
-                }.getOrNull()?.takeIf { it.kind == "history" }
+                val row = item?.privatePlaybackData?.history?.takeIf { it.kind == "history" }
                 if (row != null) serviceScope.launch {
                     PeerIcheDatabase.get(this@PlaybackService).library().put(row.copy(updatedAt = System.currentTimeMillis()))
                 }
             }
         }
-        serviceScope.launch { while (isActive) { sampleWatchTime(); delay(250) } }
-        serviceScope.launch { while (isActive) { delay(2_000); savePosition(player) } }
+        var progressJob: Job? = null
+        fun trackProgress(playing: Boolean) {
+            progressJob?.cancel()
+            progressJob = if (!playing) null else serviceScope.launch {
+                var seconds = 0
+                while (isActive) {
+                    delay(1_000)
+                    sampleWatchTime()
+                    if (++seconds >= 10) { seconds = 0; savePosition(player) }
+                }
+            }
+        }
         // Headset next/previous buttons seek within the current single-video session.
         val controls = object : ForwardingPlayer(player) {
             override fun pause() { subtitleSpeech?.userPause(); player.pause() }
@@ -111,7 +119,16 @@ class PlaybackService : MediaSessionService() {
         val activity = PendingIntent.getActivity(this, 0,
             Intent(this, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-        session = MediaSession.Builder(this, controls).setSessionActivity(activity).build()
+        session = MediaSession.Builder(this, controls).setSessionActivity(activity)
+            .setCallback(object : MediaSession.Callback {
+                override fun onConnect(session: MediaSession, controller: MediaSession.ControllerInfo): MediaSession.ConnectionResult {
+                    if (controller.packageName == packageName) return super.onConnect(session, controller)
+                    // External controllers may control playback but must not load their own media URLs.
+                    val commands = MediaSession.ConnectionResult.DEFAULT_PLAYER_COMMANDS.buildUpon()
+                        .removeAll(Player.COMMAND_SET_MEDIA_ITEM, Player.COMMAND_CHANGE_MEDIA_ITEMS).build()
+                    return MediaSession.ConnectionResult.AcceptedResultBuilder(session).setAvailablePlayerCommands(commands).build()
+                }
+            }).build()
         fun advanceQueue(finished: String?) {
             if (PlaybackQueue.entries.value.isEmpty()) ended.value = finished
             else {
@@ -150,7 +167,7 @@ class PlaybackService : MediaSessionService() {
             }
         }
         player.addListener(object : Player.Listener {
-            override fun onIsPlayingChanged(isPlaying: Boolean) { sampleWatchTime(); savePosition(player) }
+            override fun onIsPlayingChanged(isPlaying: Boolean) { sampleWatchTime(); savePosition(player); trackProgress(isPlaying) }
             override fun onPositionDiscontinuity(oldPosition: Player.PositionInfo, newPosition: Player.PositionInfo, reason: Int) {
                 val oldItem = oldPosition.mediaItem
                 if (oldItem != null && oldItem.mediaId != newPosition.mediaItem?.mediaId && oldItem.mediaId != completedIdentity) {
@@ -173,7 +190,7 @@ class PlaybackService : MediaSessionService() {
                     .putExtra("playing_id", mediaItem.mediaId)
                     .putExtra("playing_title", mediaItem.mediaMetadata.title?.toString())
                     .putExtra("playing_url", mediaItem.localConfiguration?.uri?.toString())
-                    .putExtra("playing_account", mediaItem.mediaMetadata.extras?.getString("playback_account"))
+                    .putExtra("playing_account", mediaItem.privatePlaybackData?.accountId)
                 session?.setSessionActivity(PendingIntent.getActivity(this@PlaybackService, 0, openPlayer,
                     PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE))
             }

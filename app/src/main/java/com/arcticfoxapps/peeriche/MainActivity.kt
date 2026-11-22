@@ -286,15 +286,15 @@ class MainActivity : ComponentActivity() {
     var channelDirectoryServer by remember { mutableStateOf<String?>(null) }
     var channelVideosParentServer by remember { mutableStateOf<String?>(null) }
     var serverChannelList by remember { mutableStateOf(emptyList<PeerTubeChannel>()) }
-    val blockedRows by database.library().observe(BLOCKED_CHANNEL).collectAsState(initial = emptyList())
+    val blockedRows by remember(database) { database.library().observe(BLOCKED_CHANNEL) }.collectAsState(initial = emptyList())
     val blockedChannels = remember(blockedRows) { blockedRows.map { it.identity }.toSet() }
-    val hiddenVideoRows by database.library().observe("hidden_video").collectAsState(initial = emptyList())
+    val hiddenVideoRows by remember(database) { database.library().observe("hidden_video") }.collectAsState(initial = emptyList())
     val hiddenVideos = remember(hiddenVideoRows) { hiddenVideoRows.map { it.identity }.toSet() }
-    val hiddenRows by database.library().observe(HIDDEN_CHANNEL).collectAsState(initial = emptyList())
+    val hiddenRows by remember(database) { database.library().observe(HIDDEN_CHANNEL) }.collectAsState(initial = emptyList())
     val hiddenChannels = remember(hiddenRows) { hiddenRows.map { it.identity }.toSet() }
-    val favoriteRows by database.library().observe("favorite").collectAsState(initial = emptyList())
-    val historyRows by database.library().observe("history").collectAsState(initial = emptyList())
-    val subscriptionRows by database.library().observe("subscription").collectAsState(initial = emptyList())
+    val favoriteRows by remember(database) { database.library().observe("favorite") }.collectAsState(initial = emptyList())
+    val historyRows by remember(database) { database.library().observe("history") }.collectAsState(initial = emptyList())
+    val subscriptionRows by remember(database) { database.library().observe("subscription") }.collectAsState(initial = emptyList())
     val effectiveSubscriptions = if (serverSubscriptions) accountSnapshot?.subscriptions.orEmpty().map { it.subscriptionRow(selectedAccount!!.server) } else subscriptionRows
     val playlistDefinitions by remember(database) { database.library().observe("playlist") }.collectAsState(initial = null)
     LaunchedEffect(playlistDefinitions, playlistSelection) {
