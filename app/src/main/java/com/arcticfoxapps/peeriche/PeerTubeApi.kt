@@ -230,7 +230,7 @@ object PeerTubeClients {
     suspend fun discoverInstancePage(start: Int, search: String = "") = directory.instances(start = start, count = 100, search = search.trim().takeIf(String::isNotBlank))
     internal suspend fun interestVideos(server: String, categories: List<Int>, sensitive: Boolean): List<Video> =
         server(server).videoListing(categories = categories, nsfw = sensitiveContentFilter(sensitive)).use { parsePeerTubeVideoPage(it.string()).data }
-    suspend fun home(server: String) = server(server).videos(sort = "-publishedAt", count = 30).data
+    suspend fun home(server: String) = server(server).videos(sort = "-publishedAt", count = 30, isLive = false).data
     suspend fun popular(server: String) = server(server).videos(sort = "-views", count = 30).data
     suspend fun serverPage(host: String, page: Int, sensitive: Boolean): SearchPage {
         val start = page.coerceAtLeast(0) * 30

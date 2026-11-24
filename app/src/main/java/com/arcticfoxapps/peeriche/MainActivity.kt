@@ -867,9 +867,11 @@ class MainActivity : ComponentActivity() {
                     } }
                     val browsingFeed = page == "Server" || page == "Live"
                     val watchedIds = remember(historyRows, options.homeContent) { if (options.homeContent == "recommended") historyRows.map { it.identity.substringBefore('|') }.toSet() else emptySet() }
-                    val homeFollowing = (if (options.homeContent != "recommended") emptyList() else if (serverSubscriptions) accountFeed else subscriptionFeed).filterNot { it.apiId() in watchedIds }.withoutHiddenChannels(hiddenChannels + blockedChannels, server).filterNot { it.sourceServer(server) + "|" + it.apiId() in hiddenVideos }
-                    val homeRecommended = recommendedVideos.filterNot { it.apiId() in watchedIds }.withoutHiddenChannels(hiddenChannels + blockedChannels, server).filterNot { it.sourceServer(server) + "|" + it.apiId() in hiddenVideos }
-                    val homeRecent = homeVideos.filterNot { it.apiId() in watchedIds }.withoutHiddenChannels(hiddenChannels + blockedChannels, server).filterNot { it.sourceServer(server) + "|" + it.apiId() in hiddenVideos }
+                    // Live and scheduled streams have their own "Live" tab, so Home shows only regular videos.
+                    fun List<Video>.forHome() = filterNot { it.isLive || it.apiId() in watchedIds }.withoutHiddenChannels(hiddenChannels + blockedChannels, server).filterNot { it.sourceServer(server) + "|" + it.apiId() in hiddenVideos }
+                    val homeFollowing = (if (options.homeContent != "recommended") emptyList() else if (serverSubscriptions) accountFeed else subscriptionFeed).forHome()
+                    val homeRecommended = recommendedVideos.forHome()
+                    val homeRecent = homeVideos.forHome()
                     val visibleVideos = when (page) {
                         "Server" -> serverVideos
                         "Live" -> liveVideos
