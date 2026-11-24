@@ -1,0 +1,4 @@
+<resources>
+    <string name="home_interests_everywhere">Chercher sur tous les serveurs PeerTube</string>
+    <string name="home_interests_everywhere_summary">Ajoute des vidéos de ces catégories provenant d’autres serveurs via Sepia Search.</string>
+</resources>

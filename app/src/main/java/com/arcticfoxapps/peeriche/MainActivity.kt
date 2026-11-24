@@ -660,7 +660,7 @@ class MainActivity : ComponentActivity() {
         val current = selectedVideo
         if (current != null && endedVideo == current.sourceServer(server) + "|" + current.apiId()) closePlayer()
     }
-    LaunchedEffect(server, options.homeContent, options.homeInterests, options.homeServer, options.homeChannel, options.historyRecommendations, homeLanguages, proxyRevision) {
+    LaunchedEffect(server, options.homeContent, options.homeInterests, options.homeInterestsEverywhere, options.homeServer, options.homeChannel, options.historyRecommendations, homeLanguages, proxyRevision) {
         homeJob?.cancel(); homeJob?.join()
         if (page == "Home") loadHome() else if (page == "Search") searchNow()
     }

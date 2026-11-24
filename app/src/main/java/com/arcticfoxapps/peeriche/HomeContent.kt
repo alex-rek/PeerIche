@@ -10,6 +10,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 
@@ -43,7 +45,14 @@ internal suspend fun loadConfiguredHome(options: AppOptions, activeServer: Strin
     }
     "interests" -> {
         require(options.homeInterests.isNotEmpty())
-        PeerTubeClients.interestVideos(activeServer, options.homeInterests, options.includeSensitive, languages)
+        if (!options.homeInterestsEverywhere) PeerTubeClients.interestVideos(activeServer, options.homeInterests, options.includeSensitive, languages)
+        else coroutineScope {
+            suspend fun attempt(block: suspend () -> List<Video>): Result<List<Video>> =
+                try { Result.success(block()) } catch (cancelled: CancellationException) { throw cancelled } catch (error: Exception) { Result.failure(error) }
+            val local = async { attempt { PeerTubeClients.interestVideos(activeServer, options.homeInterests, options.includeSensitive, languages) } }
+            val global = async { attempt { PeerTubeClients.globalInterestVideos(options.homeInterests, options.includeSensitive, languages) } }
+            mergeInterestSources(local.await(), global.await(), activeServer)
+        }
     }
     else -> emptyList()
 }
@@ -51,6 +60,7 @@ internal suspend fun loadConfiguredHome(options: AppOptions, activeServer: Strin
 @Composable internal fun HomeContentDialog(options: AppOptions, preferences: AppPreferences, onClose: () -> Unit) {
     var mode by remember { mutableStateOf(options.homeContent) }
     var interests by remember { mutableStateOf(options.homeInterests.toSet()) }
+    var everywhere by remember { mutableStateOf(options.homeInterestsEverywhere) }
     var server by remember { mutableStateOf(options.homeServer) }
     var channel by remember { mutableStateOf(options.homeChannel) }
     var busy by remember { mutableStateOf(false) }
@@ -65,11 +75,23 @@ internal suspend fun loadConfiguredHome(options: AppOptions, activeServer: Strin
                 }
             }
             when (mode) {
-                "interests" -> (1..19).forEach { id ->
+                "interests" -> {
+                    Row(Modifier.fillMaxWidth().heightIn(min = 56.dp).clickable(enabled = !busy) { everywhere = !everywhere }.padding(vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Column(Modifier.weight(1f)) {
+                            Text(uiText(R.string.home_interests_everywhere))
+                            Text(uiText(R.string.home_interests_everywhere_summary), style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                        Switch(everywhere, onCheckedChange = null, enabled = !busy)
+                    }
+                    HorizontalDivider()
+                    (1..19).forEach { id ->
                     val label = interestLabel(id)
                     Row(Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable(enabled = !busy) { interests = if (id in interests) interests - id else interests + id }, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Checkbox(id in interests, onCheckedChange = null)
                         Text(label)
+                    }
                     }
                 }
                 "server" -> OutlinedTextField(server, { server = it }, enabled = !busy, label = { Text(uiText(R.string.ui_https_server_address_102d29)) }, singleLine = true)
@@ -85,7 +107,7 @@ internal suspend fun loadConfiguredHome(options: AppOptions, activeServer: Strin
                 try {
                     if (mode == "server") PeerTubeClients.checkServer(normalizeServer(server))
                     if (mode == "channel") homeChannel(channel).let { PeerTubeClients.server("https://${it.host}").channel(it.name) }
-                    preferences.update { it.copy(homeContent = mode, homeInterests = interests.sorted(), homeServer = server.trim(), homeChannel = channel.trim()) }
+                    preferences.update { it.copy(homeContent = mode, homeInterests = interests.sorted(), homeInterestsEverywhere = everywhere, homeServer = server.trim(), homeChannel = channel.trim()) }
                     onClose()
                 } catch (cancelled: CancellationException) { throw cancelled }
                 catch (_: Exception) { failed = true }

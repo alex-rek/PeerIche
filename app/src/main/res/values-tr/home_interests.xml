@@ -1,0 +1,4 @@
+<resources>
+    <string name="home_interests_everywhere">Tüm PeerTube sunucularında ara</string>
+    <string name="home_interests_everywhere_summary">Bu kategorilerdeki videoları Sepia Search aracılığıyla diğer sunuculardan ekler.</string>
+</resources>

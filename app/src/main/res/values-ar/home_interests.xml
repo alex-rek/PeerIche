@@ -1,0 +1,4 @@
+<resources>
+    <string name="home_interests_everywhere">البحث في جميع خوادم PeerTube</string>
+    <string name="home_interests_everywhere_summary">يضيف فيديوهات من هذه الفئات من خوادم أخرى عبر Sepia Search.</string>
+</resources>

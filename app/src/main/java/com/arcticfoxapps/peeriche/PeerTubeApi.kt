@@ -163,6 +163,12 @@ interface SepiaApi {
         @Query("search") query: String, @Query("start") start: Int = 0,
         @Query("count") count: Int = 30, @Query("sort") sort: String = "-match", @Query("nsfw") nsfw: String = "false"
     ): VideoPage
+    /** Browses the whole index by category and language; Sepia Search accepts filters without a search term. */
+    @GET("api/v1/search/videos") suspend fun browse(
+        @Query("categoryOneOf") categories: List<Int>, @Query("languageOneOf") languages: List<String>? = null,
+        @Query("start") start: Int = 0, @Query("count") count: Int = 100, @Query("sort") sort: String = "-createdAt",
+        @Query("nsfw") nsfw: String = "false", @Query("isLive") isLive: Boolean = false
+    ): VideoPage
 }
 interface PeerSeekApi {
     @GET("v1/search") suspend fun search(@Query("q") query: String, @Query("sort") sort: String = "relevance", @Query("page") page: Int = 1, @Query("size") size: Int = 30): PeerSeekPage
@@ -242,6 +248,18 @@ object PeerTubeClients {
         languageFirst(server, languages) { filter ->
             server(server).videoListing(categories = categories, nsfw = sensitiveContentFilter(sensitive), languages = filter).use { parsePeerTubeVideoPage(it.string()).data }
         }
+    /**
+     * Interest videos from every server in the Sepia Search index, at most a few per source server.
+     * The newest by publication date often come from a single server that bulk-uploaded, so this reads
+     * two pages of the recently indexed videos, which span many more servers, and then caps each server.
+     */
+    internal suspend fun globalInterestVideos(categories: List<Int>, sensitive: Boolean, languages: Set<String> = emptySet()): List<Video> =
+        capPerServer(languageFirst(SEPIA_ORIGIN, languages, limit = 400) { filter ->
+            coroutineScope {
+                listOf(0, 100).map { start -> async { sepia.browse(categories, filter, start = start, nsfw = sensitiveContentFilter(sensitive)).data } }
+                    .awaitAll().flatten()
+            }
+        }, SEPIA_ORIGIN).take(60)
     suspend fun home(server: String, languages: Set<String> = emptySet()) =
         languageFirst(server, languages) { server(server).videos(sort = "-publishedAt", count = 30, isLive = false, languages = it).data }
     suspend fun popular(server: String, languages: Set<String> = emptySet()) =
@@ -250,7 +268,7 @@ object PeerTubeClients {
      * With preferred languages, asks the server for those languages and, in parallel, for everything,
      * so a server with few such videos still fills Home. A failed language request falls back to the rest.
      */
-    private suspend fun languageFirst(server: String, languages: Set<String>, fetch: suspend (List<String>?) -> List<Video>): List<Video> {
+    private suspend fun languageFirst(server: String, languages: Set<String>, limit: Int = 30, fetch: suspend (List<String>?) -> List<Video>): List<Video> {
         if (languages.isEmpty()) return fetch(null)
         return coroutineScope {
             val preferred = async {
@@ -259,7 +277,7 @@ object PeerTubeClients {
                 catch (_: Exception) { emptyList() }
             }
             val all = async { fetch(null) }
-            mergeLanguageFirst(preferred.await(), all.await(), server)
+            mergeLanguageFirst(preferred.await(), all.await(), server, limit)
         }
     }
     suspend fun serverPage(host: String, page: Int, sensitive: Boolean): SearchPage {
@@ -322,6 +340,25 @@ object PeerTubeClients {
             channel.copy(videosCount = actualCount)
         } }.awaitAll().sortedByDescending { it.videosCount ?: 0 }
     }
+}
+
+internal const val SEPIA_ORIGIN = "https://sepiasearch.org"
+
+/** Keeps at most [max] videos from each source server, so one busy server cannot fill a global list. */
+internal fun capPerServer(videos: List<Video>, fallbackServer: String, max: Int = 3): List<Video> {
+    val counts = hashMapOf<String, Int>()
+    return videos.filter { video ->
+        val server = video.sourceServer(fallbackServer).lowercase()
+        val seen = counts[server] ?: 0
+        counts[server] = seen + 1
+        seen < max
+    }
+}
+
+/** Adds global interest videos after the active server's own, without duplicates; fails only if both sources fail. */
+internal fun mergeInterestSources(local: Result<List<Video>>, global: Result<List<Video>>, server: String): List<Video> {
+    if (local.isFailure && global.isFailure) throw local.exceptionOrNull()!!
+    return deduplicateVideos(local.getOrDefault(emptyList()) + global.getOrDefault(emptyList()), server)
 }
 
 internal fun deduplicateVideos(videos: List<Video>, fallbackServer: String): List<Video> {
