@@ -154,7 +154,7 @@ private data class ServerProbe(val online: Boolean, val videos: Int)
                     true -> uiText(R.string.ui_online_5fb239)
                     false -> uiText(R.string.ui_unavailable_abcd43)
                     null -> uiText(R.string.ui_not_checked_30ef8c)
-                } + (count?.let { " · $it ${uiText(R.string.ui_videos_89ea5c)}" } ?: ""), onClick = { onBrowseServer(url) }) {
+                } + (count?.let { " · " + countText(R.plurals.count_videos, it) } ?: ""), onClick = { onBrowseServer(url) }) {
                 Column {
                     TextButton(enabled = busy == null, onClick = { connect(url) }) { Text(if (url == active) uiText(R.string.ui_selected_af7b83) else uiText(R.string.ui_connect_53bb39)) }
                     if (url in configured) TextButton(enabled = busy == null, onClick = {

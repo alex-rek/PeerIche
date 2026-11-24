@@ -71,7 +71,7 @@ internal fun Video.shareText(server: String): String = name + "\n" + publicWatch
             modifier = Modifier.fillMaxWidth().clickable { expanded = !expanded }.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 6.dp))
         Row(Modifier.fillMaxWidth().clickable { expanded = !expanded }.padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
             val date = video.publishedAt?.substringBefore('T').orEmpty()
-            Text(java.text.NumberFormat.getIntegerInstance().format(video.views) + " " + uiText(R.string.ui_views_bfcec5) + if (date.isBlank()) "" else " · $date",
+            Text(countText(R.plurals.count_views, video.views) + if (date.isBlank()) "" else " · $date",
                 Modifier.weight(1f), color = colors.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
             IconButton(onClick = { expanded = !expanded }) { Icon(if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
                 uiText(R.string.ui_video_description_02d4b7)) }
@@ -103,7 +103,7 @@ internal fun Video.shareText(server: String): String = name + "\n" + publicWatch
             }
             Column(Modifier.weight(1f).clickable(enabled = video.channel?.name != null, onClick = onChannel)) {
                 Text(title, maxLines = 2, fontWeight = FontWeight.SemiBold)
-                channel?.followersCount?.let { Text(java.text.NumberFormat.getIntegerInstance().format(it) + " " + uiText(R.string.ui_followers_1c1d35), style = MaterialTheme.typography.bodySmall, color = colors.onSurfaceVariant) }
+                channel?.followersCount?.let { Text(countText(R.plurals.count_followers, it), style = MaterialTheme.typography.bodySmall, color = colors.onSurfaceVariant) }
             }
             if (canSubscribe) FilledTonalButton(onClick = onSubscribe, enabled = video.channel?.name != null, contentPadding = PaddingValues(horizontal = 14.dp)) {
                 Text(uiText(if (subscribed) R.string.ui_subscribed_b31c7d else R.string.ui_subscribe_7a95fd), maxLines = 1)

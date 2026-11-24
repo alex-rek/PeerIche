@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="count_views">
+        <item quantity="other">%1$s 次播放</item>
+    </plurals>
+    <plurals name="count_followers">
+        <item quantity="other">%1$s 位关注者</item>
+    </plurals>
+    <plurals name="count_videos">
+        <item quantity="other">%1$s 个视频</item>
+    </plurals>
+</resources>

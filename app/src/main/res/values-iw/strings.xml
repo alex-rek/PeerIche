@@ -213,7 +213,6 @@
     <string name="ui_fit_dc1e4e" formatted="false">"התאמה"</string>
     <string name="ui_follow_android_9652ce" formatted="false">"לפי Android"</string>
     <string name="ui_follow_translation_language_5b9919" formatted="false">"בצע את שפת התרגום"</string>
-    <string name="ui_followers_1c1d35" formatted="false">"עוקבים"</string>
     <string name="ui_frame_rate_3345f0" formatted="false">"קצב מסגרת"</string>
     <string name="ui_frame_size_and_quality_can_be_changed_befo_eeda5d" formatted="false">"גודל מסגרת ואיכות ניתן לשנות לפני השידור הבא."</string>
     <string name="ui_general_4d7c8e" formatted="false">"כללי"</string>
@@ -524,9 +523,7 @@
     <string name="ui_video_count_1e68ed" formatted="false">"ספירת וידאו"</string>
     <string name="ui_video_description_02d4b7" formatted="false">"תיאור וידאו"</string>
     <string name="ui_video_scaling_cfb650" formatted="false">"קנה מידה של וידאו"</string>
-    <string name="ui_videos_89ea5c" formatted="false">"קטעי וידאו"</string>
     <string name="ui_views_385ac8" formatted="false">"צפיות"</string>
-    <string name="ui_views_bfcec5" formatted="false">"צפיות"</string>
     <string name="ui_visibility_613511" formatted="false">"ראות"</string>
     <string name="ui_visibility_cb41fd" formatted="false">"ראות"</string>
     <string name="ui_voice_7692ca" formatted="false">"קול"</string>

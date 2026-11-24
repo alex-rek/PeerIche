@@ -119,7 +119,6 @@
     <string name="ui_fit_dc1e4e" formatted="false">"Вписать"</string>
     <string name="ui_follow_android_9652ce" formatted="false">"Как на устройстве"</string>
     <string name="ui_follow_translation_language_5b9919" formatted="false">"Как язык перевода"</string>
-    <string name="ui_followers_1c1d35" formatted="false">"подписчиков"</string>
     <string name="ui_frame_rate_3345f0" formatted="false">"Частота кадров"</string>
     <string name="ui_frame_size_and_quality_can_be_changed_befo_eeda5d" formatted="false">"Размер и качество кадра меняются перед следующим эфиром."</string>
     <string name="ui_general_4d7c8e" formatted="false">"Общие"</string>
@@ -414,9 +413,7 @@
     <string name="ui_video_count_1e68ed" formatted="false">"По количеству видео"</string>
     <string name="ui_video_description_02d4b7" formatted="false">"Описание видео"</string>
     <string name="ui_video_scaling_cfb650" formatted="false">"Масштаб видео"</string>
-    <string name="ui_videos_89ea5c" formatted="false">"видео"</string>
     <string name="ui_views_385ac8" formatted="false">"По просмотрам"</string>
-    <string name="ui_views_bfcec5" formatted="false">"просмотров"</string>
     <string name="ui_visibility_613511" formatted="false">"Доступность"</string>
     <string name="ui_visibility_cb41fd" formatted="false">"Доступ"</string>
     <string name="ui_voice_7692ca" formatted="false">"Голос"</string>

@@ -213,7 +213,6 @@
     <string name="ui_fit_dc1e4e" formatted="false">"适应画面"</string>
     <string name="ui_follow_android_9652ce" formatted="false">"跟随 Android"</string>
     <string name="ui_follow_translation_language_5b9919" formatted="false">"遵循翻译语言"</string>
-    <string name="ui_followers_1c1d35" formatted="false">"追随者"</string>
     <string name="ui_frame_rate_3345f0" formatted="false">"帧速率"</string>
     <string name="ui_frame_size_and_quality_can_be_changed_befo_eeda5d" formatted="false">"框架尺寸和质量可以在下一次广播之前更改。"</string>
     <string name="ui_general_4d7c8e" formatted="false">"常规"</string>
@@ -524,9 +523,7 @@
     <string name="ui_video_count_1e68ed" formatted="false">"视频计数"</string>
     <string name="ui_video_description_02d4b7" formatted="false">"视频描述"</string>
     <string name="ui_video_scaling_cfb650" formatted="false">"视频缩放"</string>
-    <string name="ui_videos_89ea5c" formatted="false">"视频"</string>
     <string name="ui_views_385ac8" formatted="false">"意见"</string>
-    <string name="ui_views_bfcec5" formatted="false">"意见"</string>
     <string name="ui_visibility_613511" formatted="false">"能见度"</string>
     <string name="ui_visibility_cb41fd" formatted="false">"能见度"</string>
     <string name="ui_voice_7692ca" formatted="false">"语音"</string>

@@ -41,6 +41,15 @@ import java.util.Locale
     if (arguments.isEmpty()) androidx.compose.ui.res.stringResource(id)
     else androidx.compose.ui.res.stringResource(id, *arguments)
 
+/** A localized count such as "1 view" or "5 просмотров", with the number grouped for the current locale. */
+@Composable internal fun countText(@androidx.annotation.PluralsRes id: Int, count: Long): String {
+    androidx.compose.ui.platform.LocalConfiguration.current
+    // Plural rules depend on the last digits, so huge values keep them while fitting into an Int.
+    val quantity = if (count in 0..Int.MAX_VALUE) count.toInt() else (count % 1_000_000 + 1_000_000).toInt()
+    return androidx.compose.ui.platform.LocalContext.current.resources
+        .getQuantityString(id, quantity, java.text.NumberFormat.getIntegerInstance().format(count))
+}
+
 @Composable internal fun interfaceForwardChevron() =
     if (androidx.compose.ui.platform.LocalLayoutDirection.current == androidx.compose.ui.unit.LayoutDirection.Rtl) Icons.Default.ChevronLeft else Icons.Default.ChevronRight
 

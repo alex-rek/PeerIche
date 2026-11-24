@@ -1110,7 +1110,7 @@ private fun LazyGridScope.videoSection(
                     color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall,
                     maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text(java.text.NumberFormat.getIntegerInstance().format(video.views) + " " + uiText(R.string.ui_views_bfcec5),
+                    Text(countText(R.plurals.count_views, video.views),
                         Modifier.weight(1f, fill = false), color = MaterialTheme.colorScheme.onSurfaceVariant,
                         style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                     video.publishedAt?.let { date ->

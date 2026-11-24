@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="count_views">
+        <item quantity="one">%1$s перегляд</item>
+        <item quantity="few">%1$s перегляди</item>
+        <item quantity="many">%1$s переглядів</item>
+        <item quantity="other">%1$s перегляду</item>
+    </plurals>
+    <plurals name="count_followers">
+        <item quantity="one">%1$s підписник</item>
+        <item quantity="few">%1$s підписники</item>
+        <item quantity="many">%1$s підписників</item>
+        <item quantity="other">%1$s підписника</item>
+    </plurals>
+    <plurals name="count_videos">
+        <item quantity="one">%1$s відео</item>
+        <item quantity="few">%1$s відео</item>
+        <item quantity="many">%1$s відео</item>
+        <item quantity="other">%1$s відео</item>
+    </plurals>
+</resources>
