@@ -51,6 +51,20 @@ internal class AccountOperation private constructor(val method: String, val segm
         }
         fun watchLaterPlaylists(username: String) = AccountOperation("GET", path("accounts", localChannelName(username), "video-playlists"),
             mapOf("playlistType" to "2", "start" to "0", "count" to "5"))
+        fun regularPlaylists(username: String, start: Int) = AccountOperation("GET", path("accounts", localChannelName(username), "video-playlists"),
+            mapOf("playlistType" to PEERTUBE_PLAYLIST_REGULAR.toString(), "start" to start.coerceAtLeast(0).toString(), "count" to "100"))
+        /** Private playlists need no channel and are never shown to anyone else. */
+        fun createPrivatePlaylist(name: String): AccountOperation {
+            val title = name.trim()
+            if (title.length !in 1..120) throw AuthFailure("invalid_playlist")
+            return AccountOperation("POST", path("video-playlists"), body = JsonObject().apply {
+                addProperty("displayName", title); addProperty("privacy", PEERTUBE_PRIVACY_PRIVATE)
+            }, multipart = true)
+        }
+        fun deletePlaylist(playlist: Long): AccountOperation {
+            require(playlist > 0)
+            return AccountOperation("DELETE", path("video-playlists", playlist.toString()), empty = true)
+        }
         fun playlistElements(playlist: Long, start: Int): AccountOperation {
             require(playlist > 0)
             return AccountOperation("GET", path("video-playlists", playlist.toString(), "videos"), mapOf("start" to start.coerceAtLeast(0).toString(), "count" to "50"))

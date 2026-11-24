@@ -1,0 +1,4 @@
+<resources>
+    <string name="playlist_synced">В обліковому записі PeerTube</string>
+    <string name="playlist_delete_synced">Плейлист також буде видалено з вашого облікового запису PeerTube на сервері.</string>
+</resources>

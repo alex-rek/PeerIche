@@ -1,0 +1,4 @@
+<resources>
+    <string name="playlist_synced">Dans votre compte PeerTube</string>
+    <string name="playlist_delete_synced">La liste de lecture sera aussi supprimée de votre compte PeerTube sur le serveur.</string>
+</resources>

@@ -1,0 +1,4 @@
+<resources>
+    <string name="playlist_synced">בחשבון PeerTube שלך</string>
+    <string name="playlist_delete_synced">רשימת ההשמעה תימחק גם מחשבון PeerTube שלך בשרת.</string>
+</resources>

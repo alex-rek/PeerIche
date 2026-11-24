@@ -1,0 +1,4 @@
+<resources>
+    <string name="playlist_synced">PeerTube hesabınızda</string>
+    <string name="playlist_delete_synced">Oynatma listesi sunucudaki PeerTube hesabınızdan da silinir.</string>
+</resources>

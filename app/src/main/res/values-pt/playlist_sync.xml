@@ -1,0 +1,4 @@
+<resources>
+    <string name="playlist_synced">Na tua conta PeerTube</string>
+    <string name="playlist_delete_synced">A playlist também será apagada da tua conta PeerTube no servidor.</string>
+</resources>

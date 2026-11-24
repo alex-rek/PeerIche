@@ -45,10 +45,11 @@ data class SavedVideo(
     @Query("SELECT DISTINCT kind FROM saved_videos WHERE kind LIKE :pattern") suspend fun kindsLike(pattern: String): List<String>
 }
 
-@Database(entities = [SavedVideo::class, WatchLaterSyncState::class], version = 5, exportSchema = false)
+@Database(entities = [SavedVideo::class, WatchLaterSyncState::class, PlaylistLink::class, PlaylistElementState::class], version = 6, exportSchema = false)
 abstract class PeerIcheDatabase : RoomDatabase() {
     abstract fun library(): LibraryDao
     abstract fun watchLaterSync(): WatchLaterSyncDao
+    abstract fun playlistSync(): PlaylistSyncDao
     companion object {
         @Volatile private var instance: PeerIcheDatabase? = null
         private val migration1To2 = object : Migration(1, 2) {
@@ -75,8 +76,14 @@ abstract class PeerIcheDatabase : RoomDatabase() {
                 db.execSQL("CREATE TABLE IF NOT EXISTS `watch_later_sync` (`accountId` TEXT NOT NULL, `videoKey` TEXT NOT NULL, `elementId` INTEGER, `state` TEXT NOT NULL, PRIMARY KEY(`accountId`, `videoKey`))")
             }
         }
+        internal val migration5To6 = object : Migration(5, 6) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("CREATE TABLE IF NOT EXISTS `playlist_links` (`accountId` TEXT NOT NULL, `localId` TEXT NOT NULL, `remoteId` INTEGER, `state` TEXT NOT NULL, PRIMARY KEY(`accountId`, `localId`))")
+                db.execSQL("CREATE TABLE IF NOT EXISTS `playlist_elements` (`accountId` TEXT NOT NULL, `localId` TEXT NOT NULL, `videoKey` TEXT NOT NULL, `elementId` INTEGER, `state` TEXT NOT NULL, PRIMARY KEY(`accountId`, `localId`, `videoKey`))")
+            }
+        }
         fun get(context: Context): PeerIcheDatabase = instance ?: synchronized(this) {
-            instance ?: Room.databaseBuilder(context.applicationContext, PeerIcheDatabase::class.java, "peeriche.db").addMigrations(migration1To2, migration2To3, migration3To4, migration4To5).build().also { instance = it }
+            instance ?: Room.databaseBuilder(context.applicationContext, PeerIcheDatabase::class.java, "peeriche.db").addMigrations(migration1To2, migration2To3, migration3To4, migration4To5, migration5To6).build().also { instance = it }
         }
     }
 }

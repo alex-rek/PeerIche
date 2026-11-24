@@ -34,28 +34,37 @@ internal fun Video.libraryRow(server: String, kind: String): SavedVideo {
     return toSavedVideo(server, kind).copy(identity = "${sourceServer(server)}|${apiId()}", videoUrl = saved.url, metadata = Gson().toJson(saved))
 }
 
+/** Local playlists. Every change goes through [WatchLaterSync] so it reaches the signed-in account. */
 internal class VideoPlaylists(context: Context) {
     private val database = PeerIcheDatabase.get(context)
-    val definitions get() = database.library().observe("playlist")
+    private val sync = WatchLaterSync.get(context)
+    val definitions get() = database.library().observe(PLAYLIST_DEFINITIONS)
+    /** Ids of playlists linked to the visible account. */
+    val synced get() = database.playlistSync().observeSynced()
     suspend fun create(name: String): String {
         require(name.trim().length in 1..120)
         val id = UUID.randomUUID().toString()
-        database.library().put(SavedVideo(id, "playlist", name.trim(), null, "", null, null, 0, System.currentTimeMillis()))
+        database.library().put(SavedVideo(id, PLAYLIST_DEFINITIONS, name.trim(), null, "", null, null, 0, System.currentTimeMillis()))
+        sync.playlistCreated()
         return id
     }
-    suspend fun add(id: String, video: Video, server: String) = database.withTransaction {
-        val kind = playlistKind(id)
-        if (id != WATCH_LATER) require(database.library().getAll("playlist").any { it.identity == id })
-        val existing = database.library().getAll(kind)
-        val row = video.libraryRow(server, kind)
-        val order = existing.firstOrNull { it.identity == row.identity }?.updatedAt
-            ?: maxOf(System.currentTimeMillis(), (existing.maxOfOrNull { it.updatedAt } ?: 0) + 1)
-        database.library().put(row.copy(updatedAt = order))
+    suspend fun add(id: String, video: Video, server: String) {
+        if (id == WATCH_LATER) sync.setSaved(video, server, true) else sync.addToPlaylist(id, video, server)
     }
-    suspend fun delete(id: String) = database.withTransaction {
-        require(id != WATCH_LATER)
-        database.library().deleteKind(playlistKind(id))
-        database.library().delete(id, "playlist")
+    suspend fun remove(id: String, identity: String) = sync.removeFromPlaylist(id, identity)
+    suspend fun delete(id: String) = sync.deletePlaylist(id)
+
+    companion object {
+        /** Adds or keeps one video in a local playlist; the caller handles sync state. */
+        suspend fun addRow(database: PeerIcheDatabase, id: String, video: Video, server: String) {
+            val kind = playlistKind(id)
+            require(database.library().getAll(PLAYLIST_DEFINITIONS).any { it.identity == id })
+            val existing = database.library().getAll(kind)
+            val row = video.libraryRow(server, kind)
+            val order = existing.firstOrNull { it.identity == row.identity }?.updatedAt
+                ?: maxOf(System.currentTimeMillis(), (existing.maxOfOrNull { it.updatedAt } ?: 0) + 1)
+            database.library().put(row.copy(updatedAt = order))
+        }
     }
 }
 
@@ -104,7 +113,7 @@ internal object PlaybackQueue {
             try {
                 val chosen = id ?: repository.create(name)
                 val row = video.libraryRow(server, playlistKind(chosen))
-                if (library.getAll(row.kind).any { it.identity == row.identity }) library.delete(row.identity, row.kind)
+                if (library.getAll(row.kind).any { it.identity == row.identity }) repository.remove(chosen, row.identity)
                 else repository.add(chosen, video, server)
                 onClose()
             } catch (cancelled: CancellationException) { throw cancelled }
@@ -139,6 +148,7 @@ internal object PlaybackQueue {
     val repository = remember { VideoPlaylists(context) }
     val library = remember { PeerIcheDatabase.get(context).library() }
     val definitions by remember(repository) { repository.definitions }.collectAsState(emptyList())
+    val synced by remember(repository) { repository.synced }.collectAsState(emptyList())
     var delete by remember { mutableStateOf<String?>(null) }
     var creating by remember { mutableStateOf(false) }
     var name by remember { mutableStateOf("") }
@@ -149,14 +159,15 @@ internal object PlaybackQueue {
         item { TextButton(onClick = { creating = true }) { Icon(Icons.Default.Add, null); Text(uiText(R.string.playlist_new)) } }
         item { SettingsRow(uiText(R.string.watch_later), icon = Icons.Default.WatchLater, onClick = { onSelect(WATCH_LATER) }) }
         items(definitions, key = { it.identity }) { playlist ->
-            SettingsRow(playlist.title, icon = Icons.Default.PlaylistPlay, onClick = { onSelect(playlist.identity) }) {
+            SettingsRow(playlist.title, if (playlist.identity in synced) uiText(R.string.playlist_synced) else null,
+                icon = Icons.Default.PlaylistPlay, onClick = { onSelect(playlist.identity) }) {
                 IconButton(onClick = { delete = playlist.identity }) { Icon(Icons.Default.Delete, uiText(R.string.ui_delete_423009)) }
             }
         }
         if (failed) item { Text(uiText(R.string.library_action_failed), Modifier.padding(16.dp), color = MaterialTheme.colorScheme.error) }
     } else {
         val rows by remember(id) { library.observe(playlistKind(id)) }.collectAsState(emptyList())
-        LaunchedEffect(id) { if (id == WATCH_LATER) WatchLaterSync.get(context).requestSync() }
+        LaunchedEffect(id) { WatchLaterSync.get(context).requestSync() }
         val ordered = rows.sortedBy { it.updatedAt }
         Column {
             Text(if (id == WATCH_LATER) uiText(R.string.watch_later) else definitions.firstOrNull { it.identity == id }?.title.orEmpty(), Modifier.padding(horizontal = 16.dp), style = MaterialTheme.typography.titleMedium)
@@ -169,10 +180,7 @@ internal object PlaybackQueue {
                     SettingsRow(row.title, row.channelName, onClick = { onPlay(ordered.dropWhile { it.identity != row.identity }.map(SavedVideo::toVideo)) }) {
                         IconButton(onClick = {
                             scope.launch {
-                                try {
-                                    if (row.kind == WATCH_LATER) WatchLaterSync.get(context).remove(row.identity)
-                                    else library.delete(row.identity, row.kind)
-                                }
+                                try { repository.remove(id, row.identity) }
                                 catch (cancelled: CancellationException) { throw cancelled }
                                 catch (_: Exception) { failed = true }
                             }
@@ -193,6 +201,7 @@ internal object PlaybackQueue {
         }) { Text(uiText(R.string.ui_done_76ab9d)) } },
         dismissButton = { TextButton(onClick = { creating = false }) { Text(uiText(R.string.ui_cancel_28fb55)) } })
     if (delete != null) AlertDialog(onDismissRequest = { delete = null }, title = { Text(uiText(R.string.playlist_delete)) },
+        text = if (delete in synced) ({ Text(uiText(R.string.playlist_delete_synced)) }) else null,
         confirmButton = { TextButton(onClick = {
             val chosen = delete!!; delete = null
             scope.launch {

@@ -1,0 +1,4 @@
+<resources>
+    <string name="playlist_synced">في حسابك على PeerTube</string>
+    <string name="playlist_delete_synced">ستُحذف قائمة التشغيل أيضًا من حسابك على PeerTube في الخادم.</string>
+</resources>

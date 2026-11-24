@@ -1,0 +1,4 @@
+<resources>
+    <string name="playlist_synced">在你的 PeerTube 帐户中</string>
+    <string name="playlist_delete_synced">该播放列表也会从服务器上的 PeerTube 帐户中删除。</string>
+</resources>
