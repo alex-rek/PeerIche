@@ -4,7 +4,9 @@ PeerIche supports English, Russian, Spanish, French, German, Portuguese, Turkish
 
 Legacy bilingual Compose strings were migrated to Android resources, including settings, account screens, uploads, broadcasts, comments, player controls, TTS controls and error messages. Runtime values use numbered format arguments. Upload and broadcast notifications also use string resources. Android 13+ uses the framework per-app locale as the source of truth, including changes made from Android settings; older Android versions retain the existing saved-language configuration context.
 
-The nine new static catalogs were initially prepared on the isolated Android emulator using the existing ML Kit on-device translation dependency. Only generic, bundled English interface strings were processed. Core navigation, playback, account, privacy and voice terms, plus formatted messages, received manual corrections recorded in tools/interface_translation_overrides.json, tools/interface_translation_zh_ar_he.json and tools/interface_translation_key_overrides.json. Further native-speaker review would improve wording in longer messages.
+The nine static catalogs were first drafted with the ML Kit on-device translator. That draft contained many wrong and misleading strings, so in November 2026 every catalog was retranslated from the English and Russian source texts with a shared glossary. The reviewed catalogs live in tools/interface-translations/<language>.tsv and are the source of truth for values-<lang>/strings.xml. Strings kept in separate resource files (proxy, library, scheduling and similar) are edited directly in those files. A native-speaker review is still recommended, especially for Chinese, Arabic and Hebrew.
+
+Terminology: PeerTube, PeerIche, OBS, RTMP and TTS stay in Latin script. German, Spanish and Portuguese address the user informally, French uses vous, Turkish uses the polite form, and Hebrew uses gender-neutral phrasing.
 
 Arabic and Hebrew use right-to-left layouts, mirrored Back and forward chevrons, and relative spacing for the player controls. Floating video dragging remains in physical screen coordinates so dragging follows the finger in either layout direction. Video pixels are not mirrored by the interface language.
 
@@ -13,8 +15,8 @@ These catalogs ship as ordinary XML resources. No language-model download, netwo
 Build-time tools:
 
 - tools/migrate_interface_strings.py extracts legacy labels.
-- Android instrumentation argument interface-translations exports draft static catalogs using local models, with resumable per-language output.
-- tools/import_interface_translations.py validates and imports the draft catalogs with reviewed overrides.
+- Android instrumentation argument interface-translations exports machine drafts using local models. Use them only as a starting point for new strings, never import them unreviewed.
+- tools/import_interface_translations.py validates the reviewed catalogs in tools/interface-translations (keys, placeholders, product names) and regenerates values-<lang>/strings.xml.
 - tools/verify_interface_locales.py checks coverage, declarations, duplicates and numbered format arguments.
 - Android instrumentation argument interface-locales checks actual resource lookup, formatted arguments and regional fallback on the device.
 

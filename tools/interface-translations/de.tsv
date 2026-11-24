@@ -1,0 +1,558 @@
+about_independent	PeerIche ist ein unabhängiger Client und steht in keiner Verbindung zu Framasoft.
+add_favorite	Zu Favoriten hinzufügen
+add_server	Hinzufügen
+app_theme	Darstellung
+app_updates	Nach Updates suchen
+back	Zurück
+cancel	Abbrechen
+channel_column	Kanal
+channel_videos	Kanalvideos
+channels	Kanäle
+channels_load_failed	Kanäle konnten nicht von diesem Server geladen werden.
+channels_on_server	Kanäle auf dem Server
+choose_peer_server	Server auswählen
+clear_search	Suche löschen
+create	Erstellen
+dark_theme	Dunkles Design
+discover_servers	Server entdecken
+discover_videos	Videos entdecken
+discovered_servers	%1$d Server hinzugefügt
+discovering_servers	Verzeichnis wird geprüft…
+enter_fullscreen	Vollbild
+exit_fullscreen	Vollbild beenden
+favorites	Favoriten
+find_more_live	Weitere Livestreams suchen
+followed_channels	Abonnierte Kanäle
+from_subscriptions	Neu von abonnierten Kanälen
+go	Los
+hide_description	Beschreibung ausblenden
+history	Verlauf
+home	Startseite
+home_sort_label	Sortierung: %1$s
+home_sort_newest	Neueste zuerst
+home_sort_oldest	Älteste zuerst
+home_sort_sections	Nach Rubriken
+home_sort_views	Meistgesehen
+invalid_server_address	Gib eine gültige HTTPS-Adresse eines PeerTube-Servers ein.
+latest_videos	Neueste Videos
+library	Mediathek
+live_feed_failed	Livestreams konnten nicht geladen werden. Prüfe deine Verbindung und versuche es erneut.
+live_more_results	In der geprüften Auswahl gibt es keine aktiven Livestreams. Suche auf den nächsten Seiten weiter.
+live_now	Live
+load_more	Mehr laden
+loading_more	Wird geladen…
+loading_video	Video wird von seinem PeerTube-Server geladen…
+manual_server_address	Serveradresse eingeben
+next_videos	Nächste Videos
+no_channels	Auf diesem Server wurden keine Kanäle gefunden.
+no_live_videos	Keine aktiven Livestreams gefunden. Aktualisiere später erneut.
+no_playable_stream	Dieser Server stellt keinen abspielbaren Stream bereit.
+no_results	Keine Videos gefunden. Versuche eine andere Suche oder einen anderen Server.
+no_subscribed_channels	Noch keine Kanäle. Abonniere einen Kanal über eine Videokarte.
+no_subtitles	Für dieses Video sind keine Untertitel verfügbar.
+notification_broadcast	PeerIche · Livestream
+notification_end	Beenden
+notification_upload	PeerIche · Video-Upload
+on_server	Auf dem Server
+pause_playback	Pause
+pip_unavailable	Bild-im-Bild ist nicht verfügbar. Prüfe die App-Berechtigung in den Android-Einstellungen.
+popular_now	Beliebt auf diesem Server
+recommended_for_you	Empfohlen anhand deines Wiedergabeverlaufs
+remove_favorite	Aus Favoriten entfernen
+resume_playback	Fortsetzen
+retry	Erneut versuchen
+retry_captions	Untertitel erneut laden
+save	Speichern
+search	Suche
+search_failed	Die ausgewählten Suchquellen sind nicht erreichbar.
+search_hint	Im PeerTube-Netzwerk suchen
+select_server	Suchserver
+server	PeerTube-Server
+server_column	Server
+server_feed_failed	Videos konnten nicht von diesem Server geladen werden. Prüfe deine Verbindung oder wähle einen anderen Server.
+server_list	PeerTube-Server
+server_not_peertube	Diese Adresse unterstützt die PeerTube-API nicht. Wähle in den Einstellungen unter „Server“ einen PeerTube-Server.
+servers	Server
+servers_help	Eine HTTPS-Adresse eines PeerTube-Servers pro Zeile. Die Suche nutzt Sepia Search und bis zu fünf Server.
+settings	Einstellungen
+show_description	Beschreibung anzeigen
+stop_playback	Schließen
+subscribe_button	Abonnieren
+subscribe_channel	Kanal abonnieren
+subscriptions	Abos
+subtitles	Untertitel
+theme_aurora	Aurora · Blau
+theme_graphite	Graphit
+theme_light	Hell
+theme_system	Wie Android
+translated_track	Übersetzt
+ui_a_comment_must_contain_1_to_10_000_charact_1bbc71	Ein Kommentar muss 1 bis 10.000 Zeichen lang sein.
+ui_about_9a8919	Über die App
+ui_account_avatar_or_user_initials_a1dfdc	Kontobild oder Initialen
+ui_account_server_mismatch	Videos kommen gerade von %1$s. Dieses Konto gehört zu %2$s.
+ui_account_subscription	Konto-Abo: %1$s
+ui_account_subscriptions_5aa21c	Konto-Abos
+ui_account_subscriptions_come_from_its_server_4cb70b	Konto-Abos kommen von dessen Server. Abos auf dem Gerät, Favoriten und Verlauf bleiben getrennt und werden nicht automatisch übertragen.
+ui_active_account_7ead88	Aktives Konto
+ui_add_account_240e92	Konto hinzufügen
+ui_after_creation_use_the_server_url_and_stre_1eddbc	Nach dem Erstellen erhältst du Server-URL und Streamschlüssel für OBS. Livestreams mit der Handykamera folgen in einem späteren Schritt.
+ui_all_countries_719a89	Alle Länder
+ui_all_results_069caf	Alle Ergebnisse
+ui_allow_camera_and_microphone_access_98d95e	Erlaube den Zugriff auf Kamera und Mikrofon.
+ui_allow_ea9723	Erlauben
+ui_android_could_not_start_the_upload_service_6cfdee	Android konnte den Upload im Hintergrund nicht starten. Kehre zur App zurück und tippe auf „Fortsetzen“.
+ui_android_permission_settings_d74962	Android-Berechtigungen
+ui_android_stopped_broadcasting_return_to_the_c7f063	Android hat den Livestream beendet. Kehre zur Kameraseite zurück, um ihn neu zu starten.
+ui_another_account_has_an_upload_task_ce4ce5	Upload eines anderen Kontos vorhanden
+ui_another_account_has_an_upload_task_switch_dadf08	Ein anderes Konto hat einen offenen Upload. Wechsle zu diesem Konto, um fortzufahren, oder entferne den lokalen Auftrag, wenn du ihn nicht mehr brauchst.
+ui_app_theme_610976	App-Design
+ui_aspect_ratio_47bc1a	Seitenverhältnis
+ui_aurora_blue_a5d4ab	Aurora · Blau
+ui_auto_cbb079	Automatisch
+ui_automatic_00a8ae	Automatisch
+ui_automatic_mode_is_recommended_speak_subtit_b9ef26	Empfohlen wird der automatische Modus: Untertitel werden in der gewählten Übersetzungssprache vorgelesen, bei Bedarf mit der vorhandenen Übersetzung. Du kannst den Modus in den Einstellungen ändern.
+ui_automatic_selection_f4cc61	Automatische Auswahl
+ui_back_02b74f	Zurück
+ui_background_playback_364de7	Wiedergabe im Hintergrund
+ui_bitrate_654ba4	Bitrate
+ui_blur_thumbnails_1c7734	Vorschaubilder unscharf machen
+ui_broadcast_84c258	Livestream
+ui_broadcast_details_fb7ead	Livestream-Details
+ui_broadcast_stopped_the_server_rejected_the_42e89f	Livestream unterbrochen: Der Server hat die Verbindung abgelehnt oder das Netzwerk wurde getrennt. Verbinde dich erneut mit dem bestehenden Livestream.
+ui_camera_and_microphone_access_384ace	Zugriff auf Kamera und Mikrofon
+ui_camera_and_microphone_transmission_will_st_82b4a0	Die Übertragung von Kamera und Mikrofon wird beendet.
+ui_cancel_28fb55	Abbrechen
+ui_cancel_8afaa2	Abbrechen
+ui_cancelled_36a6b0	Abgebrochen
+ui_cancelling_6a8032	Wird abgebrochen
+ui_channel_c07a24	Kanal
+ui_channel_description_9a5a40	Kanalbeschreibung
+ui_channel_name_e9c0fd	Kanalname
+ui_channel_saved_7a1980	Kanal gespeichert
+ui_channel_settings_079a60	Kanaleinstellungen
+ui_channel_videos_db019b	Kanalvideos
+ui_channels_a38998	Kanäle
+ui_check_and_connect_a891d1	Prüfen und verbinden
+ui_check_availability_db0909	Verfügbarkeit prüfen
+ui_check_for_updates_a3997c	Nach Updates suchen
+ui_check_session_5531bc	Sitzung prüfen
+ui_check_the_https_addresses_5a8051	Prüfe die HTTPS-Adressen.
+ui_check_the_title_3_120_characters_descripti_42321d	Prüfe Titel (3–120 Zeichen), Beschreibung (bis 10.000) und Kanal.
+ui_choose_a_video_on_your_device_its_channel_7a7d31	Wähle ein Video auf deinem Gerät, den Kanal und die Sichtbarkeit.
+ui_choose_cover_optional_9a60e9	Titelbild wählen (optional)
+ui_choose_image_4cd057	Bild auswählen
+ui_choose_the_frame_orientation_before_starti_6979da	Wähle die Bildausrichtung vor dem Start. Um sie zu ändern, beende den laufenden Livestream.
+ui_choose_video_71bb7b	Video auswählen
+ui_close_641636	Schließen
+ui_close_video_74d1e9	Video schließen
+ui_comment_b40722	Kommentar
+ui_comment_deleted_b96457	Kommentar gelöscht
+ui_comment_sent_1b95cd	Kommentar gesendet
+ui_comment_sent_for_moderation_59d0cc	Kommentar zur Moderation gesendet
+ui_comments_08c5c0	Kommentare
+ui_comments_are_disabled_by_the_author_41ba4a	Kommentare wurden vom Autor deaktiviert
+ui_connect_53bb39	Verbinden
+ui_connected_2fcbe2	Verbunden
+ui_connected_servers_search_f61604	Suche auf verbundenen Servern
+ui_connecting_6da59b	Verbindung wird hergestellt…
+ui_connection_failed_check_the_https_address_f92ec9	Verbindung fehlgeschlagen. Prüfe HTTPS-Adresse, Netzwerk und PeerTube-API. Der bisherige Server bleibt eingestellt.
+ui_control_labels_e1ef00	Beschriftung der Bedienelemente
+ui_copy_key_8b55c7	Schlüssel kopieren
+ui_copy_url_4f5c50	URL kopieren
+ui_copy_watch_link_52e6ac	Link zum Livestream kopieren
+ui_could_not_determine_the_channel_address_b19cce	Die Kanaladresse konnte nicht ermittelt werden.
+ui_could_not_load_retry_17aae5	Laden fehlgeschlagen. Erneut versuchen
+ui_could_not_open_or_save_protected_sign_in_d_f64e67	Geschützte Anmeldedaten konnten nicht geöffnet oder gespeichert werden. Versuche es erneut oder entferne bei Bedarf gespeicherte Anmeldungen.
+ui_could_not_prepare_the_camera_or_encoder_tr_322eab	Kamera oder Encoder konnten nicht vorbereitet werden. Versuche 480p oder eine andere Kamera.
+ui_could_not_read_subtitles_8fc073	Untertitel konnten nicht gelesen werden
+ui_could_not_read_the_server_publication_resp_afcf21	Die Antwort des Servers zur Veröffentlichung konnte nicht gelesen werden. Tippe auf „Fortsetzen“, um den Stand zu prüfen, oder aktualisiere deine Videos.
+ui_could_not_switch_the_camera_d211fd	Kamera konnte nicht gewechselt werden.
+ui_could_not_verify_the_secure_server_connect_1a1995	Die sichere Verbindung zum Server konnte nicht geprüft werden. Prüfe die Adresse und das Datum des Geräts.
+ui_country_0db877	Land
+ui_cover_686522	Titelbild
+ui_create_514e39	Erstellen
+ui_create_live_2cf7bd	Livestream erstellen
+ui_create_live_for_obs_3e8e4f	Livestream für OBS erstellen
+ui_created_live_7a0340	Erstellter Livestream
+ui_custom_image_selected_5d7182	Eigenes Bild ausgewählt
+ui_custom_indexes_one_https_address_per_line_84c995	Eigene Indizes – eine HTTPS-Adresse pro Zeile
+ui_custom_search_indexes_33a8cb	Eigene Suchindizes
+ui_cyan_335685	Cyan
+ui_default_quality_424975	Standardqualität
+ui_delete_423009	Löschen
+ui_delivery_could_not_be_confirmed_refresh_co_ddf9ab	Der Versand konnte nicht bestätigt werden. Aktualisiere die Kommentare, bevor du erneut sendest.
+ui_description_70bc2e	Beschreibung
+ui_developer_arctic_fox_apps_fa73f2	Entwickler: Artic Fox Apps
+ui_discover_servers_f44c73	Server entdecken
+ui_dislike_c74b31	Gefällt mir nicht
+ui_distance_from_bottom_ae3e60	Abstand vom unteren Rand
+ui_done_76ab9d	Fertig
+ui_download_eac11a	Herunterladen
+ui_download_models_only_over_wi_fi_b739a9	Modelle nur über WLAN herunterladen
+ui_downloaded_8b6faf	Heruntergeladen
+ui_duck_during_speech_62dee3	Während der Sprachausgabe leiser
+ui_editing_video_99ff81	Video wird bearbeitet
+ui_enable_automatic_mode_6c85a3	Automatischen Modus aktivieren
+ui_enable_camera_3b9a3f	Kamera einschalten
+ui_enable_microphone_79e3a9	Mikrofon einschalten
+ui_enable_preview_5b929b	Vorschau einschalten
+ui_enable_subtitle_speech_a576df	Untertitel vorlesen?
+ui_end_18118d	Beenden
+ui_end_broadcast_4e87f9	Livestream beenden
+ui_end_broadcast_6bfccc	Livestream beenden?
+ui_enter_a_peertube_https_server_address_with_f7f124	Gib die HTTPS-Adresse eines PeerTube-Servers ohne Pfad, Parameter oder Anmeldedaten ein.
+ui_enter_a_username_and_password_d3c026	Gib Benutzername und Passwort ein.
+ui_enter_your_two_factor_code_and_sign_in_aga_11ed14	Gib deinen Bestätigungscode ein und melde dich erneut an.
+ui_existing_live_selected_b99798	Bestehender Livestream ausgewählt
+ui_existing_live_streams_keep_their_server_se_ece468	Bestehende Livestreams behalten ihre Servereinstellungen.
+ui_favorites_d4c059	Favoriten
+ui_find_90925b	Suchen
+ui_find_by_name_or_address_b99f1e	Nach Name oder Adresse suchen
+ui_finish_or_remove_the_existing_task_first_2d4084	Schließe zuerst den vorhandenen Auftrag ab oder entferne ihn.
+ui_fit_dc1e4e	Einpassen
+ui_follow_android_9652ce	Wie Gerät
+ui_follow_translation_language_5b9919	Wie Übersetzungssprache
+ui_frame_rate_3345f0	Bildrate
+ui_frame_size_and_quality_can_be_changed_befo_eeda5d	Bildgröße und Qualität kannst du vor dem nächsten Livestream ändern.
+ui_general_4d7c8e	Allgemein
+ui_graphite_7c3294	Graphit
+ui_green_3fb852	Grün
+ui_hide_929379	Ausblenden
+ui_hide_c7431d	Ausblenden
+ui_hide_camera_0122c1	Kamera ausschalten
+ui_hide_controls_after_5aa971	Bedienelemente ausblenden nach
+ui_hide_known_unavailable_videos_615b8f	Bekannt nicht verfügbare Videos ausblenden
+ui_history_4d3d0c	Verlauf
+ui_home_9dd0b3	Zur Startseite
+ui_horizontal_position_1439c5	Horizontale Position
+ui_https_server_address_102d29	HTTPS-Serveradresse
+ui_i_use_two_factor_authentication_68d856	Ich nutze Zwei-Faktor-Authentifizierung
+ui_if_translation_is_unavailable_f4e52f	Wenn keine Übersetzung verfügbar ist
+ui_image_when_camera_is_off_e4eb6f	Bild bei ausgeschalteter Kamera
+ui_import_failed_6ca1a5	Import fehlgeschlagen
+ui_importing_video_978518	Video wird importiert
+ui_include_sensitive_content_9b8651	Sensible Inhalte einbeziehen
+ui_independent_peertube_client_not_affiliated_8ece4c	Unabhängiger PeerTube-Client. Keine Verbindung zu Framasoft.
+ui_install_tts_language_data_03de98	TTS-Sprachdaten installieren
+ui_insufficient_quota_or_the_server_file_size_b79de3	Speicherkontingent reicht nicht aus oder die maximale Dateigröße des Servers wurde überschritten.
+ui_interface_language_88df3c	Sprache der App
+ui_invalid_cover_check_its_size_and_jpg_png_o_f819b9	Ungültiges Titelbild: Prüfe Größe und Format (JPG, PNG oder WebP).
+ui_is_live_20cabe	 ist live
+ui_keep_7058e4	Behalten
+ui_keep_streaming_f81bca	Weiter streamen
+ui_keep_visible_63e256	Immer anzeigen
+ui_landscape_69a703	Querformat
+ui_landscape_frame_36005f	Querformat
+ui_language_and_translations_29d99b	Sprache und Übersetzungen
+ui_language_models_6ecbd3	Sprachmodelle
+ui_leave_the_description_empty_or_enter_3_to_b7e8f0	Lass die Beschreibung leer oder gib 3 bis 10.000 Zeichen ein.
+ui_light_bc799a	Hell
+ui_light_ce5d5c	Licht
+ui_light_is_unavailable_for_this_camera_673dc4	Für diese Kamera ist kein Licht verfügbar.
+ui_like_95fa84	Gefällt mir
+ui_live_13cd53	Livestream
+ui_live_4a340c	Live
+ui_live_creation_could_not_be_confirmed_refre_523650	Das Erstellen des Livestreams wurde nicht bestätigt. Aktualisiere „Deine Videos“, bevor du es erneut versuchst.
+ui_live_ended_4704f1	Livestream beendet
+ui_live_streaming_is_disabled_on_this_server_d8fe5d	Livestreams sind auf diesem Server deaktiviert.
+ui_load_more_b9d06f	Mehr laden
+ui_local_search_cache_213967	Lokaler Suchcache
+ui_long_utterances_e0af43	Lange Sätze
+ui_more_81555a	Mehr
+ui_more_servers_7b0fae	Weitere Server
+ui_move_down_a0544c	Nach unten
+ui_move_up_cdf16d	Nach oben
+ui_moving_failed_0aec63	Verschieben fehlgeschlagen
+ui_moving_video_98925c	Video wird verschoben
+ui_mute_during_speech_669ae8	Während der Sprachausgabe stumm
+ui_mute_microphone_877493	Mikrofon stummschalten
+ui_my_channels_350cbf	Meine Kanäle
+ui_name_3_120_characters_description_up_to_1_f6f55f	Name: 3–120 Zeichen, Beschreibung: bis 1.000.
+ui_network_a37c44	 · Netzwerk
+ui_new_live_57d293	Neuer Livestream
+ui_newest_first_a4f3b2	Neueste zuerst
+ui_no_channel_available_f2ae51	Kein eigener Kanal vorhanden
+ui_no_comments_yet_c91050	Noch keine Kommentare
+ui_no_cover_564f04	Kein Titelbild
+ui_no_description_aff1cf	Keine Beschreibung
+ui_no_installed_voice_for_this_language_insta_087db8	Für diese Sprache ist keine Stimme installiert. Installiere TTS-Sprachdaten.
+ui_no_local_subscriptions_yet_aa8224	Noch keine lokalen Abos
+ui_no_saved_videos_yet_7311d4	Noch keine Videos in den Favoriten
+ui_no_subscriptions_on_the_server_yet_d1abd5	Noch keine Abos auf dem Server
+ui_no_subtitles_available_yet_71da63	Noch keine Untertitel verfügbar
+ui_no_text_subtitles_available_f53567	Keine Text-Untertitel verfügbar
+ui_no_videos_in_this_account_s_subscriptions_5d5d6a	In den Abos dieses Kontos gibt es noch keine Videos
+ui_no_watch_history_yet_c9ff6c	Noch kein Wiedergabeverlauf
+ui_not_checked_30ef8c	nicht geprüft
+ui_not_downloaded_1af9b2	Nicht heruntergeladen
+ui_obs_service_custom_257d44	OBS-Dienst: „Benutzerdefiniert“
+ui_obs_stream_settings_a35ef7	Stream-Einstellungen für OBS
+ui_off_135883	Aus
+ui_off_7f197c	Aus
+ui_off_b8a9e9	Aus
+ui_on_c10791	An
+ui_on_device_e0756a	 · auf dem Gerät
+ui_on_e3afd0	An
+ui_on_this_device_8d14b3	Auf diesem Gerät
+ui_online_5fb239	online
+ui_online_first_fc7de2	Aktive zuerst
+ui_only_sign_in_data_on_this_device_will_be_r_167f36	Nur die Anmeldedaten auf diesem Gerät werden entfernt. Favoriten, Verlauf und lokale Abos bleiben erhalten.
+ui_open_server_website_5cc079	Website des Servers öffnen
+ui_open_video_26c029	Video öffnen
+ui_orientation_ae6af6	Ausrichtung:
+ui_original_77bed0	Original
+ui_original_audio_2d2547	Originalton
+ui_original_speech_follows_the_subtitle_langu_90034f	Beim Original richtet sich die Stimme nach der Untertitelsprache. Installierte Offline-Stimmen werden bevorzugt. Die Übersetzung nutzt die vorhandenen Modelle und den Cache von PeerIche.
+ui_original_subtitles_8c6f16	Original-Untertitel
+ui_original_translation_18e287	Original + Übersetzung
+ui_original_volume_during_speech_e135a9	Originallautstärke während der Sprachausgabe
+ui_parallel_563423	Parallel
+ui_parallel_requests_34a8a3	Parallele Anfragen
+ui_password_367eb8	Passwort
+ui_pause_d19299	Pause
+ui_pause_video_until_speech_ends_898fb7	Video pausieren, bis die Sprachausgabe endet
+ui_paused_5d65a6	Pausiert
+ui_peertube_accounts_8d748a	PeerTube-Konten
+ui_peertube_server_f36de6	PeerTube-Server
+ui_pending_moderation_9cd027	Wartet auf Moderation
+ui_picture_in_picture_481ea8	Bild-im-Bild
+ui_play_016c52	Abspielen
+ui_playback_speed_cd9e90	Wiedergabegeschwindigkeit
+ui_player_cd0260	Player
+ui_player_settings_2989d1	Player-Einstellungen
+ui_portrait_c5160e	Hochformat
+ui_portrait_frame_6adb4d	Hochformat
+ui_posting_as_bba67f	Kommentieren als
+ui_practice_mode_b4c403	Übungsmodus
+ui_preferred_subtitle_language_5e7c1c	Bevorzugte Untertitelsprache
+ui_preparing_6e055d	Wird vorbereitet
+ui_preparing_existing_translation_4a6aba	Vorhandene Übersetzung wird vorbereitet…
+ui_preparing_live_adb70d	Livestream wird vorbereitet…
+ui_preparing_models_or_translating_a98b86	Modelle werden vorbereitet oder Text wird übersetzt…
+ui_preview_not_live_b602f3	Vorschau · nicht live
+ui_preview_stays_on_this_device_nothing_is_tr_578f58	Die Vorschau bleibt auf diesem Gerät. Bild und Ton werden erst übertragen, wenn du auf „Livestream starten“ tippst.
+ui_private_b83206	Privat
+ui_processing_failed_423bf1	Verarbeitung fehlgeschlagen
+ui_processing_video_967d3f	Video wird verarbeitet
+ui_public_5fe491	Öffentlich
+ui_published_b4e8f8	Veröffentlicht
+ui_published_videos_will_remain_on_the_server_f6e568	Veröffentlichte Videos bleiben auf dem Server. Eine unvollständige Übertragung kannst du zuerst abbrechen; wenn du den Auftrag entfernst, kann sie nicht mehr fortgesetzt werden.
+ui_quality_ca3d7b	Qualität
+ui_ready_a518f4	Bereit
+ui_recurring_live_526a88	Wiederverwendbarer Livestream
+ui_refresh_3526ad	Aktualisieren
+ui_refresh_comments_e472e7	Kommentare aktualisieren
+ui_refresh_subscriptions_343f9b	Abos aktualisieren
+ui_refresh_waiting_lives_e1b4e8	Wartende Livestreams aktualisieren
+ui_relevance_5278a3	Relevanz
+ui_remove_32d0b3	Entfernen
+ui_remove_ffcdea	Löschen
+ui_remove_local_task_66ebd2	Lokalen Auftrag entfernen
+ui_remove_saved_sign_ins_812055	Gespeicherte Anmeldungen entfernen?
+ui_remove_saved_sign_ins_824597	Gespeicherte Anmeldungen entfernen
+ui_remove_task_cf3ba9	Auftrag entfernen?
+ui_remove_task_e9224e	Auftrag entfernen
+ui_replace_thumbnail_with_warning_9eae35	Warnung statt Vorschaubild
+ui_replies_7f615f	Antworten
+ui_reply_6de9d9	Antworten
+ui_reply_to	Antwort an: %1$s
+ui_reset_upload_task_322db7	Upload-Auftrag zurücksetzen
+ui_restricted_5746bb	Eingeschränkt
+ui_result_order_0b1c23	Reihenfolge der Ergebnisse
+ui_resume_44eb04	Fortsetzen
+ui_resume_to_check_the_transfer_then_refresh_2ca5ab	Tippe auf „Fortsetzen“, um die Übertragung zu prüfen, und aktualisiere dann deine Videos, bevor du einen weiteren Upload startest.
+ui_retry_e8368b	Erneut versuchen
+ui_retry_subtitle_translation_377fcd	Untertitel erneut übersetzen
+ui_return_to_broadcast_fef56e	Zurück zum Livestream
+ui_save_channel_on_server_87bc4e	Kanal auf dem Server speichern
+ui_save_efb7cc	Zu Favoriten
+ui_save_indexes_a883b9	Indizes speichern
+ui_save_replay_6cbd4e	Aufzeichnung speichern
+ui_save_replay_on_server_c7d724	Aufzeichnung auf dem Server speichern
+ui_saved_197dc1	In Favoriten
+ui_saved_account_46c390	Gespeichertes Konto
+ui_search_c2faca	Suche
+ui_search_mode_083d38	Suchmodus
+ui_search_sources_and_priority_295e1b	Suchquellen und Reihenfolge
+ui_sec_563e48	s
+ui_sec_56737f	 s
+ui_seek_increment_8f8898	Sprungweite beim Spulen
+ui_selected_af7b83	Ausgewählt
+ui_selected_server_search_ff8be3	Suche auf dem ausgewählten Server
+ui_send_697d7f	Senden
+ui_sending_c8b200	Wird gesendet…
+ui_sensitive_content_3d5344	Sensible Inhalte
+ui_sensitive_content_576e42	Sensible Inhalte
+ui_sensitive_content_display_dc3750	Anzeige sensibler Inhalte
+ui_sequential_8e675b	Nacheinander
+ui_server_channels_639d6c	Kanäle des Servers
+ui_server_dedf58	Server
+ui_server_error_try_again_later_c789a0	Serverfehler. Versuche es später erneut.
+ui_server_processing_726797	Verarbeitung auf dem Server
+ui_servers_d9002c	Server
+ui_settings_23de1b	Einstellungen
+ui_settings_2bca56	Einstellungen
+ui_share_0e2e41	Teilen
+ui_share_live_23cbbf	Livestream teilen
+ui_show_ab515c	Anzeigen
+ui_show_bd4eeb	Anzeigen
+ui_show_or_hide_password_51b918	Passwort ein- oder ausblenden
+ui_sign_in_again_75f938	Erneut anmelden
+ui_sign_in_again_770ace	Melde dich erneut an
+ui_sign_in_again_bd741c	Erneute Anmeldung erforderlich
+ui_sign_in_f39424	Anmelden
+ui_sign_in_failed_check_your_username_passwor_23a85e	Anmeldung fehlgeschlagen. Prüfe Benutzername, Passwort und Server.
+ui_sign_in_fe4740	Anmelden
+ui_sign_in_on_the_you_page_15ac8e	Melde dich auf der Seite „Du“ an.
+ui_sign_in_on_the_you_page_to_upload_videos_a_38f091	Melde dich auf der Seite „Du“ an, um Videos hochzuladen und live zu gehen.
+ui_sign_in_to_a_server_85e839	Bei einem Server anmelden
+ui_sign_in_was_removed_from_this_device_the_s_7a170f	Die Anmeldung wurde von diesem Gerät entfernt. Die Sitzung auf dem Server konnte nicht beendet werden; du kannst sie auf der PeerTube-Website widerrufen.
+ui_sign_out_2f12bc	Abmelden
+ui_signing_in_34c5a1	Anmeldung läuft…
+ui_skip_outdated_speech_f1fffa	Veraltete Sätze überspringen
+ui_skip_utterance_4e9d44	Satz überspringen
+ui_sort_servers_f2aae1	Server sortieren
+ui_source_timeout_b4e594	Zeitlimit pro Quelle
+ui_speak_original_381a76	Original vorlesen
+ui_speak_subtitles_8f45b6	Untertitel vorlesen
+ui_speaking_737906	Sprachausgabe läuft
+ui_speech_b0f924	Sprachausgabe
+ui_speech_mode_21b9ce	Modus der Sprachausgabe
+ui_speech_rate_7cb6d9	Sprechgeschwindigkeit
+ui_speech_settings_8ae8a1	Einstellungen der Sprachausgabe
+ui_speech_synthesis_failed_video_playback_is_03ff7c	Sprachausgabe fehlgeschlagen. Das Video läuft weiter.
+ui_speed_up_speech_up_to_2_5_b97e49	Sprachausgabe beschleunigen (bis 2,5×)
+ui_start_broadcast_ca85c4	Livestream starten
+ui_start_playback_automatically_61d054	Automatisch abspielen
+ui_status_b60505	Status
+ui_stop_test_d2ea2c	Test beenden
+ui_storage_ecf1de	Speicher:
+ui_stream_key_8d248e	Streamschlüssel
+ui_stream_settings_16c86b	Stream-Einstellungen
+ui_stretch_6f9bc7	Strecken
+ui_subscribe_7a95fd	Abonnieren
+ui_subscribed_b31c7d	Abonniert
+ui_subscription_on_this_device_97636d	Abo auf diesem Gerät
+ui_subtitle_color_ee2bd3	Untertitelfarbe
+ui_subtitle_preview_73219c	Untertitelvorschau
+ui_subtitle_size_f492b3	Untertitelgröße
+ui_subtitle_speech_4f7011	Untertitel vorlesen
+ui_subtitle_speech_ffd472	Sprachausgabe
+ui_subtitles_4b389d	Untertitel
+ui_subtitles_by_default_007b19	Untertitel standardmäßig
+ui_subtitles_speech_ab081c	Untertitel → Sprachausgabe
+ui_sufficient_results_64a8a1	Genügend Ergebnisse
+ui_switch_camera_515854	Kamera wechseln
+ui_system_default_00d48c	Systemstandard
+ui_test_voice_9c6b87	Stimme testen
+ui_the_account_changed_retry_using_the_intend_338ec1	Das Konto wurde gewechselt. Versuche es mit dem richtigen Konto erneut.
+ui_the_account_is_blocked_on_the_server_05ab34	Das Konto ist auf dem Server gesperrt.
+ui_the_account_is_waiting_for_server_administ_f422c2	Das Konto wartet auf die Freigabe durch die Serveradministration.
+ui_the_account_server_could_not_find_this_vid_90b052	Der Server des Kontos hat dieses Video nicht gefunden. Prüfe, ob es dort verfügbar ist, und versuche es erneut.
+ui_the_directory_prefers_servers_from_this_co_c7856f	Das Verzeichnis bevorzugt Server aus diesem Land. Andere Länder bleiben verfügbar.
+ui_the_key_allows_broadcasting_as_you_keep_it_45f0a6	Mit diesem Schlüssel kann jeder in deinem Namen streamen. Gib ihn nicht weiter.
+ui_the_microphone_is_unavailable_check_permis_69f097	Das Mikrofon ist nicht verfügbar. Prüfe die Berechtigung und andere Apps.
+ui_the_original_file_must_remain_accessible_a_f44e10	Die Originaldatei muss bis zum Ende des Uploads verfügbar und unverändert bleiben.
+ui_the_server_changed_its_sign_in_configurati_bcd296	Der Server hat seine Anmeldeeinstellungen geändert. Melde dich erneut an.
+ui_the_server_chunk_limits_are_incompatible_w_055ddc	Die Blockgrößen des Servers passen nicht zu dieser Dateigröße.
+ui_the_server_could_not_read_the_video_file_c95cf8	Der Server konnte die Videodatei nicht verarbeiten.
+ui_the_server_denied_this_action_check_your_a_d471c9	Der Server hat diese Aktion verweigert. Prüfe dein Konto auf der Website des Servers.
+ui_the_server_does_not_accept_this_password_l_96ca66	Der Server akzeptiert diese Passwortlänge nicht.
+ui_the_server_does_not_allow_these_live_or_re_b8bb40	Der Server erlaubt diese Livestream- oder Aufzeichnungseinstellungen nicht.
+ui_the_server_does_not_support_this_file_form_0ebd3a	Der Server unterstützt dieses Dateiformat nicht.
+ui_the_server_has_reached_its_simultaneous_li_7e7ab4	Der Server hat die maximale Zahl gleichzeitiger Livestreams erreicht.
+ui_the_server_is_unavailable_check_your_netwo_c773e7	Der Server ist nicht erreichbar. Prüfe dein Netzwerk und versuche es erneut.
+ui_the_server_redirects_this_request_enter_it_d8d57d	Der Server leitet diese Anfrage um. Gib seine endgültige HTTPS-Adresse ein; Anmeldedaten wurden nicht weitergegeben.
+ui_the_server_rejected_the_publication_parame_022749	Der Server hat die Veröffentlichungsangaben abgelehnt. Prüfe Titel, Beschreibung, Kanal und Sichtbarkeit.
+ui_the_server_rejected_the_request_check_the_afc910	Der Server hat die Anfrage abgelehnt. Prüfe die Angaben und die Berechtigungen des Kontos.
+ui_the_server_rejected_this_account_registrat_1f9f3b	Der Server hat diese Registrierung abgelehnt.
+ui_the_server_returned_an_invalid_upload_url_d03771	Der Server hat eine ungültige Upload-URL zurückgegeben.
+ui_the_server_returned_an_unsupported_stream_0cfcba	Der Server hat eine nicht unterstützte Stream-URL oder einen ungültigen Schlüssel zurückgegeben.
+ui_the_session_expired_or_was_revoked_sign_in_2b6a69	Die Sitzung ist abgelaufen oder wurde widerrufen. Melde dich erneut an.
+ui_the_two_factor_code_was_rejected_enter_a_n_e749c0	Der Bestätigungscode wurde abgelehnt. Gib einen neuen Code ein.
+ui_the_upload_session_is_unavailable_refresh_c1a973	Die Upload-Sitzung ist nicht verfügbar. Aktualisiere zuerst „Deine Videos“: Das Video ist vielleicht schon hochgeladen. Falls nicht, entferne den Auftrag und wähle die Datei erneut aus.
+ui_the_upload_task_could_not_be_read_or_saved_803c41	Der Upload-Auftrag konnte nicht gelesen oder gespeichert werden. Du kannst nur diesen Auftrag zurücksetzen; Konten und veröffentlichte Videos bleiben erhalten.
+ui_the_video_channel_or_comment_was_not_found_56ee2c	Video, Kanal oder Kommentar wurde auf dem Server des Kontos nicht gefunden.
+ui_the_video_has_already_been_uploaded_cancel_006471	Das Video wurde bereits hochgeladen. Abbrechen löscht keine veröffentlichten Videos.
+ui_the_video_has_been_uploaded_its_cover_stil_d841b6	Das Video wurde hochgeladen. Das Titelbild muss noch übernommen werden.
+ui_this_account_has_no_channels_90d173	Dieses Konto hat noch keine Kanäle
+ui_this_address_does_not_provide_a_compatible_702d33	Diese Adresse bietet keine kompatible PeerTube-Anmelde-API.
+ui_this_server_disables_live_streaming_local_fcce38	Dieser Server erlaubt keine Livestreams. Die lokale Vorschau ist verfügbar.
+ui_this_website_does_not_support_the_peertube_3f0625	Diese Website unterstützt die PeerTube-API nicht. Wähle einen PeerTube-Server. Der bisherige Server bleibt eingestellt.
+ui_thumbnail_unavailable_1a08a4	Vorschaubild nicht verfügbar
+ui_title_1b6233	Titel
+ui_title_3_120_characters_205170	Titel · 3–120 Zeichen
+ui_title_and_visibility_b072fd	Titel und Sichtbarkeit
+ui_today_db20e6	Letzte 24 Std.:
+ui_too_many_attempts_wait_before_trying_again_a0ffae	Zu viele Versuche. Warte etwas, bevor du es erneut versuchst.
+ui_transfer_was_interrupted_resume_to_check_p_77ca35	Die Übertragung wurde unterbrochen. Tippe auf „Fortsetzen“, um den Stand mit dem Server abzugleichen.
+ui_translate_subtitles_92ac18	Untertitel übersetzen
+ui_translate_titles_descriptions_and_comments_234bae	Titel, Beschreibungen und Kommentare übersetzen
+ui_translated_speech_language_fb3e9d	Sprache der übersetzten Sprachausgabe
+ui_translated_subtitles_01ecb4	Übersetzte Untertitel
+ui_translation_could_not_be_prepared_check_yo_180ecc	Die Übersetzung konnte nicht vorbereitet werden. Prüfe deine Verbindung und die heruntergeladenen Modelle; der Originaltext bleibt verfügbar.
+ui_translation_language_401967	Übersetzungssprache
+ui_translation_runs_on_your_device_both_langu_bebcf9	Die Übersetzung läuft auf deinem Gerät. Beide Sprachmodelle werden benötigt; neue Modelle sind jeweils etwa 30 MB groß. Videotexte werden nicht an einen Cloud-Übersetzungsdienst gesendet.
+ui_translation_unavailable_using_fallback_604641	Übersetzung nicht verfügbar – Ersatzmodus aktiv
+ui_tts_engine_6d87fc	TTS-Engine
+ui_tts_engine_unavailable_check_system_speech_1ff563	TTS-Engine nicht verfügbar. Prüfe die Sprachausgabe-Einstellungen des Systems.
+ui_two_factor_code_2d51c2	Bestätigungscode
+ui_unavailable_abcd43	nicht verfügbar
+ui_unchanged_dc2c08	Unverändert
+ui_unlimited_2b3fb9	unbegrenzt
+ui_unlisted_689d94	Nicht gelistet
+ui_unsubscribe_c612d7	Abo beenden
+ui_until_enough_results_dfbe89	Bis genügend Ergebnisse da sind
+ui_up_next_b0dfbd	Als Nächstes
+ui_up_to_20_accounts_can_be_saved_remove_an_u_32727c	Es können bis zu 20 Konten gespeichert werden. Entferne eine nicht benötigte Anmeldung.
+ui_upload_b4fcd7	Hochladen
+ui_upload_stopped_86c348	Upload angehalten
+ui_upload_video_504c7b	Video hochladen
+ui_upload_video_a6dd28	Video hochladen
+ui_uploaded_to_server_825d5e	Auf den Server hochgeladen
+ui_uploading_9da15d	Wird hochgeladen
+ui_use_account_a6c379	Verwenden
+ui_use_avatar_a723a9	Profilbild verwenden
+ui_use_your_account_s_username_on_this_server_2200cb	Verwende den Benutzernamen deines Kontos auf diesem Server. Dein Passwort wird nicht gespeichert. Anmeldung über externe Anbieter (SSO) wird noch nicht unterstützt.
+ui_username_8f11d1	Benutzername
+ui_verified_playable_only_slower_a59030	Nur geprüft abspielbare – langsamer
+ui_verify_your_email_address_on_the_server_we_eb9f69	Bestätige deine E-Mail-Adresse auf der Website des Servers.
+ui_version_994a31	Version
+ui_video_availability_69e650	Verfügbarkeit der Videos
+ui_video_count_1e68ed	Anzahl der Videos
+ui_video_description_02d4b7	Videobeschreibung
+ui_video_scaling_cfb650	Videoskalierung
+ui_views_385ac8	Aufrufe
+ui_visibility_613511	Sichtbarkeit
+ui_visibility_cb41fd	Sichtbarkeit
+ui_voice_7692ca	Stimme
+ui_voice_language_timing_and_original_audio_afa432	Stimme, Sprache, Timing und Originalton
+ui_voice_pitch_8d9081	Stimmhöhe
+ui_voice_test_language	Sprache: %1$s. Das Video wird pausiert.
+ui_waiting_for_live_fc9024	Wartet auf Livestream
+ui_watch_5f1a41	Ansehen
+ui_website_633681	Website
+ui_white_eecc94	Weiß
+ui_yellow_20cd3f	Gelb
+ui_you_have_no_videos_on_this_server_yet_74102c	Du hast auf diesem Server noch keine Videos.
+ui_your_account_has_reached_its_live_stream_l_fdf60d	Dein Konto hat die maximale Zahl an Livestreams erreicht. Wähle einen bestehenden wartenden Livestream oder beende nicht benötigte Livestreams auf dem Server.
+ui_your_channel_1dcac2	Dein Kanal
+ui_your_videos_90d416	Deine Videos
+ui_your_videos_and_upload_tasks_65de76	Deine Videos und Upload-Aufträge
+ui_zoom_crop_e0b550	Füllen und zuschneiden
+unsubscribe_button	Abo beenden
+unsubscribe_channel	Kanal nicht mehr abonnieren
+update_available	PeerIche %1$s ist verfügbar
+update_check_failed	GitHub konnte nicht abgefragt werden. Versuche es später erneut.
+update_current	Du hast die neueste Version.
+update_description	Update von GitHub herunterladen? Android fragt dich anschließend, ob du die Installation bestätigst.
+update_download	Herunterladen
+update_download_failed	Download oder Prüfung der APK fehlgeschlagen. Versuche es erneut.
+update_install	Installieren
+update_install_failed	Das Android-Installationsprogramm konnte nicht geöffnet werden.
+update_later	Später
+update_ready	Die APK wurde geprüft. Tippe auf „Installieren“. Wenn Android fragt, erlaube Updates aus PeerIche, kehre hierher zurück und tippe erneut auf „Installieren“.
+video_meta	%1$d Aufrufe · %2$s
+video_unavailable	Es konnte kein abspielbarer Stream geladen werden. Versuche es erneut oder wähle einen anderen Server.
+you	Du
+translation_follow_interface	Wie Sprache der App
