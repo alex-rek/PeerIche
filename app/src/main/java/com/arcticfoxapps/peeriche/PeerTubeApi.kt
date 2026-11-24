@@ -57,7 +57,8 @@ data class Video(
     val channel: Channel? = null, val account: Account? = null, val nsfw: Boolean = false,
     val isLive: Boolean = false, val state: VideoState? = null, val commentsEnabled: Boolean = true,
     val comments: Int? = null, val likes: Long = 0, val dislikes: Long = 0,
-    val playbackAccountId: String? = null, val downloadEnabled: Boolean = true
+    val playbackAccountId: String? = null, val downloadEnabled: Boolean = true,
+    val tags: List<String>? = null, val category: VideoCategory? = null
 ) {
     fun sourceServer(fallback: String): String {
         val urlHost = runCatching { java.net.URI(url).takeIf { it.scheme == "https" || it.scheme == "http" }?.host }.getOrNull()
@@ -110,6 +111,7 @@ internal fun Video.resolvedMediaUrls(server: String): Video {
 
 data class VideoFile(val fileUrl: String? = null, val resolution: Resolution? = null, val fileDownloadUrl: String? = null, val size: Long = 0, val hasVideo: Boolean? = null)
 data class VideoState(val id: Int = 0)
+data class VideoCategory(val id: Int? = null, val label: String? = null)
 data class Resolution(val id: Int = 0, val label: String? = null)
 data class StreamingPlaylist(val playlistUrl: String? = null, val files: List<VideoFile>? = null)
 data class Channel(val displayName: String? = null, val name: String? = null, val host: String? = null, val avatars: List<Avatar>? = null)
@@ -139,7 +141,13 @@ interface PeerTubeApi {
     @GET("api/v1/videos/{id}/comment-threads/{thread}") suspend fun commentThread(@Path("id") id: String, @Path("thread") thread: Int): CommentTree
     @GET("api/v1/video-channels/{handle}") suspend fun channel(@Path(value = "handle", encoded = true) handle: String): PeerTubeChannel
     @GET("api/v1/videos/{id}/captions") suspend fun captions(@Path("id") id: String): CaptionPage
-    @GET("api/v1/video-channels/{handle}/videos") suspend fun channelVideos(@Path(value = "handle", encoded = true) handle: String, @Query("count") count: Int = 30): VideoPage
+    @GET("api/v1/video-channels/{handle}/videos") suspend fun channelVideos(@Path(value = "handle", encoded = true) handle: String, @Query("count") count: Int = 30,
+        @Query("sort") sort: String? = null, @Query("isLive") isLive: Boolean? = null, @Query("nsfw") nsfw: String? = null): VideoPage
+    @GET("api/v1/videos") suspend fun relatedVideos(
+        @Query("count") count: Int, @Query("sort") sort: String, @Query("nsfw") nsfw: String,
+        @Query("tagsOneOf") tags: List<String>? = null, @Query("categoryOneOf") categories: List<Int>? = null,
+        @Query("isLive") isLive: Boolean = false
+    ): VideoPage
     @GET("api/v1/video-channels") suspend fun channels(@Query("count") count: Int = 100, @Query("start") start: Int = 0, @Query("sort") sort: String = "-createdAt"): ChannelPage
 }
 

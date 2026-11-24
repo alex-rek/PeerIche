@@ -295,6 +295,24 @@ class MainActivity : ComponentActivity() {
     val hiddenChannels = remember(hiddenRows) { hiddenRows.map { it.identity }.toSet() }
     val favoriteRows by remember(database) { database.library().observe("favorite") }.collectAsState(initial = emptyList())
     val historyRows by remember(database) { database.library().observe("history") }.collectAsState(initial = emptyList())
+    // "Up next" sources for the open video. Detailed metadata (tags, category) arrives after the first
+    // tap, so the key includes whether tags are known and the list is fetched again once they are.
+    val relatedKey = selectedVideo?.let { "${it.sourceServer(server)}|${it.apiId()}|${it.tags != null}|${options.includeSensitive}" }
+    var relatedSources by remember { mutableStateOf<Pair<String, RelatedSources>?>(null) }
+    LaunchedEffect(relatedKey) {
+        val current = selectedVideo ?: return@LaunchedEffect
+        if (relatedKey == null || current.apiId().isBlank() || relatedSources?.first == relatedKey) return@LaunchedEffect
+        relatedSources = relatedKey to loadRelatedSources(current, server, options.includeSensitive)
+    }
+    /** Null while the open video's related videos are still loading, so the list does not jump. */
+    fun upNext(current: Video): List<Video>? {
+        val watched = historyRows.map { it.identity.substringBefore('|') }.toSet()
+        val sources = if (current.apiId().isBlank()) RelatedSources()
+            else relatedSources?.takeIf { it.first.startsWith("${current.sourceServer(server)}|${current.apiId()}|") }?.second ?: return null
+        return mergeRelatedVideos(current, server, sources, recommendedVideos + homeVideos + subscriptionFeed,
+            excluded = { it.sourceServer(server) + "|" + it.apiId() in hiddenVideos }, watched = { it.apiId() in watched }, limit = 60)
+            .withoutHiddenChannels(hiddenChannels + blockedChannels, server).take(20)
+    }
     val subscriptionRows by remember(database) { database.library().observe("subscription") }.collectAsState(initial = emptyList())
     val effectiveSubscriptions = if (serverSubscriptions) accountSnapshot?.subscriptions.orEmpty().map { it.subscriptionRow(selectedAccount!!.server) } else subscriptionRows
     val playlistDefinitions by remember(database) { database.library().observe("playlist") }.collectAsState(initial = null)
@@ -978,8 +996,7 @@ class MainActivity : ComponentActivity() {
                     }
                 } else if (wideLayout) {
                     val current = selectedVideo!!
-                    val next = deduplicateVideos(recommendedVideos + homeVideos + serverVideos + liveVideos + videos + subscriptionFeed, server).withoutHiddenChannels(blockedChannels, server)
-                        .filterNot { it.apiId() == current.apiId() && it.sourceServer(server) == current.sourceServer(server) }.take(20)
+                    val next = upNext(current).orEmpty()
                     TabletVideoScreen(current, server, loadingVideo, playerError, next, tabletFullscreen,
                         current.apiId() in favorites, effectiveSubscriptions.any { it.identity == current.subscriptionIdentity(server) },
                         onBrowse = { tabletFullscreen = false; tabletBrowsing = true },
@@ -1008,10 +1025,10 @@ class MainActivity : ComponentActivity() {
                         WatchDetails(video, server, video.apiId() in favorites, effectiveSubscriptions.any { it.identity == video.subscriptionIdentity(server) },
                             onFavorite = { toggleCurrentVideoFavorite(video) }, onSubscribe = { toggleCurrentVideoSubscription(video) },
                             onChannel = { video.channel?.name?.let { handle -> openChannelVideos(PeerTubeChannel(video.channel.displayName ?: handle, handle, video.sourceServer(server).removePrefix("https://"))); closePlayer() } })
-                        val next = deduplicateVideos(recommendedVideos + homeVideos + serverVideos + liveVideos + videos + subscriptionFeed, server).withoutHiddenChannels(blockedChannels, server)
-                            .filterNot { it.apiId() == video.apiId() && it.sourceServer(server) == video.sourceServer(server) }.take(20)
-                        if (next.isNotEmpty()) Text(uiText(R.string.ui_up_next_b0dfbd), Modifier.padding(16.dp), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                        next.forEach { item -> NextVideoRow(item, server) { openVideo(item) } }
+                        val next = upNext(video)
+                        if (next == null || next.isNotEmpty()) Text(uiText(R.string.ui_up_next_b0dfbd), Modifier.padding(16.dp), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                        if (next == null) LinearProgressIndicator(Modifier.fillMaxWidth().padding(horizontal = 16.dp), color = colors.primary, trackColor = colors.surface)
+                        next.orEmpty().forEach { item -> NextVideoRow(item, server) { openVideo(item) } }
                     }
                 }
                 }
