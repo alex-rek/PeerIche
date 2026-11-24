@@ -64,6 +64,11 @@ class HistorySyncTest {
         assertEquals(setOf("a", "b", "c"), plan.seen)
     }
 
+    @Test fun watchedVideosLeaveHomeExceptInSingleChannelMode() {
+        assertTrue(hidesWatchedOnHome("recommended") && hidesWatchedOnHome("interests") && hidesWatchedOnHome("server"))
+        assertTrue(!hidesWatchedOnHome("channel"))
+    }
+
     @Test fun keysIgnoreHostAndCase() {
         assertEquals(historyKey("https://a.example|ABC"), historyKey("abc"))
     }

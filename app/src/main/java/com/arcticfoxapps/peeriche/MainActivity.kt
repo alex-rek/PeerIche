@@ -890,9 +890,10 @@ class MainActivity : ComponentActivity() {
                     if (page == "You" && youSection == YouSection.History) LaunchedEffect(Unit) { HistorySync.get(context).requestSync() }
                     } }
                     val browsingFeed = page == "Server" || page == "Live"
-                    val watchedIds = remember(historyRows, options.homeContent) { if (options.homeContent == "recommended") historyRows.map { it.identity.substringBefore('|') }.toSet() else emptySet() }
+                    val watchedIds = remember(historyRows, options.homeContent) {
+                        if (hidesWatchedOnHome(options.homeContent)) historyRows.map { historyKey(it.identity) }.toSet() else emptySet() }
                     // Live and scheduled streams have their own "Live" tab, so Home shows only regular videos.
-                    fun List<Video>.forHome() = withSensitivePolicy(options.allowSensitive()).filterNot { it.isLive || it.apiId() in watchedIds }.withoutHiddenChannels(hiddenChannels + blockedChannels, server).filterNot { it.sourceServer(server) + "|" + it.apiId() in hiddenVideos }
+                    fun List<Video>.forHome() = withSensitivePolicy(options.allowSensitive()).filterNot { it.isLive || it.apiId().lowercase() in watchedIds }.withoutHiddenChannels(hiddenChannels + blockedChannels, server).filterNot { it.sourceServer(server) + "|" + it.apiId() in hiddenVideos }
                     val homeFollowing = (if (options.homeContent != "recommended") emptyList() else if (serverSubscriptions) accountFeed else subscriptionFeed).forHome()
                     // Preferred video languages go first; subscriptions are kept as they are.
                     val homeRecommended = recommendedVideos.forHome().preferVideoLanguages(homeLanguages)

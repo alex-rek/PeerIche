@@ -23,6 +23,9 @@ internal fun homeContentLabel(mode: String): Int = when (mode) {
     else -> R.string.home_recommended
 }
 
+/** Home works as a feed of new videos in these modes, so watched ones are left out; a single channel stays complete. */
+internal fun hidesWatchedOnHome(mode: String): Boolean = mode in setOf("recommended", "interests", "server")
+
 internal fun homeChannel(value: String): PeerTubeChannel {
     val text = value.trim()
     val url = text.toHttpUrlOrNull()
