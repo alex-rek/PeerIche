@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.WatchLater
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -18,6 +19,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.*
 import androidx.compose.ui.text.style.TextOverflow
@@ -25,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.text.HtmlCompat
 import coil.compose.AsyncImage
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.launch
 
 internal fun Video.publicWatchUrl(server: String): String {
     val supplied = runCatching { java.net.URI(url.orEmpty()) }.getOrNull()
@@ -45,7 +49,10 @@ internal fun Video.shareText(server: String): String = name + "\n" + publicWatch
     val canSubscribe = !serverSubscription || accountState.active?.needsLogin == false
     var expanded by rememberSaveable(video.apiId()) { mutableStateOf(false) }
     var comments by rememberSaveable(video.apiId()) { mutableStateOf(false) }
-    var speechSettings by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    val watchLaterRows by remember(context) { PeerIcheDatabase.get(context).library().observe(WATCH_LATER) }.collectAsState(emptyList())
+    val inWatchLater = watchLaterRows.any { watchLaterKey(it.identity) == watchLaterKey(video.apiId()) }
+    val watchLaterState = uiText(if (inWatchLater) R.string.watch_later_remove else R.string.watch_later_add)
     var fullDescription by remember(video.apiId(), video.description) { mutableStateOf(video.description.orEmpty()) }
     var descriptionLoaded by remember(video.apiId()) { mutableStateOf(false) }
     var channel by remember(video.apiId()) { mutableStateOf<PeerTubeChannel?>(null) }
@@ -87,7 +94,17 @@ internal fun Video.shareText(server: String): String = name + "\n" + publicWatch
                     type = "text/plain"; putExtra(Intent.EXTRA_TEXT, video.shareText(server)); putExtra(Intent.EXTRA_SUBJECT, video.name)
                 }, shareLabel))
             }, label = { Text(shareLabel) }, leadingIcon = { Icon(Icons.Default.Share, null, Modifier.size(20.dp)) })
-            AssistChip(onClick = { speechSettings = true }, label = { Text(uiText(R.string.ui_speech_b0f924)) }, leadingIcon = { Icon(Icons.Default.RecordVoiceOver, null, Modifier.size(20.dp)) })
+            // Saves to or removes from "Watch later"; synced with the account like the video menu item.
+            AssistChip(onClick = {
+                scope.launch {
+                    try { WatchLaterSync.get(context).setSaved(video, server, !inWatchLater) }
+                    catch (cancelled: CancellationException) { throw cancelled }
+                    catch (_: Exception) { }
+                }
+            }, label = { Text(uiText(R.string.watch_later)) },
+                leadingIcon = { Icon(if (inWatchLater) Icons.Default.WatchLater else Icons.Outlined.WatchLater, null, Modifier.size(20.dp)) },
+                colors = if (inWatchLater) AssistChipDefaults.assistChipColors(containerColor = colors.secondaryContainer) else AssistChipDefaults.assistChipColors(),
+                modifier = Modifier.semantics { stateDescription = watchLaterState })
             AssistChip(onClick = onChannel, enabled = video.channel?.name != null, label = { Text(uiText(R.string.ui_channel_videos_db019b)) })
             VideoDownloadButton(video, server)
             HideChannelButton(video, server, video.channel?.displayName ?: video.channel?.name.orEmpty())
@@ -123,7 +140,6 @@ internal fun Video.shareText(server: String): String = name + "\n" + publicWatch
         }
     }
     if (comments) VideoCommentsSheet(video, server) { comments = false }
-    if (speechSettings) SpeechSettingsDialog { speechSettings = false }
 }
 
 @Composable internal fun NextVideoRow(video: Video, server: String, onOpen: () -> Unit) {
