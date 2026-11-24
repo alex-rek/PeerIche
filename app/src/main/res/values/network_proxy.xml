@@ -1,7 +1,7 @@
 <resources>
     <string name="network_settings">Network</string>
     <string name="proxy_scope_note">For catalogs, search, images, playback, video transfers and updates. Does not apply to phone RTMP broadcasts or translation-model downloads.</string>
-    <string name="proxy_type">Connection</string>
+    <string name="proxy_type">Proxy type</string>
     <string name="proxy_off">No proxy</string>
     <string name="proxy_host">Proxy address</string>
     <string name="proxy_port">Port</string>

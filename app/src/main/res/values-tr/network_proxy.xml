@@ -1,7 +1,7 @@
 <resources>
     <string name="network_settings">Ağ</string>
     <string name="proxy_scope_note">Kataloglar, arama, görseller, oynatma, video aktarımları ve güncellemeler için. Telefondan RTMP yayınları ve çeviri modeli indirmeleri için geçerli değildir.</string>
-    <string name="proxy_type">Bağlantı</string>
+    <string name="proxy_type">Proxy türü</string>
     <string name="proxy_off">Proxy yok</string>
     <string name="proxy_host">Proxy adresi</string>
     <string name="proxy_port">Bağlantı noktası</string>

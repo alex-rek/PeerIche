@@ -1,7 +1,7 @@
 <resources>
     <string name="network_settings">Rede</string>
     <string name="proxy_scope_note">Para catálogos, buscas, imagens, reprodução, transferências de vídeo e atualizações. Não se aplica a transmissões RTMP do celular nem a downloads de modelos de tradução.</string>
-    <string name="proxy_type">Conexão</string>
+    <string name="proxy_type">Tipo de proxy</string>
     <string name="proxy_off">Sem proxy</string>
     <string name="proxy_host">Endereço do proxy</string>
     <string name="proxy_port">Porta</string>

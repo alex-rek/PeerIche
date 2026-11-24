@@ -1,7 +1,7 @@
 <resources>
     <string name="network_settings">Мережа</string>
     <string name="proxy_scope_note">Для каталогу, пошуку, зображень, програвача, передавання відео й оновлень. Не застосовується до RTMP-ефірів із телефона та завантаження мовних моделей.</string>
-    <string name="proxy_type">Підключення</string>
+    <string name="proxy_type">Тип проксі</string>
     <string name="proxy_off">Без проксі</string>
     <string name="proxy_host">Адреса проксі</string>
     <string name="proxy_port">Порт</string>

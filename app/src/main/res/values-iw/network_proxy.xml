@@ -1,7 +1,7 @@
 <resources>
     <string name="network_settings">רשת</string>
     <string name="proxy_scope_note">לקטלוגים, חיפוש, תמונות, ניגון, העברת וידאו ועדכונים. לא חל על שידורי RTMP מהטלפון או על הורדת מודלי תרגום.</string>
-    <string name="proxy_type">חיבור</string>
+    <string name="proxy_type">סוג שרת מתווך</string>
     <string name="proxy_off">ללא שרת מתווך</string>
     <string name="proxy_host">כתובת שרת מתווך</string>
     <string name="proxy_port">יציאה</string>

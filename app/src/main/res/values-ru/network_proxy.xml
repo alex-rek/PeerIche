@@ -1,7 +1,7 @@
 <resources>
     <string name="network_settings">Сеть</string>
     <string name="proxy_scope_note">Для каталога, поиска, изображений, плеера, передачи видео и обновлений. Не применяется к RTMP-эфирам с телефона и загрузке языковых моделей.</string>
-    <string name="proxy_type">Подключение</string>
+    <string name="proxy_type">Тип прокси</string>
     <string name="proxy_off">Без прокси</string>
     <string name="proxy_host">Адрес прокси</string>
     <string name="proxy_port">Порт</string>

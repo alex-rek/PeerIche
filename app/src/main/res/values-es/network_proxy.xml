@@ -1,7 +1,7 @@
 <resources>
     <string name="network_settings">Red</string>
     <string name="proxy_scope_note">Para catálogos, búsquedas, imágenes, reproducción, transferencias de vídeo y actualizaciones. No se aplica a emisiones RTMP desde el teléfono ni a descargas de modelos de traducción.</string>
-    <string name="proxy_type">Conexión</string>
+    <string name="proxy_type">Tipo de proxy</string>
     <string name="proxy_off">Sin proxy</string>
     <string name="proxy_host">Dirección del proxy</string>
     <string name="proxy_port">Puerto</string>

@@ -1,7 +1,7 @@
 <resources>
     <string name="network_settings">网络</string>
     <string name="proxy_scope_note">用于目录、搜索、图片、播放、视频传输和更新。不适用于手机 RTMP 直播或翻译模型下载。</string>
-    <string name="proxy_type">连接</string>
+    <string name="proxy_type">代理类型</string>
     <string name="proxy_off">不使用代理</string>
     <string name="proxy_host">代理地址</string>
     <string name="proxy_port">端口</string>

@@ -1,7 +1,7 @@
 <resources>
     <string name="network_settings">الشبكة</string>
     <string name="proxy_scope_note">للكتالوجات والبحث والصور والتشغيل ونقل الفيديو والتحديثات. لا ينطبق على بث RTMP من الهاتف أو تنزيل نماذج الترجمة.</string>
-    <string name="proxy_type">الاتصال</string>
+    <string name="proxy_type">نوع الوكيل</string>
     <string name="proxy_off">بدون وكيل</string>
     <string name="proxy_host">عنوان الوكيل</string>
     <string name="proxy_port">المنفذ</string>

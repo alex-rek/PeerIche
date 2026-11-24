@@ -23,6 +23,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.util.concurrent.TimeUnit
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable internal fun NetworkSettingsPage() {
     val state by ProxyNetwork.state.collectAsState()
     val saved = state.config
@@ -68,28 +69,23 @@ import java.util.concurrent.TimeUnit
             finally { activeCall = null; busy = false }
         }
     }
-    Column(Modifier.fillMaxSize().imePadding().verticalScroll(rememberScrollState()).padding(bottom = 24.dp)) {
+    // SettingsScreen already pads by safeDrawing, which includes the keyboard; a second imePadding left no room for fields.
+    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(bottom = 24.dp)) {
         Text(uiText(R.string.proxy_scope_note), Modifier.padding(horizontal = 24.dp, vertical = 8.dp), style = MaterialTheme.typography.bodyMedium)
         if (state.storageError) Text(uiText(R.string.proxy_storage_error), Modifier.padding(horizontal = 24.dp, vertical = 8.dp), color = MaterialTheme.colorScheme.error)
-        SettingsChoice(uiText(R.string.proxy_type), type, listOf("off" to uiText(R.string.proxy_off), "http" to "HTTP", "socks5" to "SOCKS5")) {
-            if (!busy) { type = it; status = null }
-        }
         Column(Modifier.widthIn(max = 720.dp).fillMaxWidth().padding(horizontal = 24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            OutlinedTextField(host, { host = it; status = null }, Modifier.fillMaxWidth(), enabled = !busy,
-                label = { Text(uiText(R.string.proxy_host)) }, placeholder = { Text("proxy.example.org") }, singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri))
-            OutlinedTextField(port, { port = it; status = null }, Modifier.fillMaxWidth(), enabled = !busy,
-                label = { Text(uiText(R.string.proxy_port)) }, singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
-            OutlinedTextField(username, { username = it; status = null }, Modifier.fillMaxWidth(), enabled = !busy,
-                label = { Text(uiText(R.string.proxy_username)) }, singleLine = true)
-            OutlinedTextField(password, { password = it; status = null }, Modifier.fillMaxWidth(), enabled = !busy,
-                label = { Text(uiText(R.string.proxy_password)) }, singleLine = true,
-                visualTransformation = if (visible) VisualTransformation.None else PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password), trailingIcon = {
-                    IconButton(onClick = { visible = !visible }) { Icon(if (visible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                        uiText(if (visible) R.string.proxy_hide_password else R.string.proxy_show_password)) }
-                })
-            Text(uiText(R.string.proxy_reopen_video), style = MaterialTheme.typography.bodySmall)
+            Text(uiText(R.string.proxy_type), Modifier.padding(top = 8.dp), style = MaterialTheme.typography.titleSmall)
+            // All choices stay on screen: a row that opens a picker did not look tappable.
+            val choices = listOf("off" to uiText(R.string.proxy_off), "http" to "HTTP", "socks5" to "SOCKS5")
+            SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+                choices.forEachIndexed { index, (key, label) ->
+                    SegmentedButton(selected = type == key, onClick = { type = key; status = null }, enabled = !busy,
+                        shape = SegmentedButtonDefaults.itemShape(index, choices.size)) { Text(label) }
+                }
+            }
+            if (type != "off") ProxyFields(host, port, username, password, visible, !busy,
+                { host = it; status = null }, { port = it; status = null }, { username = it; status = null },
+                { password = it; status = null }, { visible = !visible })
             Button(enabled = !busy, onClick = { save(false) }) { Text(uiText(R.string.proxy_save)) }
             OutlinedButton(enabled = !busy, onClick = { save(true) }) { Text(uiText(R.string.proxy_save_check)) }
             Text(uiText(R.string.proxy_check_target), style = MaterialTheme.typography.bodySmall)
@@ -108,4 +104,25 @@ import java.util.concurrent.TimeUnit
             }
         }) { Text(uiText(R.string.proxy_reset)) } },
         dismissButton = { TextButton(onClick = { reset = false }) { Text(uiText(R.string.ui_cancel_28fb55)) } })
+}
+
+@Composable private fun ProxyFields(host: String, port: String, username: String, password: String, visible: Boolean, enabled: Boolean,
+    onHost: (String) -> Unit, onPort: (String) -> Unit, onUsername: (String) -> Unit, onPassword: (String) -> Unit, onToggleVisible: () -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        OutlinedTextField(host, onHost, Modifier.fillMaxWidth(), enabled = enabled,
+            label = { Text(uiText(R.string.proxy_host)) }, placeholder = { Text("proxy.example.org") }, singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri))
+        OutlinedTextField(port, onPort, Modifier.fillMaxWidth(), enabled = enabled,
+            label = { Text(uiText(R.string.proxy_port)) }, singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
+        OutlinedTextField(username, onUsername, Modifier.fillMaxWidth(), enabled = enabled,
+            label = { Text(uiText(R.string.proxy_username)) }, singleLine = true)
+        OutlinedTextField(password, onPassword, Modifier.fillMaxWidth(), enabled = enabled,
+            label = { Text(uiText(R.string.proxy_password)) }, singleLine = true,
+            visualTransformation = if (visible) VisualTransformation.None else PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password), trailingIcon = {
+                IconButton(onClick = onToggleVisible) { Icon(if (visible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                    uiText(if (visible) R.string.proxy_hide_password else R.string.proxy_show_password)) }
+            })
+        Text(uiText(R.string.proxy_reopen_video), style = MaterialTheme.typography.bodySmall)
+    }
 }
