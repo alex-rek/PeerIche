@@ -1,0 +1,6 @@
+<resources>
+    <string name="home_languages">Video language on Home</string>
+    <string name="home_languages_any">Any language</string>
+    <string name="home_languages_interface">Same as the interface</string>
+    <string name="home_languages_hint">Videos in these languages are shown first. If the server has few of them, Home is filled with other videos.</string>
+</resources>

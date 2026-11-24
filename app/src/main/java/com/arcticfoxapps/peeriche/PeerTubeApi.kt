@@ -58,7 +58,7 @@ data class Video(
     val isLive: Boolean = false, val state: VideoState? = null, val commentsEnabled: Boolean = true,
     val comments: Int? = null, val likes: Long = 0, val dislikes: Long = 0,
     val playbackAccountId: String? = null, val downloadEnabled: Boolean = true,
-    val tags: List<String>? = null, val category: VideoCategory? = null
+    val tags: List<String>? = null, val category: VideoCategory? = null, val language: VideoLanguage? = null
 ) {
     fun sourceServer(fallback: String): String {
         val urlHost = runCatching { java.net.URI(url).takeIf { it.scheme == "https" || it.scheme == "http" }?.host }.getOrNull()
@@ -112,6 +112,7 @@ internal fun Video.resolvedMediaUrls(server: String): Video {
 data class VideoFile(val fileUrl: String? = null, val resolution: Resolution? = null, val fileDownloadUrl: String? = null, val size: Long = 0, val hasVideo: Boolean? = null)
 data class VideoState(val id: Int = 0)
 data class VideoCategory(val id: Int? = null, val label: String? = null)
+data class VideoLanguage(val id: String? = null, val label: String? = null)
 data class Resolution(val id: Int = 0, val label: String? = null)
 data class StreamingPlaylist(val playlistUrl: String? = null, val files: List<VideoFile>? = null)
 data class Channel(val displayName: String? = null, val name: String? = null, val host: String? = null, val avatars: List<Avatar>? = null)
@@ -123,13 +124,14 @@ interface PeerTubeApi {
         @Query("count") count: Int = 30, @Query("start") start: Int = 0,
         @Query("isLocal") isLocal: Boolean? = null, @Query("nsfw") nsfw: String = "false",
         @Query("isLive") isLive: Boolean? = null, @Query("includeScheduledLive") includeScheduledLive: Boolean? = null,
-        @Query("sort") sort: String = "-publishedAt", @Query("categoryOneOf") categories: List<Int>? = null
+        @Query("sort") sort: String = "-publishedAt", @Query("categoryOneOf") categories: List<Int>? = null,
+        @Query("languageOneOf") languages: List<String>? = null
     ): okhttp3.ResponseBody
     @GET("api/v1/videos") suspend fun videos(
         @Query("sort") sort: String = "-publishedAt", @Query("count") count: Int = 30,
         @Query("isLocal") isLocal: Boolean? = null, @Query("start") start: Int = 0,
         @Query("isLive") isLive: Boolean? = null, @Query("includeScheduledLive") includeScheduledLive: Boolean? = null,
-        @Query("nsfw") nsfw: String = "false"
+        @Query("nsfw") nsfw: String = "false", @Query("languageOneOf") languages: List<String>? = null
     ): VideoPage
     @GET("api/v1/search/videos") suspend fun search(
         @Query("search") query: String, @Query("start") start: Int = 0,
@@ -236,10 +238,30 @@ object PeerTubeClients {
     }
     suspend fun discoverInstances() = directory.instances().data.filter { it.host.isNotBlank() }
     suspend fun discoverInstancePage(start: Int, search: String = "") = directory.instances(start = start, count = 100, search = search.trim().takeIf(String::isNotBlank))
-    internal suspend fun interestVideos(server: String, categories: List<Int>, sensitive: Boolean): List<Video> =
-        server(server).videoListing(categories = categories, nsfw = sensitiveContentFilter(sensitive)).use { parsePeerTubeVideoPage(it.string()).data }
-    suspend fun home(server: String) = server(server).videos(sort = "-publishedAt", count = 30, isLive = false).data
-    suspend fun popular(server: String) = server(server).videos(sort = "-views", count = 30).data
+    internal suspend fun interestVideos(server: String, categories: List<Int>, sensitive: Boolean, languages: Set<String> = emptySet()): List<Video> =
+        languageFirst(server, languages) { filter ->
+            server(server).videoListing(categories = categories, nsfw = sensitiveContentFilter(sensitive), languages = filter).use { parsePeerTubeVideoPage(it.string()).data }
+        }
+    suspend fun home(server: String, languages: Set<String> = emptySet()) =
+        languageFirst(server, languages) { server(server).videos(sort = "-publishedAt", count = 30, isLive = false, languages = it).data }
+    suspend fun popular(server: String, languages: Set<String> = emptySet()) =
+        languageFirst(server, languages) { server(server).videos(sort = "-views", count = 30, languages = it).data }
+    /**
+     * With preferred languages, asks the server for those languages and, in parallel, for everything,
+     * so a server with few such videos still fills Home. A failed language request falls back to the rest.
+     */
+    private suspend fun languageFirst(server: String, languages: Set<String>, fetch: suspend (List<String>?) -> List<Video>): List<Video> {
+        if (languages.isEmpty()) return fetch(null)
+        return coroutineScope {
+            val preferred = async {
+                try { fetch(languages.sorted()) }
+                catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled }
+                catch (_: Exception) { emptyList() }
+            }
+            val all = async { fetch(null) }
+            mergeLanguageFirst(preferred.await(), all.await(), server)
+        }
+    }
     suspend fun serverPage(host: String, page: Int, sensitive: Boolean): SearchPage {
         val start = page.coerceAtLeast(0) * 30
         val response = checkedVideoListing(host, start = start, local = true, sensitive = sensitive)

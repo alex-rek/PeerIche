@@ -164,6 +164,7 @@ class MainActivity : ComponentActivity() {
     val context = LocalContext.current
     val inPip = context.playerActivity()?.pipSupport?.active == true
     val options by AppPreferences.get(context).options.collectAsState()
+    val homeLanguages = resolveHomeVideoLanguages(options.videoLanguages, AppPreferences.get(context).interfaceLanguageCode())
     val proxyRevision by ProxyNetwork.revision.collectAsState()
     val wideLayout = LocalConfiguration.current.smallestScreenWidthDp >= 600 && LocalConfiguration.current.screenWidthDp >= 600
     val landscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
@@ -346,14 +347,14 @@ class MainActivity : ComponentActivity() {
                     recommendedVideos = emptyList()
                     subscriptionFeed = emptyList()
                     homeVideos = emptyList()
-                    homeVideos = loadConfiguredHome(options, server)
+                    homeVideos = loadConfiguredHome(options, server, homeLanguages)
                     return@launch
                 }
                 val history = database.library().getAll("history")
                 val savedSubscriptions = database.library().getAll("subscription")
                 val searchServers = availableServers.ifEmpty { listOf(server) }
-                val latestRequest = async { runCatching { PeerTubeClients.home(server) } }
-                val popularRequest = async { runCatching { PeerTubeClients.popular(server) } }
+                val latestRequest = async { runCatching { PeerTubeClients.home(server, homeLanguages) } }
+                val popularRequest = async { runCatching { PeerTubeClients.popular(server, homeLanguages) } }
                 val subscriptionRequest = async { fetchSubscribedVideos(savedSubscriptions) }
                 val terms = if (!options.historyRecommendations) emptyList()
                     else history.take(3).map { it.title.trim() }.filter(String::isNotBlank).distinct()
@@ -659,7 +660,7 @@ class MainActivity : ComponentActivity() {
         val current = selectedVideo
         if (current != null && endedVideo == current.sourceServer(server) + "|" + current.apiId()) closePlayer()
     }
-    LaunchedEffect(server, options.homeContent, options.homeInterests, options.homeServer, options.homeChannel, options.historyRecommendations, proxyRevision) {
+    LaunchedEffect(server, options.homeContent, options.homeInterests, options.homeServer, options.homeChannel, options.historyRecommendations, homeLanguages, proxyRevision) {
         homeJob?.cancel(); homeJob?.join()
         if (page == "Home") loadHome() else if (page == "Search") searchNow()
     }
@@ -888,8 +889,9 @@ class MainActivity : ComponentActivity() {
                     // Live and scheduled streams have their own "Live" tab, so Home shows only regular videos.
                     fun List<Video>.forHome() = filterNot { it.isLive || it.apiId() in watchedIds }.withoutHiddenChannels(hiddenChannels + blockedChannels, server).filterNot { it.sourceServer(server) + "|" + it.apiId() in hiddenVideos }
                     val homeFollowing = (if (options.homeContent != "recommended") emptyList() else if (serverSubscriptions) accountFeed else subscriptionFeed).forHome()
-                    val homeRecommended = recommendedVideos.forHome()
-                    val homeRecent = homeVideos.forHome()
+                    // Preferred video languages go first; subscriptions are kept as they are.
+                    val homeRecommended = recommendedVideos.forHome().preferVideoLanguages(homeLanguages)
+                    val homeRecent = homeVideos.forHome().let { if (options.homeContent == "channel") it else it.preferVideoLanguages(homeLanguages) }
                     val visibleVideos = when (page) {
                         "Server" -> serverVideos
                         "Live" -> liveVideos
@@ -961,7 +963,8 @@ class MainActivity : ComponentActivity() {
                     }
                     LazyVerticalGrid(state = activeFeedState, modifier = Modifier.nestedScroll(feedScrollConnection), columns = if (wideLayout) GridCells.Fixed(tabletColumns(LocalConfiguration.current.screenWidthDp)) else GridCells.Adaptive(minSize = 230.dp), contentPadding = PaddingValues(12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
                         if (page == "Home" && options.homeSort != "sections") {
-                            videoSection(null, sortHomeVideos(homeFollowing + homeRecommended + homeRecent, options.homeSort, server), "home", server, favorites, effectiveSubscriptions.map { it.identity }.toSet(), ::openVideo,
+                            videoSection(null, sortHomeVideos(homeFollowing + homeRecommended + homeRecent, options.homeSort, server)
+                                .preferVideoLanguages(homeLanguages, homeFollowing.map { it.apiId() }.toSet()), "home", server, favorites, effectiveSubscriptions.map { it.identity }.toSet(), ::openVideo,
                                 { video -> toggleCurrentVideoFavorite(video) },
                                 { video -> toggleCurrentVideoSubscription(video) })
                         } else if (page == "Home") {

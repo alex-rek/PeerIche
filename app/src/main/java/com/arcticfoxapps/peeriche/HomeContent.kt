@@ -35,7 +35,7 @@ internal fun homeChannel(value: String): PeerTubeChannel {
     return PeerTubeChannel(name = valid.substringBeforeLast('@'), host = valid.substringAfterLast('@'))
 }
 
-internal suspend fun loadConfiguredHome(options: AppOptions, activeServer: String): List<Video> = when (options.homeContent) {
+internal suspend fun loadConfiguredHome(options: AppOptions, activeServer: String, languages: Set<String> = emptySet()): List<Video> = when (options.homeContent) {
     "server" -> PeerTubeClients.serverPage(normalizeServer(options.homeServer), 0, options.includeSensitive).videos
     "channel" -> homeChannel(options.homeChannel).let { channel ->
         val origin = "https://${channel.host}"
@@ -43,7 +43,7 @@ internal suspend fun loadConfiguredHome(options: AppOptions, activeServer: Strin
     }
     "interests" -> {
         require(options.homeInterests.isNotEmpty())
-        PeerTubeClients.interestVideos(activeServer, options.homeInterests, options.includeSensitive)
+        PeerTubeClients.interestVideos(activeServer, options.homeInterests, options.includeSensitive, languages)
     }
     else -> emptyList()
 }

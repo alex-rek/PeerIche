@@ -1,0 +1,6 @@
+<resources>
+    <string name="home_languages">Язык видео на Главной</string>
+    <string name="home_languages_any">Любой язык</string>
+    <string name="home_languages_interface">Как язык интерфейса</string>
+    <string name="home_languages_hint">Видео на этих языках показываются первыми. Если на сервере их мало, Главная дополняется другими видео.</string>
+</resources>

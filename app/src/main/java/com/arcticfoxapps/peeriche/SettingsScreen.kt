@@ -172,6 +172,7 @@ import java.util.Locale
     val scope = rememberCoroutineScope()
     val theme by remember(context) { context.peerIcheDataStore.data.catch { emit(emptyPreferences()) }.map { it[themeModeKey] ?: "system" } }.collectAsState("system")
     var homeContentDialog by remember { mutableStateOf(false) }
+    var homeLanguagesDialog by remember { mutableStateOf(false) }
     val locale = ConfigurationCompat.getLocales(LocalConfiguration.current)[0] ?: Locale.ENGLISH
     LazyColumn(Modifier.fillMaxSize()) {
         item { SettingsChoice(uiText(R.string.ui_app_theme_610976), theme, listOf("system" to uiText(R.string.ui_follow_android_9652ce),
@@ -190,6 +191,7 @@ import java.util.Locale
             preferences.update { current -> current.copy(country = it) }
         } }
         item { SettingsRow(uiText(R.string.home_content), uiText(homeContentLabel(options.homeContent)), onClick = { homeContentDialog = true }) }
+        item { SettingsRow(uiText(R.string.home_languages), homeVideoLanguagesSummary(options.videoLanguages), onClick = { homeLanguagesDialog = true }) }
         item { SettingsToggle(uiText(R.string.history_recommendations), options.historyRecommendations, uiText(R.string.history_recommendations_summary)) { value ->
             preferences.update { it.copy(historyRecommendations = value) }
         } }
@@ -197,6 +199,8 @@ import java.util.Locale
             Modifier.padding(24.dp), color = MaterialTheme.colorScheme.onSurfaceVariant) }
     }
     if (homeContentDialog) HomeContentDialog(options, preferences) { homeContentDialog = false }
+    if (homeLanguagesDialog) HomeVideoLanguagesDialog(options.videoLanguages,
+        onChange = { languages -> preferences.update { it.copy(videoLanguages = languages) } }) { homeLanguagesDialog = false }
 }
 
 @Composable internal fun PlayerSettingsPage(options: AppOptions, preferences: AppPreferences, onSpeech: () -> Unit) {

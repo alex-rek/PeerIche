@@ -1,0 +1,6 @@
+<resources>
+    <string name="home_languages">Langue des vidéos sur l’accueil</string>
+    <string name="home_languages_any">Toutes les langues</string>
+    <string name="home_languages_interface">Comme l’interface</string>
+    <string name="home_languages_hint">Les vidéos dans ces langues s’affichent en premier. Si le serveur en a peu, l’accueil est complété par d’autres vidéos.</string>
+</resources>

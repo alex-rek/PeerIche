@@ -11,6 +11,7 @@ data class AppOptions(
     val interfaceLanguage: String = "", val country: String = "", val homeSort: String = "newest",
     val homeContent: String = "recommended", val homeInterests: List<Int> = emptyList(),
     val homeServer: String = "", val homeChannel: String = "", val historyRecommendations: Boolean = false,
+    val videoLanguages: List<String> = emptyList(),
     val speech: SubtitleSpeechSettings = SubtitleSpeechSettings(),
     val searchSources: List<String> = listOf("sepia", "peerseek", "federated", "direct", "local"),
     val searchOrder: List<String> = listOf("sepia", "peerseek", "custom", "federated", "direct", "local"),
@@ -73,6 +74,8 @@ class AppPreferences private constructor(context: Context) {
         storedOptions = value
         state.value = resolvedTranslationOptions(value, interfaceTag)
     }
+    /** Two-letter code of the interface language, or "en" when Android uses a language PeerIche does not have. */
+    fun interfaceLanguageCode(): String = interfaceTag
     fun refreshInterfaceLanguage() {
         interfaceTag = currentInterfaceTranslationLanguage(appContext, storedOptions)
         state.value = resolvedTranslationOptions(storedOptions, interfaceTag)
