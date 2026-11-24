@@ -16,7 +16,7 @@ LANGUAGES = ('es', 'fr', 'de', 'pt', 'tr', 'uk', 'zh', 'ar', 'he')
 PLACEHOLDER = re.compile(r'%\d+\$[sd]')
 # Strings kept in their own resource files and translated there.
 SEPARATE_FILES = ('broadcast_logo', 'creation_updates', 'creator_schedule', 'hidden_channels', 'network_proxy',
-                  'home_interests', 'home_languages', 'playlist_sync', 'privacy_settings', 'server_catalog', 'video_library')
+                  'history_sync', 'home_interests', 'home_languages', 'playlist_sync', 'privacy_settings', 'server_catalog', 'video_library')
 
 
 def source_catalog():

@@ -1,0 +1,7 @@
+<resources>
+    <string name="history_remove">Remover do histórico</string>
+    <string name="history_clear">Limpar histórico</string>
+    <string name="history_clear_question">Limpar todo o histórico?</string>
+    <string name="history_clear_account">O histórico também será limpo na tua conta PeerTube no servidor.</string>
+    <string name="history_clear_device">O histórico será limpo neste dispositivo.</string>
+</resources>

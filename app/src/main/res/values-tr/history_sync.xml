@@ -1,0 +1,7 @@
+<resources>
+    <string name="history_remove">Geçmişten kaldır</string>
+    <string name="history_clear">Geçmişi temizle</string>
+    <string name="history_clear_question">Tüm geçmiş temizlensin mi?</string>
+    <string name="history_clear_account">Geçmiş, sunucudaki PeerTube hesabınızda da temizlenir.</string>
+    <string name="history_clear_device">Geçmiş bu cihazda temizlenir.</string>
+</resources>

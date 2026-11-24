@@ -33,6 +33,7 @@ internal val LocalVideoChannelNavigation = staticCompositionLocalOf<(Video) -> U
     val pins by remember { library.observe("pinned_channel") }.collectAsState(emptyList())
     val later by remember { library.observe(WATCH_LATER) }.collectAsState(emptyList())
     val hiddenVideos by remember { library.observe("hidden_video") }.collectAsState(emptyList())
+    val history by remember { library.observe(HISTORY) }.collectAsState(emptyList())
     val identity = selected.hiddenChannelIdentity(server)
     val videoIdentity = selected.sourceServer(server) + "|" + selected.apiId()
     val accounts by PeerTubeAccounts.get(context).state.collectAsState()
@@ -78,6 +79,13 @@ internal val LocalVideoChannelNavigation = staticCompositionLocalOf<(Video) -> U
                 onClose()
             })
             VideoMenuRow(uiText(if (hiddenVideos.any { it.identity == videoIdentity }) R.string.menu_recommend_video else R.string.menu_hide_video), onClick = { toggle("hidden_video", hiddenVideos, false) })
+            if (history.any { historyKey(it.identity) == historyKey(videoIdentity) }) VideoMenuRow(uiText(R.string.history_remove), onClick = {
+                scope.launch {
+                    try { HistorySync.get(context).remove(videoIdentity); onClose() }
+                    catch (cancelled: CancellationException) { throw cancelled }
+                    catch (_: Exception) { failed = true }
+                }
+            })
             if (identity != null) VideoMenuRow(uiText(if (hidden.any { it.identity == identity }) R.string.channel_show else R.string.menu_hide_channel), onClick = { toggle(HIDDEN_CHANNEL, hidden, true) })
             VideoMenuRow(uiText(R.string.menu_play_next), onClick = {
                 PlaybackQueue.next(selected.copy(host = selected.sourceServer(server)))

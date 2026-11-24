@@ -33,9 +33,13 @@ class PlaybackService : MediaSessionService() {
         val item = player.currentMediaItem ?: return
         if (player.playbackState == Player.STATE_ENDED) completedIdentity = item.mediaId
         else if (item.mediaId == completedIdentity && player.duration > 0 && player.currentPosition < player.duration - 1_000) completedIdentity = null
-        PlaybackPositions(this).save(item.mediaId, player.currentPosition, player.duration,
-            item.mediaMetadata.extras?.getBoolean("is_live") == true || player.isCurrentMediaItemLive,
-            player.playbackState == Player.STATE_ENDED)
+        val live = item.mediaMetadata.extras?.getBoolean("is_live") == true || player.isCurrentMediaItemLive
+        val ended = player.playbackState == Player.STATE_ENDED
+        PlaybackPositions(this).save(item.mediaId, player.currentPosition, player.duration, live, ended)
+        // The account history gets the same checkpoints; pauses and the end are sent at once.
+        if (!live) item.privatePlaybackData?.history?.takeIf { it.kind == HISTORY }?.let { row ->
+            HistorySync.get(this).report(row, player.currentPosition, force = ended || !player.isPlaying)
+        }
     }
     private val noisyReceiver = object : android.content.BroadcastReceiver() {
         override fun onReceive(context: android.content.Context?, intent: Intent?) {

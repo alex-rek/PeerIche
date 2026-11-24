@@ -116,7 +116,7 @@ class MainActivity : ComponentActivity() {
         // system bars without changing Compose's fullscreen state.
         if (hasFocus) applyPlayerSystemBars()
     }
-    override fun onStart() { super.onStart(); WatchLaterSync.get(this).requestSync() }
+    override fun onStart() { super.onStart(); WatchLaterSync.get(this).requestSync(); HistorySync.get(this).requestSync() }
     override fun onResume() { super.onResume(); pipSupport.onResume(); applyPlayerSystemBars() }
     override fun onUserLeaveHint() { super.onUserLeaveHint(); pipSupport.onUserLeaveHint() }
     @androidx.annotation.RequiresApi(26)
@@ -885,7 +885,9 @@ class MainActivity : ComponentActivity() {
                             youSection == YouSection.Favorites -> stringResource(R.string.favorites)
                             youSection == YouSection.Videos -> uiText(R.string.ui_your_videos_90d416)
                             else -> stringResource(R.string.history)
-                        }, onBack = ::backFromYou)
+                        }, onBack = ::backFromYou,
+                        action = if (youSection == YouSection.History && historyRows.isNotEmpty()) ({ ClearHistoryAction() }) else null)
+                    if (page == "You" && youSection == YouSection.History) LaunchedEffect(Unit) { HistorySync.get(context).requestSync() }
                     } }
                     val browsingFeed = page == "Server" || page == "Live"
                     val watchedIds = remember(historyRows, options.homeContent) { if (options.homeContent == "recommended") historyRows.map { it.identity.substringBefore('|') }.toSet() else emptySet() }

@@ -77,6 +77,18 @@ internal class AccountOperation private constructor(val method: String, val segm
             require(playlist > 0 && element > 0)
             return AccountOperation("DELETE", path("video-playlists", playlist.toString(), "videos", element.toString()), empty = true)
         }
+        /** Newest first; each video carries userHistory.currentTime in seconds. */
+        fun history(start: Int) = AccountOperation("GET", path("users", "me", "history", "videos"),
+            mapOf("start" to start.coerceAtLeast(0).toString(), "count" to "100"))
+        fun removeHistoryVideo(videoId: Long): AccountOperation {
+            require(videoId > 0)
+            return AccountOperation("DELETE", path("users", "me", "history", "videos", videoId.toString()), empty = true)
+        }
+        fun clearHistory(beforeDate: String) = AccountOperation("POST", path("users", "me", "history", "videos", "remove"),
+            body = JsonObject().apply { addProperty("beforeDate", beforeDate) }, empty = true)
+        /** A view with the position; for a signed-in user with history enabled it also updates the account history. */
+        fun view(uuid: String, seconds: Long) = AccountOperation("POST", path("videos", id(uuid), "views"),
+            body = JsonObject().apply { addProperty("currentTime", seconds.coerceAtLeast(0)) }, empty = true)
         fun comments(uuid: String, start: Int) = AccountOperation("GET", path("videos", id(uuid), "comment-threads"), mapOf("start" to start.coerceAtLeast(0).toString(), "count" to "20", "sort" to "-createdAt"))
         fun thread(uuid: String, thread: Int): AccountOperation {
             require(thread > 0)

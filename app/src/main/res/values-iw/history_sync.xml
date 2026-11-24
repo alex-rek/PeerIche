@@ -1,0 +1,7 @@
+<resources>
+    <string name="history_remove">הסרה מההיסטוריה</string>
+    <string name="history_clear">ניקוי ההיסטוריה</string>
+    <string name="history_clear_question">לנקות את כל ההיסטוריה?</string>
+    <string name="history_clear_account">ההיסטוריה תנוקה גם בחשבון PeerTube שלך בשרת.</string>
+    <string name="history_clear_device">ההיסטוריה תנוקה במכשיר הזה.</string>
+</resources>

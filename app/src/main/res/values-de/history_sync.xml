@@ -1,0 +1,7 @@
+<resources>
+    <string name="history_remove">Aus dem Verlauf entfernen</string>
+    <string name="history_clear">Verlauf löschen</string>
+    <string name="history_clear_question">Gesamten Verlauf löschen?</string>
+    <string name="history_clear_account">Der Verlauf wird auch in deinem PeerTube-Konto auf dem Server gelöscht.</string>
+    <string name="history_clear_device">Der Verlauf wird auf diesem Gerät gelöscht.</string>
+</resources>

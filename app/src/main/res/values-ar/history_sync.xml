@@ -1,0 +1,7 @@
+<resources>
+    <string name="history_remove">إزالة من السجل</string>
+    <string name="history_clear">مسح السجل</string>
+    <string name="history_clear_question">هل تريد مسح السجل بالكامل؟</string>
+    <string name="history_clear_account">سيُمسح السجل أيضًا في حسابك على PeerTube في الخادم.</string>
+    <string name="history_clear_device">سيُمسح السجل على هذا الجهاز.</string>
+</resources>

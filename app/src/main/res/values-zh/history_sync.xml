@@ -1,0 +1,7 @@
+<resources>
+    <string name="history_remove">从历史记录中移除</string>
+    <string name="history_clear">清除历史记录</string>
+    <string name="history_clear_question">清除全部历史记录？</string>
+    <string name="history_clear_account">服务器上 PeerTube 帐户中的历史记录也会被清除。</string>
+    <string name="history_clear_device">将清除此设备上的历史记录。</string>
+</resources>

@@ -43,6 +43,7 @@ data class SavedVideo(
     suspend fun trimKind(kind: String, keep: Int)
     @Query("UPDATE OR REPLACE saved_videos SET kind = :to WHERE kind = :from") suspend fun moveKind(from: String, to: String)
     @Query("SELECT DISTINCT kind FROM saved_videos WHERE kind LIKE :pattern") suspend fun kindsLike(pattern: String): List<String>
+    @Query("SELECT COUNT(*) FROM saved_videos WHERE kind = :kind AND identity = :identity") suspend fun count(identity: String, kind: String): Int
 }
 
 @Database(entities = [SavedVideo::class, WatchLaterSyncState::class, PlaylistLink::class, PlaylistElementState::class], version = 6, exportSchema = false)

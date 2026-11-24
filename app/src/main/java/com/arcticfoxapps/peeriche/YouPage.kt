@@ -15,6 +15,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.platform.LocalContext
 import coil.compose.AsyncImage
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -24,11 +25,28 @@ import androidx.compose.ui.unit.dp
 
 internal enum class YouSection { Menu, Channels, Favorites, History, Videos, Servers, Playlists }
 
-@Composable internal fun YouSectionHeader(title: String, onBack: () -> Unit) {
+@Composable internal fun YouSectionHeader(title: String, onBack: () -> Unit, action: (@Composable () -> Unit)? = null) {
     Row(Modifier.fillMaxWidth().heightIn(min = 56.dp).padding(horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {
         IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, uiText(R.string.ui_back_02b74f)) }
-        Text(title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+        Text(title, Modifier.weight(1f), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+        action?.invoke()
     }
+}
+
+/** "Clear history" with a confirmation that says whether the account history is cleared too. */
+@Composable internal fun ClearHistoryAction() {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val accounts by remember(context) { PeerTubeAccounts.get(context) }.state.collectAsState()
+    var confirm by remember { mutableStateOf(false) }
+    TextButton(onClick = { confirm = true }) { Text(uiText(R.string.history_clear)) }
+    if (confirm) AlertDialog(onDismissRequest = { confirm = false }, title = { Text(uiText(R.string.history_clear_question)) },
+        text = { Text(uiText(if (accounts.active?.needsLogin == false) R.string.history_clear_account else R.string.history_clear_device)) },
+        confirmButton = { TextButton(onClick = {
+            confirm = false
+            scope.launch { try { HistorySync.get(context).clear() } catch (cancelled: CancellationException) { throw cancelled } catch (_: Exception) { } }
+        }) { Text(uiText(R.string.history_clear)) } },
+        dismissButton = { TextButton(onClick = { confirm = false }) { Text(uiText(R.string.ui_cancel_28fb55)) } })
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
