@@ -79,11 +79,12 @@ private val CardSurface = Color(0xFF19232D)
 private val Orange = Color(0xFFFF744D)
 private val Mint = Color(0xFF65D8C4)
 
-private suspend fun fetchSubscribedVideos(rows: List<SavedVideo>): List<Video> = coroutineScope {
+private suspend fun fetchSubscribedVideos(rows: List<SavedVideo>, allowSensitive: Boolean): List<Video> = coroutineScope {
     val requests: List<Deferred<List<Video>>> = rows.take(20).mapNotNull { subscription ->
         val handle = subscription.channelName?.takeIf(String::isNotBlank) ?: return@mapNotNull null
         async<List<Video>> {
-            try { PeerTubeClients.server(subscription.server).channelVideos(handle).data }
+            // Without an explicit filter the channel's server applies its own default for sensitive videos.
+            try { PeerTubeClients.server(subscription.server).channelVideos(handle, nsfw = sensitiveContentFilter(allowSensitive)).data.withSensitivePolicy(allowSensitive) }
             catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled }
             catch (_: Exception) { emptyList() }
         }
@@ -298,12 +299,12 @@ class MainActivity : ComponentActivity() {
     val historyRows by remember(database) { database.library().observe("history") }.collectAsState(initial = emptyList())
     // "Up next" sources for the open video. Detailed metadata (tags, category) arrives after the first
     // tap, so the key includes whether tags are known and the list is fetched again once they are.
-    val relatedKey = selectedVideo?.let { "${it.sourceServer(server)}|${it.apiId()}|${it.tags != null}|${options.includeSensitive}" }
+    val relatedKey = selectedVideo?.let { "${it.sourceServer(server)}|${it.apiId()}|${it.tags != null}|${options.allowSensitive()}" }
     var relatedSources by remember { mutableStateOf<Pair<String, RelatedSources>?>(null) }
     LaunchedEffect(relatedKey) {
         val current = selectedVideo ?: return@LaunchedEffect
         if (relatedKey == null || current.apiId().isBlank() || relatedSources?.first == relatedKey) return@LaunchedEffect
-        relatedSources = relatedKey to loadRelatedSources(current, server, options.includeSensitive)
+        relatedSources = relatedKey to loadRelatedSources(current, server, options.allowSensitive())
     }
     /** Null while the open video's related videos are still loading, so the list does not jump. */
     fun upNext(current: Video): List<Video>? {
@@ -312,7 +313,7 @@ class MainActivity : ComponentActivity() {
             else relatedSources?.takeIf { it.first.startsWith("${current.sourceServer(server)}|${current.apiId()}|") }?.second ?: return null
         return mergeRelatedVideos(current, server, sources, recommendedVideos + homeVideos + subscriptionFeed,
             excluded = { it.sourceServer(server) + "|" + it.apiId() in hiddenVideos }, watched = { it.apiId() in watched }, limit = 60)
-            .withoutHiddenChannels(hiddenChannels + blockedChannels, server).take(20)
+            .withoutHiddenChannels(hiddenChannels + blockedChannels, server).withSensitivePolicy(options.allowSensitive()).take(20)
     }
     val subscriptionRows by remember(database) { database.library().observe("subscription") }.collectAsState(initial = emptyList())
     val effectiveSubscriptions = if (serverSubscriptions) accountSnapshot?.subscriptions.orEmpty().map { it.subscriptionRow(selectedAccount!!.server) } else subscriptionRows
@@ -353,15 +354,16 @@ class MainActivity : ComponentActivity() {
                 val history = database.library().getAll("history")
                 val savedSubscriptions = database.library().getAll("subscription")
                 val searchServers = availableServers.ifEmpty { listOf(server) }
-                val latestRequest = async { runCatching { PeerTubeClients.home(server, homeLanguages) } }
-                val popularRequest = async { runCatching { PeerTubeClients.popular(server, homeLanguages) } }
-                val subscriptionRequest = async { fetchSubscribedVideos(savedSubscriptions) }
+                val allowSensitive = options.allowSensitive()
+                val latestRequest = async { runCatching { PeerTubeClients.home(server, homeLanguages, allowSensitive) } }
+                val popularRequest = async { runCatching { PeerTubeClients.popular(server, homeLanguages, allowSensitive) } }
+                val subscriptionRequest = async { fetchSubscribedVideos(savedSubscriptions, allowSensitive) }
                 val terms = if (!options.historyRecommendations) emptyList()
                     else history.take(3).map { it.title.trim() }.filter(String::isNotBlank).distinct()
                 val recommendationRequest = async {
                     coroutineScope {
                         terms.map { term -> async {
-                            try { PeerTubeClients.searchPage(term, searchServers, 0).videos }
+                            try { PeerTubeClients.searchPage(term, searchServers, 0, allowSensitive).videos }
                             catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled }
                             catch (_: Exception) { emptyList() }
                         } }.awaitAll().flatten()
@@ -373,7 +375,8 @@ class MainActivity : ComponentActivity() {
                 subscriptionFeed = following
                 val historyIds = history.map { it.identity.substringBefore("|") }.toSet()
                 val followingIds = following.map { it.apiId() }.toSet()
-                val fromHistory = deduplicateVideos(recommendationRequest.await(), server)
+                // PeerSeek has no sensitive-content filter, so the rule is applied here as well.
+                val fromHistory = deduplicateVideos(recommendationRequest.await(), server).withSensitivePolicy(allowSensitive)
                     .filterNot { it.apiId() in historyIds || it.apiId() in followingIds }
                 recommendationsUseHistory = fromHistory.isNotEmpty()
                 recommendedVideos = fromHistory.ifEmpty {
@@ -402,8 +405,8 @@ class MainActivity : ComponentActivity() {
         browseUnsupported = false
         browseJob = scope.launch {
             try {
-                val response = if (destination == "Server") PeerTubeClients.serverPage(server, pageToLoad, options.includeSensitive)
-                    else PeerTubeClients.livePage(server, pageToLoad, options.includeSensitive)
+                val response = if (destination == "Server") PeerTubeClients.serverPage(server, pageToLoad, options.allowSensitive())
+                    else PeerTubeClients.livePage(server, pageToLoad, options.allowSensitive())
                 if (generation == browseGeneration) {
                     val previous = if (destination == "Server") serverVideos else liveVideos
                     val collected = if (pageToLoad == 0) response.videos else deduplicateVideos(previous + response.videos, server)
@@ -452,7 +455,7 @@ class MainActivity : ComponentActivity() {
         val start = if (append) accountFeedStart else 0
         accountFeedJob = scope.launch {
             try {
-                val response = accountLibrary.feed(owner.id, start, options.includeSensitive)
+                val response = accountLibrary.feed(owner.id, start, options.allowSensitive())
                 if (generation == accountFeedGeneration && accountManager.state.value.activeId == owner.id) {
                     accountFeed = if (append) deduplicateVideos(accountFeed + response.data, owner.server) else response.data
                     accountFeedStart = start + response.data.size
@@ -470,7 +473,7 @@ class MainActivity : ComponentActivity() {
         busy = true; error = null
         collectionJob = scope.launch {
             try {
-                val collected = fetchSubscribedVideos(rows)
+                val collected = fetchSubscribedVideos(rows, options.allowSensitive())
                 if (generation == collectionGeneration) videos = deduplicateVideos(collected, server)
             } finally { if (generation == collectionGeneration) busy = false }
         }
@@ -660,18 +663,18 @@ class MainActivity : ComponentActivity() {
         val current = selectedVideo
         if (current != null && endedVideo == current.sourceServer(server) + "|" + current.apiId()) closePlayer()
     }
-    LaunchedEffect(server, options.homeContent, options.homeInterests, options.homeInterestsEverywhere, options.homeServer, options.homeChannel, options.historyRecommendations, homeLanguages, proxyRevision) {
+    LaunchedEffect(server, options.homeContent, options.homeInterests, options.homeInterestsEverywhere, options.allowSensitive(), options.homeServer, options.homeChannel, options.historyRecommendations, homeLanguages, proxyRevision) {
         homeJob?.cancel(); homeJob?.join()
         if (page == "Home") loadHome() else if (page == "Search") searchNow()
     }
-    LaunchedEffect(page, serverSubscriptions, selectedAccount?.id, selectedAccount?.needsLogin, accountRevision, options.includeSensitive, server, proxyRevision) {
+    LaunchedEffect(page, serverSubscriptions, selectedAccount?.id, selectedAccount?.needsLogin, accountRevision, options.allowSensitive(), server, proxyRevision) {
         if (serverSubscriptions && page in listOf("Home", "Subscriptions")) loadAccountFeed()
         else {
             accountFeedGeneration++; accountFeedJob?.cancel(); accountFeedBusy = false
             if (page == "Subscriptions") loadSubscriptions()
         }
     }
-    LaunchedEffect(page, server, options.includeSensitive, proxyRevision) {
+    LaunchedEffect(page, server, options.allowSensitive(), proxyRevision) {
         browseGeneration++
         browseJob?.cancel()
         browseBusy = false
@@ -887,19 +890,20 @@ class MainActivity : ComponentActivity() {
                     val browsingFeed = page == "Server" || page == "Live"
                     val watchedIds = remember(historyRows, options.homeContent) { if (options.homeContent == "recommended") historyRows.map { it.identity.substringBefore('|') }.toSet() else emptySet() }
                     // Live and scheduled streams have their own "Live" tab, so Home shows only regular videos.
-                    fun List<Video>.forHome() = filterNot { it.isLive || it.apiId() in watchedIds }.withoutHiddenChannels(hiddenChannels + blockedChannels, server).filterNot { it.sourceServer(server) + "|" + it.apiId() in hiddenVideos }
+                    fun List<Video>.forHome() = withSensitivePolicy(options.allowSensitive()).filterNot { it.isLive || it.apiId() in watchedIds }.withoutHiddenChannels(hiddenChannels + blockedChannels, server).filterNot { it.sourceServer(server) + "|" + it.apiId() in hiddenVideos }
                     val homeFollowing = (if (options.homeContent != "recommended") emptyList() else if (serverSubscriptions) accountFeed else subscriptionFeed).forHome()
                     // Preferred video languages go first; subscriptions are kept as they are.
                     val homeRecommended = recommendedVideos.forHome().preferVideoLanguages(homeLanguages)
                     val homeRecent = homeVideos.forHome().let { if (options.homeContent == "channel") it else it.preferVideoLanguages(homeLanguages) }
+                    // Saved favourites and history are the user's own picks; every fetched feed follows the sensitive-content rule.
                     val visibleVideos = when (page) {
-                        "Server" -> serverVideos
-                        "Live" -> liveVideos
-                        "Subscriptions" -> if (serverSubscriptions) accountFeed else videos
+                        "Server" -> serverVideos.withSensitivePolicy(options.allowSensitive())
+                        "Live" -> liveVideos.withSensitivePolicy(options.allowSensitive())
+                        "Subscriptions" -> (if (serverSubscriptions) accountFeed else videos).withSensitivePolicy(options.allowSensitive())
                         "You" -> when (youSection) {
                             YouSection.Favorites -> favoriteRows.map(SavedVideo::toVideo)
                             YouSection.History -> historyRows.map(SavedVideo::toVideo)
-                            YouSection.Channels -> if (channelVideosMode) videos else emptyList()
+                            YouSection.Channels -> if (channelVideosMode) videos.withSensitivePolicy(options.allowSensitive()) else emptyList()
                             YouSection.Menu -> emptyList()
                             YouSection.Videos, YouSection.Servers, YouSection.Playlists -> emptyList()
                         }

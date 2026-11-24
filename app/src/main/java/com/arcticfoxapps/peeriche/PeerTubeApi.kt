@@ -209,13 +209,14 @@ object PeerTubeClients {
         if (found.isEmpty() && results.all { it.isFailure }) throw results.first().exceptionOrNull() ?: IllegalStateException("No search sources available")
         return deduplicateVideos(found, servers.firstOrNull().orEmpty())
     }
-    suspend fun searchPage(query: String, servers: List<String>, page: Int): SearchPage {
+    suspend fun searchPage(query: String, servers: List<String>, page: Int, sensitive: Boolean = false): SearchPage {
         val start = page.coerceAtLeast(0) * 30
+        val nsfw = sensitiveContentFilter(sensitive)
         val sources = listOf<suspend () -> Pair<List<Video>, Boolean>>(
-            { sepia.search(query, start = start).let { it.data to (start + it.data.size < it.total) } },
+            { sepia.search(query, start = start, nsfw = nsfw).let { it.data to (start + it.data.size < it.total) } },
             { peerSeek.search(query, page = page + 1).let { it.videos.mapNotNull(PeerSeekVideo::asVideo) to (it.total > (page + 1) * 30) } }
         ) + servers.take(5).map { host -> suspend {
-            server(host).search(query, start = start).let { it.data to (start + it.data.size < it.total) }
+            server(host).search(query, start = start, nsfw = nsfw).let { it.data to (start + it.data.size < it.total) }
         } }
         val semaphore = Semaphore(3)
         val results = coroutineScope {
@@ -228,7 +229,8 @@ object PeerTubeClients {
         val successful = results.filter { it.isSuccess }.mapNotNull { it.getOrNull() }
         val allVideos = successful.flatMap { it.first }
         if (allVideos.isEmpty() && successful.isEmpty()) throw results.firstOrNull()?.exceptionOrNull() ?: IllegalStateException("No search sources available")
-        return SearchPage(deduplicateVideos(allVideos, servers.firstOrNull().orEmpty()), successful.any { it.second })
+        // PeerSeek ignores the sensitive-content filter, so it is applied again here.
+        return SearchPage(deduplicateVideos(allVideos, servers.firstOrNull().orEmpty()).withSensitivePolicy(sensitive), successful.any { it.second })
     }
     internal suspend fun discoverAllHosts(): List<String> {
         val first = directory.hosts(0)
@@ -260,10 +262,10 @@ object PeerTubeClients {
                     .awaitAll().flatten()
             }
         }, SEPIA_ORIGIN).take(60)
-    suspend fun home(server: String, languages: Set<String> = emptySet()) =
-        languageFirst(server, languages) { server(server).videos(sort = "-publishedAt", count = 30, isLive = false, languages = it).data }
-    suspend fun popular(server: String, languages: Set<String> = emptySet()) =
-        languageFirst(server, languages) { server(server).videos(sort = "-views", count = 30, languages = it).data }
+    suspend fun home(server: String, languages: Set<String> = emptySet(), sensitive: Boolean = false) =
+        languageFirst(server, languages) { server(server).videos(sort = "-publishedAt", count = 30, isLive = false, nsfw = sensitiveContentFilter(sensitive), languages = it).data }
+    suspend fun popular(server: String, languages: Set<String> = emptySet(), sensitive: Boolean = false) =
+        languageFirst(server, languages) { server(server).videos(sort = "-views", count = 30, nsfw = sensitiveContentFilter(sensitive), languages = it).data }
     /**
      * With preferred languages, asks the server for those languages and, in parallel, for everything,
      * so a server with few such videos still fills Home. A failed language request falls back to the rest.

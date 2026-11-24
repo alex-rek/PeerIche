@@ -38,19 +38,19 @@ internal fun homeChannel(value: String): PeerTubeChannel {
 }
 
 internal suspend fun loadConfiguredHome(options: AppOptions, activeServer: String, languages: Set<String> = emptySet()): List<Video> = when (options.homeContent) {
-    "server" -> PeerTubeClients.serverPage(normalizeServer(options.homeServer), 0, options.includeSensitive).videos
+    "server" -> PeerTubeClients.serverPage(normalizeServer(options.homeServer), 0, options.allowSensitive()).videos
     "channel" -> homeChannel(options.homeChannel).let { channel ->
         val origin = "https://${channel.host}"
-        PeerTubeClients.server(origin).channelVideos(channel.name).data.filter { options.includeSensitive || !it.nsfw }.map { it.copy(host = it.host ?: channel.host) }
+        PeerTubeClients.server(origin).channelVideos(channel.name).data.filter { options.allowSensitive() || !it.nsfw }.map { it.copy(host = it.host ?: channel.host) }
     }
     "interests" -> {
         require(options.homeInterests.isNotEmpty())
-        if (!options.homeInterestsEverywhere) PeerTubeClients.interestVideos(activeServer, options.homeInterests, options.includeSensitive, languages)
+        if (!options.homeInterestsEverywhere) PeerTubeClients.interestVideos(activeServer, options.homeInterests, options.allowSensitive(), languages)
         else coroutineScope {
             suspend fun attempt(block: suspend () -> List<Video>): Result<List<Video>> =
                 try { Result.success(block()) } catch (cancelled: CancellationException) { throw cancelled } catch (error: Exception) { Result.failure(error) }
-            val local = async { attempt { PeerTubeClients.interestVideos(activeServer, options.homeInterests, options.includeSensitive, languages) } }
-            val global = async { attempt { PeerTubeClients.globalInterestVideos(options.homeInterests, options.includeSensitive, languages) } }
+            val local = async { attempt { PeerTubeClients.interestVideos(activeServer, options.homeInterests, options.allowSensitive(), languages) } }
+            val global = async { attempt { PeerTubeClients.globalInterestVideos(options.homeInterests, options.allowSensitive(), languages) } }
             mergeInterestSources(local.await(), global.await(), activeServer)
         }
     }
